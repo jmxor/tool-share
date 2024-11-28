@@ -1,3 +1,4 @@
+import Header from '@/components/header';
 import type { Metadata } from 'next';
 import './globals.css';
 
@@ -12,6 +13,7 @@ export default function RootLayout({ children }: Readonly<{
   return (
     <html lang="en">
     <body className="antialiased">
+    <Header/>
     {children}
     </body>
     </html>
