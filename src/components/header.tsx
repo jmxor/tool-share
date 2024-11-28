@@ -39,11 +39,11 @@ export default function Header() {
       </NavigationMenu>
 
       <div className="flex items-center gap-4">
-        <div className="flex">
+        <div className="flex rounded-md has-[:focus-visible]:ring-1 has-[:focus-visible]:ring-ring">
           <Input
             type="search"
             placeholder="Search tools..."
-            className="rounded-r-none border-r-0"
+            className="rounded-r-none border-r-0 focus-visible:ring-0"
           />
           <Button type="submit" variant="outline" className="rounded-l-none">
             Go
