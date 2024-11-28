@@ -24,7 +24,8 @@ export default function Header() {
     <header className="flex h-16 w-full items-center border-b px-4">
       <div className="mr-auto">Tool Share</div>
 
-      <NavigationMenu className="mr-4">
+      {/* Desktop Links*/}
+      <NavigationMenu className="mr-4 hidden lg:block">
         <NavigationMenuList>
           {navLinks.map((link) => (
             <NavigationMenuItem key={link.url}>
@@ -49,7 +50,9 @@ export default function Header() {
             Go
           </Button>
         </div>
-        <Button variant="outline">Log In</Button>
+        <Button variant="outline" asChild>
+          <Link href="/auth/login">Login</Link>
+        </Button>
       </div>
     </header>
   );
