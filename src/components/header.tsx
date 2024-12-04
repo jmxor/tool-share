@@ -15,14 +15,17 @@ interface NavLink {
 }
 
 const navLinks: NavLink[] = [
+  { label: "Home", url: "/"},
   { label: "View Tools", url: "/tools" },
   { label: "How it Works", url: "/about" },
 ];
 
 export default function Header() {
   return (
-    <header className="flex h-16 w-full items-center border-b px-4">
-      <div className="mr-auto">Tool Share</div>
+    <header className="flex h-16 w-full items-center border-b px-8">
+      <Link href="/" className="mr-auto text-xl">
+        Tool Share
+      </Link>
 
       <NavigationMenu className="mr-4">
         <NavigationMenuList>
