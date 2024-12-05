@@ -52,7 +52,9 @@ export default function Header() {
             Go
           </Button>
         </div>
-        <Button variant="outline">Log In</Button>
+        <Button variant="outline" asChild>
+          <Link href="/auth/login">Log In</Link>
+        </Button>
       </div>
     </header>
   );
