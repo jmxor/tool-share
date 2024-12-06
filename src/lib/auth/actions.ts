@@ -1,10 +1,10 @@
 "use server";
 
 import { z } from "zod";
-import { getConnection } from "@/db";
+import { getConnection } from "@/lib/db";
 import { registrationSchema } from "@/lib/zod";
 import { hashPassword } from "./utils";
-import { signIn } from "@/auth";
+import { signIn, signOut } from "@/auth";
 
 export async function registerUser(formData: FormData): Promise<string> {
     const data = Object.fromEntries(formData.entries());
@@ -51,22 +51,44 @@ export async function registerUser(formData: FormData): Promise<string> {
 }
 
 export async function signInUser(formData: FormData) {
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+    const email = formData.get("email");
+    const password = formData.get("password");
 
     try {
         const result = await signIn("credentials", {
-            redirect: false,
             email,
-            password
+            password,
+            redirect: false
         });
         
-        if (result?.error) {
-            return "Invalid credentials";
-        }
-    } catch {
-        return "Invalid credentials";
+        return result;
+    } catch (error) {
+        throw new Error("Invalid credentials.");
     }
+}
 
-    return "Success";
+export async function signOutUser() {
+    await signOut();
+}
+
+export async function getUserByEmail(email: string) {
+    try {
+        const query = `
+            SELECT username, email, created_at, user_privilege, is_suspended
+            FROM "user" 
+            WHERE email = $1
+            LIMIT 1
+        `;
+        const conn = await getConnection();
+        const result = await conn.query(query, [email]);
+    
+        if (!result.rows) {
+            return null;
+        }
+        const user = result.rows[0];
+        return user;
+    } catch 
+    {
+        return null;
+    }
 }

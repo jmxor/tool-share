@@ -1,3 +1,4 @@
+import { auth, signOut } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -8,6 +9,7 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import Link from "next/link";
+import AccountButton from "./account-button";
 
 interface NavLink {
   label: string;
@@ -20,7 +22,13 @@ const navLinks: NavLink[] = [
   { label: "How it Works", url: "/about" },
 ];
 
-export default function Header() {
+export default async function Header() {
+  const session = await auth();
+
+  async function handleLogOut() {
+    await signOut();
+  }
+
   return (
     <header className="flex h-16 w-full items-center border-b px-8">
       <Link href="/" className="mr-auto text-xl">
@@ -52,9 +60,13 @@ export default function Header() {
             Go
           </Button>
         </div>
-        <Button variant="outline" asChild>
-          <Link href="/auth/login">Log In</Link>
-        </Button>
+        { session?.user ? 
+            <AccountButton email={session?.user.email as string} />
+          :
+            <Button variant="outline" asChild>
+              <Link href="/auth/login">Log In</Link>
+            </Button>
+        }
       </div>
     </header>
   );

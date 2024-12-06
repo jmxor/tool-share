@@ -3,25 +3,35 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useActionState } from "react";
+import { useState } from "react";
 import { signInUser } from "@/lib/auth/actions";
-
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-    const [state, formAction, isPending] = useActionState(
-        handleLogIn,
-        undefined
-    )
+    const [error, setError] = useState("");
+    const router = useRouter();
 
-    async function handleLogIn(prevState: string | undefined, formData: FormData) {
-        const result = await signInUser(formData);
-        return result;
+    async function handleLogIn(event: React.FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        const formElement = event.currentTarget; 
+        try {
+            const formData = new FormData(formElement);
+            const result = await signInUser(formData);
+
+            if (!!result.error) {
+                setError("Invalid credentials.");
+            } else {
+                router.push('/');
+            }
+        } catch (error) {
+            setError("Invalid credentials.");
+        }
     }
 
     return (
         <div className="flex min-h-screen w-full justify-center bg-gray-50">
             <form 
-                action={formAction}
+                onSubmit={handleLogIn}
                 className="w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-md h-fit mt-20"
             >
                 <h2 className="text-center text-3xl font-bold text-gray-800">Log In</h2>
@@ -39,7 +49,7 @@ export default function LoginPage() {
                         Register
                     </Link>
                 </p>
-                { state && state !== "Success" ? <p className="text-red-400 flex justify-center text-sm">Invalid credentials.</p> : ""}
+                { error ? <p className="text-red-400 flex justify-center text-sm">{error}</p> : ""}
             </form>
         </div>
     );
