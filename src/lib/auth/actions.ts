@@ -50,6 +50,22 @@ export async function registerUser(formData: FormData): Promise<string> {
     }
 }
 
+export async function getUserFromPasswordAndEmail(password: string, email: string) {
+    try {
+        const conn = await getConnection();
+        const query = `
+        SELECT id, username, email, password_hash, created_at, user_privilege, is_suspended 
+        FROM "user"
+        WHERE email = $1
+        `
+        const result = await conn.query(query, [email]);
+    
+        return result;
+    } catch {
+        return null;
+    }
+}
+
 export async function signInUser(formData: FormData) {
     const email = formData.get("email");
     const password = formData.get("password");
