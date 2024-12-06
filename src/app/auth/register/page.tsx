@@ -1,12 +1,16 @@
 'use client';
 
+import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
+import { registerUser } from "@/lib/auth/actions";
+import { useRouter } from "next/navigation";
 
 export default function RegistrationPage() {
+    const router = useRouter()
+
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -33,11 +37,20 @@ export default function RegistrationPage() {
 
     async function handleSubmit(prevState: string | undefined, formData: FormData) {
         if (validateForm()) {
-            await new Promise(resolve => {
-                setTimeout(resolve, 2000);
-            });
-    
-            return "Submitted"
+            const res = await registerUser(formData);
+            
+            if (res === 'Username is already registered.') {
+                setUsername("");
+            }
+            if (res === 'Email is already registered.') {
+                setEmail("");
+            }
+
+            if (res === "Success") {
+                router.push('/auth/login');
+            }
+
+            return res;
         };
 
         setTouched({
@@ -112,6 +125,7 @@ export default function RegistrationPage() {
     }
 
     function handleBlur(field: string) {
+        validateForm();
         setTouched((prev) => ({ ...prev, [field]: true }));
     }
 
@@ -130,11 +144,12 @@ export default function RegistrationPage() {
                 <div className="space-y-4">
                     <div className="space-y-1">
                         <Input
+                            name="username"
                             type="text"
                             placeholder="Enter your username"
                             className="w-full"
                             value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            onChange={(e) => {setUsername(e.target.value);}}
                             onBlur={() => handleBlur("username")}
                         />
                         {touched.username && localErrors.username && (
@@ -144,6 +159,7 @@ export default function RegistrationPage() {
 
                     <div className="space-y-1">
                         <Input
+                            name="email"
                             type="email"
                             placeholder="Enter your email"
                             className="w-full"
@@ -158,6 +174,7 @@ export default function RegistrationPage() {
 
                     <div className="space-y-1">
                         <Input
+                            name="password"
                             type="password"
                             placeholder="Enter your password"
                             className="w-full"
@@ -172,6 +189,7 @@ export default function RegistrationPage() {
 
                     <div className="space-y-1">
                         <Input
+                            name="confirmPassword"
                             type="password"
                             placeholder="Confirm your password"
                             className="w-full"
@@ -186,7 +204,9 @@ export default function RegistrationPage() {
                     
                     <div className="space-y-1">
                         <label className="text-sm flex items-center gap-2 hover:cursor-pointer">
-                            <Checkbox 
+                            <Checkbox
+                                name="termsOfService"
+                                value="true"
                                 checked={termsOfService} 
                                 onCheckedChange={(checked: boolean) => {
                                     setTermsOfService(checked);
@@ -210,7 +230,7 @@ export default function RegistrationPage() {
                     <Button type="submit" className="w-full">
                         Register
                     </Button>
-                    { isPending ? <p>Submitting ...</p> : <p className={errorStyling}>{state}</p>}
+                    { isPending ? <p>Submitting ...</p> : <p className={state === 'Success' ? "text-green-500 w-full flex justify-center" : errorStyling}>{state}</p>}
                 </div>
                 <p className="text-center text-sm text-gray-500">
                     Already have an account?{" "}
