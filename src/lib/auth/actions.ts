@@ -5,6 +5,7 @@ import { getConnection } from "@/lib/db";
 import { registrationSchema } from "@/lib/zod";
 import { hashPassword } from "./utils";
 import { signIn, signOut } from "@/auth";
+import { User } from "../types";
 
 export async function registerUser(formData: FormData): Promise<string> {
     const data = Object.fromEntries(formData.entries());
@@ -102,7 +103,10 @@ export async function getUserByEmail(email: string) {
             return null;
         }
         const user = result.rows[0];
-        return user;
+        return {
+            ...user,
+            created_at: new Date(user.created_at),
+        } as User;
     } catch 
     {
         return null;

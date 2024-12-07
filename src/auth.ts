@@ -24,6 +24,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             if (!result) {
               throw new Error("Invalid credentials.");
             }
+
             const rows = result.rows;
             if (!rows ) {
               throw new Error("Invalid credentials.");
@@ -40,6 +41,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             };
             
             return sessionUser;
+            
           } catch (error) {
             if (error instanceof ZodError) {
               throw new Error("Invalid credentials.");

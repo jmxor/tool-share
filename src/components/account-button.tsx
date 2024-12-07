@@ -3,6 +3,7 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { User } from 'lucide-react';
 import { signOutUser } from "@/lib/auth/actions";
+import Link from "next/link";
 
 export default function AccountButton({ email }: {  email: string   }) {
     async function handleLogOut() {
@@ -18,7 +19,11 @@ export default function AccountButton({ email }: {  email: string   }) {
             <DropdownMenuContent>
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Account Settings</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link href='/auth/account'>
+                        Profile
+                    </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogOut}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
