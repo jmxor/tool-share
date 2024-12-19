@@ -112,3 +112,27 @@ export async function getUserByEmail(email: string) {
         return null;
     }
 }
+
+export async function updateUsername(userInfo: User, newUsername: string) {
+    // Return false if empty
+    if (!newUsername) {
+        return false;
+    }
+
+    try {
+        const query = `
+            UPDATE "user"
+            SET username = $1
+            WHERE email = $2
+            AND username = $3
+        `;
+
+        const conn = await getConnection();
+        await conn.query(query, [newUsername, userInfo.email, userInfo.username]);
+
+        return true
+
+    } catch (error) {
+        return false;
+    }
+}

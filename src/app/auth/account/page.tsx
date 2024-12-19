@@ -2,8 +2,8 @@ import { auth } from "@/auth";
 import { getUserByEmail } from "@/lib/auth/actions";
 import { redirect } from "next/navigation";
 import { Tabs, TabsList, TabsContent, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from "@/components/ui/input";
-import AccountInfo from "@/components/account-info";
+import AccountInfo from "@/components/accounts/account-info";
+import ChangePassword from "@/components/accounts/change-password";
 
 export default async function AccountPage() {
     const session = await auth();
@@ -21,16 +21,14 @@ export default async function AccountPage() {
             <Tabs defaultValue="account" className="w-[500px]">
                 <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="account">Account</TabsTrigger>
-                    <TabsTrigger value="password">Change Password</TabsTrigger>
+                    <TabsTrigger value="password">Password</TabsTrigger>
                     <TabsTrigger value="dangerous" className="text-red-400">Dangerous!</TabsTrigger>
                 </TabsList>
                 <TabsContent value="account">
-                    <AccountInfo userInfo={userInfo}>
-
-                    </AccountInfo>
+                    <AccountInfo userInfo={userInfo} />
                 </TabsContent>
                 <TabsContent value="password">
-
+                    <ChangePassword />
                 </TabsContent>
                 <TabsContent value="dangerous">
 

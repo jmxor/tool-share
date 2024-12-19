@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useActionState, useEffect, useState } from "react";
 import { registerUser } from "@/lib/auth/actions";
 import { useRouter } from "next/navigation";
+import { LocalErrors } from "@/lib/types";
 
 export default function RegistrationPage() {
     const router = useRouter()

@@ -9,7 +9,7 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import Link from "next/link";
-import AccountButton from "./account-button";
+import AccountButton from "@/components/accounts/account-button";
 
 interface NavLink {
   label: string;
@@ -24,10 +24,6 @@ const navLinks: NavLink[] = [
 
 export default async function Header() {
   const session = await auth();
-
-  async function handleLogOut() {
-    await signOut();
-  }
 
   return (
     <header className="flex h-16 w-full items-center border-b px-8">
