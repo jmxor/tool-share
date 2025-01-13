@@ -18,6 +18,7 @@ export interface NavLink {
 }
 
 const navLinks: NavLink[] = [
+  { label: "Home", url: "/"},
   { label: "View Tools", url: "/tools" },
   { label: "How it Works", url: "/about" },
 ];
@@ -30,7 +31,9 @@ export default function Header() {
           <SheetTrigger className="mr-2 lg:hidden">
             <MenuIcon />
           </SheetTrigger>
-          Tool Share
+          <Link href="/" className="mr-auto text-xl">
+            Tool Share
+          </Link>
         </div>
 
         <div className="flex items-center gap-4">
