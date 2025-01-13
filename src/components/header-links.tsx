@@ -1,3 +1,4 @@
+import { NavLink } from "@/components/header";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -6,11 +7,6 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import Link from "next/link";
-
-export interface NavLink {
-  label: string;
-  url: string;
-}
 
 export function HeaderLinks({ links }: { links: NavLink[] }) {
   return (
