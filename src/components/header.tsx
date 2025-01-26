@@ -1,3 +1,4 @@
+import { auth, signOut } from "@/auth";
 import { HeaderLinks } from "@/components/header-links";
 import HeaderSearch from "@/components/header-search";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import {
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { MenuIcon } from "lucide-react";
 import Link from "next/link";
+import AccountButton from "@/components/accounts/account-button";
 
 export interface NavLink {
   label: string;
@@ -18,12 +20,14 @@ export interface NavLink {
 }
 
 const navLinks: NavLink[] = [
-  { label: "Home", url: "/"},
+  { label: "Home", url: "/" },
   { label: "View Tools", url: "/tools" },
   { label: "How it Works", url: "/about" },
 ];
 
-export default function Header() {
+export default async function Header() {
+  const session = await auth();
+
   return (
     <header className="flex h-16 w-full items-center border-b px-4">
       <Sheet>
@@ -41,11 +45,15 @@ export default function Header() {
           <HeaderLinks links={navLinks} />
 
           <HeaderSearch />
-
-          <Button variant="outline" asChild>
-            <Link href="/auth/login">Login</Link>
-          </Button>
         </div>
+
+        {session?.user ?
+          <AccountButton email={session?.user.email as string} />
+          :
+          <Button variant="outline" asChild>
+            <Link href="/auth/login">Log In</Link>
+          </Button>
+        }
 
         {/* Mobile Links*/}
         <SheetContent side="left">
