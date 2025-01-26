@@ -1,9 +1,6 @@
-<<<<<<< HEAD
 import { auth, signOut } from "@/auth";
-=======
 import { HeaderLinks } from "@/components/header-links";
 import HeaderSearch from "@/components/header-search";
->>>>>>> origin/main
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -23,7 +20,7 @@ export interface NavLink {
 }
 
 const navLinks: NavLink[] = [
-  { label: "Home", url: "/"},
+  { label: "Home", url: "/" },
   { label: "View Tools", url: "/tools" },
   { label: "How it Works", url: "/about" },
 ];
@@ -48,21 +45,15 @@ export default async function Header() {
           <HeaderLinks links={navLinks} />
 
           <HeaderSearch />
-
-          <Button variant="outline" asChild>
-            <Link href="/auth/login">Login</Link>
-          </Button>
         </div>
-<<<<<<< HEAD
-        { session?.user ? 
-            <AccountButton email={session?.user.email as string} />
+
+        {session?.user ?
+          <AccountButton email={session?.user.email as string} />
           :
-            <Button variant="outline" asChild>
-              <Link href="/auth/login">Log In</Link>
-            </Button>
+          <Button variant="outline" asChild>
+            <Link href="/auth/login">Log In</Link>
+          </Button>
         }
-      </div>
-=======
 
         {/* Mobile Links*/}
         <SheetContent side="left">
@@ -85,7 +76,6 @@ export default async function Header() {
           </ul>
         </SheetContent>
       </Sheet>
->>>>>>> origin/main
     </header>
   );
 }
