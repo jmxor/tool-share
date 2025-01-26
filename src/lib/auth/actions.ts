@@ -6,10 +6,11 @@ import { registrationSchema } from "@/lib/zod";
 import { hashPassword } from "./utils";
 import { signIn, signOut } from "@/auth";
 import { User } from "../types";
+import { auth } from "@/auth";
 
 export async function registerUser(formData: FormData): Promise<string> {
     const data = Object.fromEntries(formData.entries());
-    
+
     try {
         const parsedData = registrationSchema.parse(data);
         const conn = await getConnection();
@@ -51,7 +52,7 @@ export async function registerUser(formData: FormData): Promise<string> {
     }
 }
 
-export async function getUserFromPasswordAndEmail(password: string, email: string) {
+export async function getUserRowFromEmail(email: string) {
     try {
         const conn = await getConnection();
         const query = `
@@ -60,7 +61,7 @@ export async function getUserFromPasswordAndEmail(password: string, email: strin
         WHERE email = $1
         `
         const result = await conn.query(query, [email]);
-    
+
         return result;
     } catch {
         return null;
@@ -77,15 +78,45 @@ export async function signInUser(formData: FormData) {
             password,
             redirect: false
         });
-        
+
         return result;
-    } catch (error) {
+    } catch {
         throw new Error("Invalid credentials.");
     }
 }
 
 export async function signOutUser() {
     await signOut();
+}
+
+export async function deleteAccount() {
+    try {
+        const session = await auth();
+
+        if (!session || !session.user || !session.user.email) {
+            return false;
+        }
+
+        const query = `
+            DELETE FROM "user"
+            WHERE email = $1
+        `
+
+        const conn = await getConnection();
+        const result = await conn.query(query, [session.user.email]);
+
+        if (result.rowCount === 0) {
+            console.error("Delete account query no response");
+            return false;
+        }
+
+        await signOut();
+        return true;
+
+    } catch (error) {
+        console.error("Delete account query error:", error);
+        return false;
+    }
 }
 
 export async function getUserByEmail(email: string) {
@@ -98,7 +129,7 @@ export async function getUserByEmail(email: string) {
         `;
         const conn = await getConnection();
         const result = await conn.query(query, [email]);
-    
+
         if (!result.rows) {
             return null;
         }
@@ -107,32 +138,74 @@ export async function getUserByEmail(email: string) {
             ...user,
             created_at: new Date(user.created_at),
         } as User;
-    } catch 
-    {
+    } catch {
         return null;
     }
 }
 
-export async function updateUsername(userInfo: User, newUsername: string) {
+export async function updateUsername(newUsername: string) {
     // Return false if empty
     if (!newUsername) {
         return false;
     }
 
     try {
+        const session = await auth();
+        if (!session || !session.user || !session.user.email) {
+            return false;
+        }
+
         const query = `
             UPDATE "user"
             SET username = $1
             WHERE email = $2
-            AND username = $3
         `;
 
         const conn = await getConnection();
-        await conn.query(query, [newUsername, userInfo.email, userInfo.username]);
+        await conn.query(query, [newUsername, session.user.email]);
 
         return true
 
+    } catch {
+        return false;
+    }
+}
+
+export async function setPassword(newPassword: string) {
+    if (!newPassword) {
+        console.log("No new password.");
+        return false;
+    }
+
+    try {
+        const session = await auth();
+        if (!session || !session.user || !session.user.email) {
+            return false;
+        }
+
+        // Update on database
+        const newHash = await hashPassword(newPassword);
+        console.log("Hashed Password:", newHash);
+        const email = session.user.email;
+
+        const query = `
+            UPDATE "user"
+            SET password_hash = $1
+            WHERE email = $2
+        `;
+
+        const conn = await getConnection();
+        console.log("Query Values:", [newHash, email]);
+        const result = await conn.query(query, [newHash, email]);
+
+        if (!result) {
+            return false;
+        }
+
+        return true;
+
     } catch (error) {
+        console.error("Error in setPassword:", error);
         return false;
     }
 }

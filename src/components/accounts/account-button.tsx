@@ -1,7 +1,7 @@
 "use client"
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User } from 'lucide-react';
+import { User, LogOut, FileUser } from 'lucide-react';
 import { signOutUser } from "@/lib/auth/actions";
 import Link from "next/link";
 
@@ -21,10 +21,11 @@ export default function AccountButton({ email }: {  email: string   }) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                     <Link href='/auth/account'>
-                        Profile
+                        <FileUser />
+                        Account Page
                     </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogOut}>Logout</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogOut}><LogOut/>Logout</DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     )
