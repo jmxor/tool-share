@@ -18,9 +18,15 @@ export type ToolState = {
 };
 
 export async function createTool(prevState: ToolState, formData: FormData) {
-  const data = Object.fromEntries(formData.entries());
-  console.log(data);
-  const validatedFields = CreateToolFormSchema.safeParse(data);
+  const validatedFields = CreateToolFormSchema.safeParse({
+    name: formData.get("name"),
+    description: formData.get("description"),
+    deposit: formData.get("deposit"),
+    max_borrow_days: formData.get("max_borrow_days"),
+    location: formData.get("location"),
+    images: formData.getAll("images"),
+    categories: formData.getAll("categories"),
+  });
 
   if (!validatedFields.success) {
     return {

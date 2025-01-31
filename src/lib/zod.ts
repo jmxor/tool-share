@@ -32,16 +32,19 @@ export const logInSchema = z.object({
 });
 
 export const CreateToolFormSchema = z.object({
-  name: z.string({ required_error: "Tool name is required." }),
-  description: z.string({ required_error: "Description is required." }),
+  name: z.string().min(1, "Name is required."),
+  description: z.string().min(1, "Description is required."),
   deposit: z
-    .number({ required_error: "Deposit is required" })
+    .number({ required_error: "Deposit is required", coerce: true })
     .positive("Deposit must not be negative."),
   max_borrow_days: z
-    .number({ required_error: "A Maximum borrow period is required" })
+    .number({
+      required_error: "A Maximum borrow period is required",
+      coerce: true,
+    })
     .positive("Maximum borrow period must be greater than 0")
     .int("Maximum borrow period must be a whole number"),
-  location: z.string({ required_error: "Location is required." }),
-  images: z.instanceof(File, { message: "At least one Image is required" }),
+  location: z.string().min(1, "Location is required."),
+  images: z.array(z.instanceof(File)).min(1, "At least one image is required."),
   categories: z.string().array().min(1),
 });

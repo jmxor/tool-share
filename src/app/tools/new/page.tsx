@@ -24,13 +24,8 @@ export default function NewToolPage() {
         </h2>
         <div className="space-y-4">
           <div className="grid w-full max-w-sm items-center gap-1.5">
-            <Label htmlFor="tool-name">Name</Label>
-            <Input
-              id="tool-name"
-              name="tool_name"
-              type="text"
-              className="w-full"
-            />
+            <Label htmlFor="name">Name*</Label>
+            <Input id="name" name="name" type="text" className="w-full" />
             {state.errors?.name &&
               state.errors.name.map((error: string) => (
                 <p className="px-2 text-sm text-red-500" key={error}>
@@ -40,7 +35,7 @@ export default function NewToolPage() {
           </div>
 
           <div className="grid w-full max-w-sm items-center gap-1.5">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Description*</Label>
             <Textarea id="description" name="description" className="w-full" />
             {state.errors?.description &&
               state.errors.description.map((error: string) => (
@@ -51,11 +46,12 @@ export default function NewToolPage() {
           </div>
 
           <div className="grid w-full max-w-sm items-center gap-1.5">
-            <Label htmlFor="deposit">Deposit</Label>
+            <Label htmlFor="deposit">Deposit*</Label>
             <Input
               id="deposit"
               name="deposit"
               type="number"
+              step="0.01"
               className="w-full"
             />
             {state.errors?.deposit &&
@@ -67,7 +63,7 @@ export default function NewToolPage() {
           </div>
 
           <div className="grid w-full max-w-sm items-center gap-1.5">
-            <Label htmlFor="max_borrow_days">Max Borrow Period (days)</Label>
+            <Label htmlFor="max_borrow_days">Max Borrow Period (days)*</Label>
             <Input
               id="max_borrow_days"
               name="max_borrow_days"
@@ -83,7 +79,7 @@ export default function NewToolPage() {
           </div>
 
           <div className="grid w-full max-w-sm items-center gap-1.5">
-            <Label htmlFor="location">Location (postcode)</Label>
+            <Label htmlFor="location">Location (postcode)*</Label>
             <Input
               id="location"
               name="location"
@@ -99,11 +95,12 @@ export default function NewToolPage() {
           </div>
 
           <div className="grid w-full max-w-sm items-center gap-1.5">
-            <Label htmlFor="images">Images</Label>
+            <Label htmlFor="images">Images*</Label>
             <Input
               id="images"
               name="images"
               type="file"
+              accept="image/*"
               className="w-full"
               multiple
             />
@@ -138,11 +135,6 @@ export default function NewToolPage() {
         <Button type="submit" className="w-full">
           Share
         </Button>
-        {/*{error ? (*/}
-        {/*  <p className="flex justify-center text-sm text-red-400">{error}</p>*/}
-        {/*) : (*/}
-        {/*  ""*/}
-        {/*)}*/}
       </form>
     </div>
   );
