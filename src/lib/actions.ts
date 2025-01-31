@@ -15,23 +15,23 @@ export type ToolState = {
     categories?: string[];
   };
   message?: string | null;
+  fields?: Record<string, string>;
 };
 
-export async function createTool(prevState: ToolState, formData: FormData) {
-  const validatedFields = CreateToolFormSchema.safeParse({
-    name: formData.get("name"),
-    description: formData.get("description"),
-    deposit: formData.get("deposit"),
-    max_borrow_days: formData.get("max_borrow_days"),
-    location: formData.get("location"),
-    images: formData.getAll("images"),
-    categories: formData.getAll("categories"),
-  });
+export async function createTool(
+  prevState: ToolState,
+  formData: FormData,
+): Promise<ToolState> {
+  const data = Object.fromEntries(formData);
+  const validatedFields = CreateToolFormSchema.safeParse(data);
 
   if (!validatedFields.success) {
+    console.log(formData);
+    console.log(validatedFields.error.flatten().fieldErrors);
     return {
       errors: validatedFields.error?.flatten().fieldErrors,
       message: "Missing fields, failed to create Tool.",
+      fields: validatedFields.data,
     };
   }
 
