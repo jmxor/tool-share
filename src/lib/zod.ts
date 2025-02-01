@@ -46,6 +46,11 @@ export const CreateToolFormSchema = z.object({
     .positive("Max Borrow Period must be greater than 0.")
     .int("Max Borrow Period must be a whole number"),
   location: z.string().min(1, "Location is required."),
-  images: z.string().min(1, "An Image is required."),
+  images:
+    typeof window === "undefined"
+      ? z.any()
+      : z
+          .instanceof(FileList, { message: "An image is required." })
+          .refine((files) => files?.[0]?.name != "", "An image is required"),
   categories: z.string(),
 });

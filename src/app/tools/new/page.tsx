@@ -43,6 +43,7 @@ export default function NewToolPage() {
   });
 
   const formRef = useRef<HTMLFormElement>(null);
+  const fileRef = form.register("images");
 
   return (
     <div className="mb-auto flex w-full flex-1 justify-center bg-gray-50">
@@ -127,7 +128,6 @@ export default function NewToolPage() {
               )}
             />
 
-            {/* TODO create custom images input field*/}
             <FormField
               control={form.control}
               name="images"
@@ -135,7 +135,7 @@ export default function NewToolPage() {
                 <FormItem>
                   <FormLabel>Images*</FormLabel>
                   <FormControl>
-                    <Input {...field} type="file" accept="image/*" />
+                    <Input type="file" accept="image/*" multiple {...fileRef} />
                   </FormControl>
                   <FormMessage>{state.errors?.images}</FormMessage>
                 </FormItem>

@@ -22,7 +22,11 @@ export async function createTool(
   prevState: ToolState,
   formData: FormData,
 ): Promise<ToolState> {
-  const data = Object.fromEntries(formData);
+  const data = {
+    ...Object.fromEntries(formData),
+    images: formData.getAll("images"),
+  };
+
   const validatedFields = CreateToolFormSchema.safeParse(data);
 
   if (!validatedFields.success) {
@@ -36,6 +40,7 @@ export async function createTool(
   }
 
   try {
+    console.log(formData);
     console.log(validatedFields.data);
   } catch (error) {
     return {
