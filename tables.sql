@@ -21,21 +21,7 @@ WHERE first_username IS NULL;
 
 ALTER TABLE "user"
 ALTER COLUMN first_username SET NOT NULL;
-
-CREATE OR REPLACE FUNCTION prevent_first_username_change()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF OLD.first_username IS DISTINCT FROM NEW.first_username THEN
-        RAISE EXCEPTION 'first_username cannot be changed';
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER enforce_first_username_static
-BEFORE UPDATE ON "user"
-FOR EACH ROW
-EXECUTE FUNCTION prevent_first_username_change();
+--
 
 CREATE TABLE IF NOT EXISTS direct_message (
     id SERIAL PRIMARY KEY,
