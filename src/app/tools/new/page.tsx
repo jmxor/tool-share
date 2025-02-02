@@ -52,9 +52,9 @@ export default function NewToolPage() {
           ref={formRef}
           onSubmit={form.handleSubmit(() => formRef.current?.submit())}
           action={formAction}
-          className="mb-20 mt-4 h-fit w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-md lg:mt-20"
+          className="my-4 h-fit w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-md"
         >
-          <h2 className="text-center text-3xl font-bold text-gray-800">
+          <h2 className="mt-0 text-center text-3xl font-bold text-gray-800">
             Share a new Tool
           </h2>
           <div className="space-y-2">
