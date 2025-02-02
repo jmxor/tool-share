@@ -46,13 +46,13 @@ export default function NewToolPage() {
   const fileRef = form.register("images");
 
   return (
-    <div className="mb-auto flex w-full flex-1 justify-center bg-gray-50">
+    <div className="mb-auto flex w-full flex-1 justify-center bg-gray-50 px-4">
       <Form {...form}>
         <form
           ref={formRef}
           onSubmit={form.handleSubmit(() => formRef.current?.submit())}
           action={formAction}
-          className="mb-20 mt-20 h-fit w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-md"
+          className="mb-20 mt-4 h-fit w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-md lg:mt-20"
         >
           <h2 className="text-center text-3xl font-bold text-gray-800">
             Share a new Tool
