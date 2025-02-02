@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS "user" (
     id SERIAL PRIMARY KEY,
     username VARCHAR(256) NOT NULL,
-    first_username VARCHAR(256) NULL, -- This is for public account url purposes, so it won't change
+    first_username VARCHAR(256) UNIQUE NOT NULL, -- This is for public account url purposes, so it won't change
     email VARCHAR(256) NOT NULL,
     password_hash VARCHAR(256) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -11,9 +11,9 @@ CREATE TABLE IF NOT EXISTS "user" (
     CONSTRAINT unique_email UNIQUE (email)
 );
 
--- Migration Schema used for adding the first_username field
+-- Migration Schema used for adding the first_username field from the initial schema, above is the final resulting schema
 ALTER TABLE "user"
-ADD COLUMN first_username VARCHAR(256) NULL;
+ADD COLUMN first_username VARCHAR(256) UNIQUE NULL;
 
 UPDATE "user"
 SET first_username = username
