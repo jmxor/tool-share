@@ -29,7 +29,7 @@ export default function UsernameForm({ userInfo }: { userInfo: User }) {
             className="bg-gray-100 p-4 rounded-lg"
             onSubmit={handleSubmit}
         >
-            <h2 className="font-medium text-lg mb-2">Change Username</h2>
+            <h2 className="font-medium text-lg mb-2">Change Display Name</h2>
             <div className="flex flex-col">
                 <span className="flex gap-2">
                     <Input
@@ -37,17 +37,17 @@ export default function UsernameForm({ userInfo }: { userInfo: User }) {
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         type="text"
-                        placeholder="New Username"
+                        placeholder="New Display Name"
                         className="w-full bg-white" />
                     <Button type="submit" className="w-fit" disabled={inputValue == userInfo.username}>Update</Button>
                 </span>
                 {error == "Failed" ? (
                     <p className="text-red-400 text-center mt-2">
-                        That username is unavailable. Try a different one.
+                        That display name is unavailable. Try a different one.
                     </p>
                 ) : error == "Success" ? (
                     <p className="text-green-400 font-medium text-center mt-2">
-                        Username updated!
+                        Display name updated!
                     </p>
                 ) : ""}
             </div>

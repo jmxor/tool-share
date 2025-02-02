@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS "user" (
     id SERIAL PRIMARY KEY,
     username VARCHAR(256) NOT NULL,
+    first_username VARCHAR(256) NULL, -- This is for public account url purposes, so it won't change
     email VARCHAR(256) NOT NULL,
     password_hash VARCHAR(256) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -9,6 +10,32 @@ CREATE TABLE IF NOT EXISTS "user" (
     CONSTRAINT unique_username UNIQUE (username),
     CONSTRAINT unique_email UNIQUE (email)
 );
+
+-- Migration Schema used for adding the first_username field
+ALTER TABLE "user"
+ADD COLUMN first_username VARCHAR(256) NULL;
+
+UPDATE "user"
+SET first_username = username
+WHERE first_username IS NULL;
+
+ALTER TABLE "user"
+ALTER COLUMN first_username SET NOT NULL;
+
+CREATE OR REPLACE FUNCTION prevent_first_username_change()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.first_username IS DISTINCT FROM NEW.first_username THEN
+        RAISE EXCEPTION 'first_username cannot be changed';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER enforce_first_username_static
+BEFORE UPDATE ON "user"
+FOR EACH ROW
+EXECUTE FUNCTION prevent_first_username_change();
 
 CREATE TABLE IF NOT EXISTS direct_message (
     id SERIAL PRIMARY KEY,
