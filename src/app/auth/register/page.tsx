@@ -39,7 +39,7 @@ export default function RegistrationPage() {
     async function handleSubmit(prevState: string | undefined, formData: FormData) {
         if (validateForm()) {
             const res = await registerUser(formData);
-            
+
             if (res === 'Username is already registered.') {
                 setUsername("");
             }
@@ -61,7 +61,7 @@ export default function RegistrationPage() {
             confirmPassword: true,
             termsOfService: true,
         });
-        
+
         return "There is missing or incorrect data in the form.";
     }
 
@@ -81,7 +81,7 @@ export default function RegistrationPage() {
         };
 
         let valid = true;
-    
+
         if (!username) {
             errors.username = 'Username is required';
             valid = false;
@@ -92,7 +92,7 @@ export default function RegistrationPage() {
             errors.username = 'Username can only contain letters and numbers.';
             valid = false;
         }
-    
+
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!email) {
             errors.email = 'Email is required';
@@ -101,7 +101,7 @@ export default function RegistrationPage() {
             errors.email = 'Please enter a valid email address.';
             valid = false;
         }
-    
+
         if (!password) {
             errors.password = 'Password is required';
             valid = false;
@@ -109,17 +109,17 @@ export default function RegistrationPage() {
             errors.password = 'Password must be at least 8 characters long.';
             valid = false;
         }
-    
+
         if (!confirmPassword || confirmPassword !== password) {
             errors.confirmPassword = 'Passwords do not match.';
             valid = false;
         }
-    
+
         if (!termsOfService) {
             errors.termsOfService = 'You must accept the terms of service to register.';
             valid = false;
         }
-    
+
         setLocalErrors(errors);
 
         return valid;
@@ -147,10 +147,10 @@ export default function RegistrationPage() {
                         <Input
                             name="username"
                             type="text"
-                            placeholder="Enter your username"
+                            placeholder="Enter your Display Name"
                             className="w-full"
                             value={username}
-                            onChange={(e) => {setUsername(e.target.value);}}
+                            onChange={(e) => { setUsername(e.target.value); }}
                             onBlur={() => handleBlur("username")}
                         />
                         {touched.username && localErrors.username && (
@@ -202,17 +202,17 @@ export default function RegistrationPage() {
                             <p className={errorStyling}>{localErrors.confirmPassword}</p>
                         )}
                     </div>
-                    
+
                     <div className="space-y-1">
                         <label className="text-sm flex items-center gap-2 hover:cursor-pointer">
                             <Checkbox
                                 name="termsOfService"
                                 value="true"
-                                checked={termsOfService} 
+                                checked={termsOfService}
                                 onCheckedChange={(checked: boolean) => {
                                     setTermsOfService(checked);
                                     handleBlur("termsOfService");
-                                }} 
+                                }}
                             />
                             <p>
                                 Accept{" "}
@@ -231,7 +231,7 @@ export default function RegistrationPage() {
                     <Button type="submit" className="w-full">
                         Register
                     </Button>
-                    { isPending ? <p>Submitting ...</p> : <p className={state === 'Success' ? "text-green-500 w-full flex justify-center" : errorStyling}>{state}</p>}
+                    {isPending ? <p>Submitting ...</p> : <p className={state === 'Success' ? "text-green-500 w-full flex justify-center" : errorStyling}>{state}</p>}
                 </div>
                 <p className="text-center text-sm text-gray-500">
                     Already have an account?{" "}

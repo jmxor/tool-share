@@ -16,9 +16,9 @@ export async function registerUser(formData: FormData): Promise<string> {
         const conn = await getConnection();
 
         const checkQuery = `
-            SELECT username, email 
+            SELECT id,
             FROM "user" 
-            WHERE username = $1 OR email = $2
+            WHERE first_username = $1 OR email = $2
             LIMIT 1
         `;
         const result = await conn.query(checkQuery, [parsedData.username, parsedData.email]);
@@ -26,7 +26,7 @@ export async function registerUser(formData: FormData): Promise<string> {
         if (result.rowCount !== null && result.rowCount > 0) {
             const row = result.rows[0];
             if (row.username === parsedData.username) {
-                return "Username is already registered.";
+                return "Display name is already registered.";
             }
             if (row.email === parsedData.email) {
                 return "Email is already registered.";
@@ -34,11 +34,11 @@ export async function registerUser(formData: FormData): Promise<string> {
         }
 
         const insertQuery = `
-            INSERT INTO "user" (username, email, password_hash, user_privilege) 
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO "user" (username, first_username, email, password_hash, user_privilege) 
+            VALUES ($1, $2, $3, $4, $5)
         `;
         const hashedPassword = await hashPassword(parsedData.password);
-        await conn.query(insertQuery, [parsedData.username, parsedData.email, hashedPassword, "user"]);
+        await conn.query(insertQuery, [parsedData.username, parsedData.username.toLowerCase(), parsedData.email, hashedPassword, "user"]);
 
         return "Success";
     } catch (error) {
