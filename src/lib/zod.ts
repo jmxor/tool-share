@@ -36,21 +36,24 @@ export const CreateToolFormSchema = z.object({
   description: z.string().min(1, "Description is required."),
   deposit: z
     .number({ required_error: "Deposit is required.", coerce: true })
-    .positive("Deposit must be greater than 0.")
-    .multipleOf(0.01, "Deposit can only have 2 decimal places."),
+    .positive("Must be greater than 0.")
+    .multipleOf(0.01, "Max 2 decimal places."),
   max_borrow_days: z
     .number({
-      required_error: "A Maximum borrow period is required",
+      required_error: "Borrow limit is required",
       coerce: true,
     })
-    .positive("Max Borrow Period must be greater than 0.")
-    .int("Max Borrow Period must be a whole number"),
+    .positive("Must be greater than 0.")
+    .int("Must be a whole number"),
   location: z.string().min(1, "Location is required."),
   images:
     typeof window === "undefined"
       ? z.any()
       : z
-          .instanceof(FileList, { message: "An image is required." })
-          .refine((files) => files?.[0]?.name != "", "An image is required"),
-  categories: z.string(),
+          .instanceof(FileList, { message: "At least 1 image is required." })
+          .refine(
+            (files) => files?.[0]?.name != "",
+            "At least 1 image is required",
+          ),
+  categories: z.string().min(1, "At least 1 category is required."),
 });
