@@ -13,7 +13,7 @@ export default function LoginPage() {
 
     async function handleLogIn(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        const formElement = event.currentTarget; 
+        const formElement = event.currentTarget;
         try {
             const formData = new FormData(formElement);
             const result = await signInUser(formData);
@@ -23,14 +23,14 @@ export default function LoginPage() {
             } else {
                 router.push('/');
             }
-        } catch (error) {
+        } catch {
             setError("Invalid credentials.");
         }
     }
 
     return (
         <div className="flex min-h-screen w-full justify-center bg-gray-50">
-            <form 
+            <form
                 onSubmit={handleLogIn}
                 className="w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-md h-fit mt-20"
             >
@@ -44,12 +44,12 @@ export default function LoginPage() {
                 </div>
                 <Button type="submit" className="w-full">Log In</Button>
                 <p className="text-center text-sm text-gray-500">
-                    Don't have an account?{" "}
+                    Dont have an account?{' '}
                     <Link href="/auth/register" className="text-blue-600 hover:underline">
                         Register
                     </Link>
                 </p>
-                { error ? <p className="text-red-400 flex justify-center text-sm">{error}</p> : ""}
+                {error ? <p className="text-red-400 flex justify-center text-sm">{error}</p> : ""}
             </form>
         </div>
     );

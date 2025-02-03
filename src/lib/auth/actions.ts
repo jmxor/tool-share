@@ -16,21 +16,16 @@ export async function registerUser(formData: FormData): Promise<string> {
         const conn = await getConnection();
 
         const checkQuery = `
-            SELECT id,
-            FROM "user" 
+            SELECT id
+            FROM "user"
             WHERE first_username = $1 OR email = $2
             LIMIT 1
         `;
-        const result = await conn.query(checkQuery, [parsedData.username, parsedData.email]);
+        const result = await conn.query(checkQuery, [parsedData.username.toLowerCase().replace(/\s+/g, ''), parsedData.email]);
+        console.log(`Found this many users with same first_username: ${result.rowCount}`);
 
         if (result.rowCount !== null && result.rowCount > 0) {
-            const row = result.rows[0];
-            if (row.username === parsedData.username) {
-                return "Display name is already registered.";
-            }
-            if (row.email === parsedData.email) {
-                return "Email is already registered.";
-            }
+            return "Username or email is already registered.";
         }
 
         const insertQuery = `
@@ -38,7 +33,7 @@ export async function registerUser(formData: FormData): Promise<string> {
             VALUES ($1, $2, $3, $4, $5)
         `;
         const hashedPassword = await hashPassword(parsedData.password);
-        await conn.query(insertQuery, [parsedData.username, parsedData.username.toLowerCase(), parsedData.email, hashedPassword, "user"]);
+        await conn.query(insertQuery, [parsedData.username, parsedData.username.toLowerCase().replace(/\s+/g, ''), parsedData.email, hashedPassword, "user"]);
 
         return "Success";
     } catch (error) {
