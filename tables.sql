@@ -16,7 +16,7 @@ ALTER TABLE "user"
 ADD COLUMN first_username VARCHAR(256) UNIQUE NULL;
 
 UPDATE "user"
-SET first_username = username
+SET first_username = lower(replace(username, ' ', ''))
 WHERE first_username IS NULL;
 
 ALTER TABLE "user"
