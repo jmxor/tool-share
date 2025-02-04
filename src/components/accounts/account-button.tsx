@@ -5,7 +5,7 @@ import { User, LogOut, FileUser } from 'lucide-react';
 import { signOutUser } from "@/lib/auth/actions";
 import Link from "next/link";
 
-export default function AccountButton({ email }: {  email: string   }) {
+export default function AccountButton({ email }: { email: string }) {
     async function handleLogOut() {
         await signOutUser();
     }
@@ -14,7 +14,7 @@ export default function AccountButton({ email }: {  email: string   }) {
         <DropdownMenu>
             <DropdownMenuTrigger className="text-sm flex justify-center gap-2 p-2 rounded-md hover:bg-neutral-100">
                 <User />
-                <p>{email}</p>
+                <p className="hidden lg:inline">{email}</p>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
@@ -25,7 +25,7 @@ export default function AccountButton({ email }: {  email: string   }) {
                         Account Page
                     </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogOut}><LogOut/>Logout</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogOut}><LogOut />Logout</DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     )

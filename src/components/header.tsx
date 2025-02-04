@@ -1,4 +1,4 @@
-import { auth, signOut } from "@/auth";
+import { auth } from "@/auth";
 import { HeaderLinks } from "@/components/header-links";
 import HeaderSearch from "@/components/header-search";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,7 @@ export default async function Header() {
           <SheetTrigger className="mr-2 lg:hidden">
             <MenuIcon />
           </SheetTrigger>
-          <Link href="/" className="mr-auto text-xl">
+          <Link href="/" className="mr-auto text-xl hidden sm:inline">
             Tool Share
           </Link>
         </div>
