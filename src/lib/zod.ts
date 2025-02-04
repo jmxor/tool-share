@@ -1,6 +1,18 @@
 import { z } from "zod";
 
-export const registrationSchema = z
+export const LoginFormSchema = z.object({
+  email: z
+    .string({ required_error: "Email is a required field." })
+    .min(1, "Email is a required field.")
+    .email("Provided email is invalid."),
+  password: z
+    .string({ required_error: "Password is required." })
+    .min(1, "Password is required")
+    .min(8, "Password must be between 8 and 32 characters long.")
+    .max(32, "Password must be less than 32 characters."),
+});
+
+export const RegisterFormSchema = z
   .object({
     username: z
       .string()
@@ -18,18 +30,6 @@ export const registrationSchema = z
     message: "Passwords do not match.",
     path: ["confirmPassword"],
   });
-
-export const logInSchema = z.object({
-  email: z
-    .string({ required_error: "Email is required." })
-    .min(1, "Email is required")
-    .email("Invalid email"),
-  password: z
-    .string({ required_error: "Password is required." })
-    .min(1, "Password is required")
-    .min(8, "Password must be more than 8 characters.")
-    .max(32, "Password must be less than 32 characters."),
-});
 
 export const CreateToolFormSchema = z.object({
   name: z.string().min(1, "Name is required."),
@@ -50,10 +50,10 @@ export const CreateToolFormSchema = z.object({
     typeof window === "undefined"
       ? z.any()
       : z
-          .instanceof(FileList, { message: "At least 1 image is required." })
-          .refine(
-            (files) => files?.[0]?.name != "",
-            "At least 1 image is required",
-          ),
+        .instanceof(FileList, { message: "At least 1 image is required." })
+        .refine(
+          (files) => files?.[0]?.name != "",
+          "At least 1 image is required",
+        ),
   categories: z.string().min(1, "At least 1 category is required."),
 });
