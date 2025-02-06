@@ -55,5 +55,11 @@ export const CreateToolFormSchema = z.object({
             (files) => files?.[0]?.name != "",
             "At least 1 image is required",
           ),
-  categories: z.string().min(1, "At least 1 category is required."),
+  categories: z.union([
+    z.string().array().min(1, "At least 1 category is required."),
+    z
+      .string()
+      .min(1, "At least 1 category is required.")
+      .transform((str) => str.split(",")),
+  ]),
 });

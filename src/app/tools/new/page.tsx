@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Command,
   CommandEmpty,
@@ -28,7 +29,7 @@ import { createTool, ToolState } from "@/lib/actions";
 import { cn } from "@/lib/utils";
 import { CreateToolFormSchema } from "@/lib/zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useActionState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -59,11 +60,11 @@ export default function NewToolPage() {
     defaultValues: {
       name: "",
       description: "",
-      deposit: 0,
-      max_borrow_days: 0,
+      deposit: 1.0,
+      max_borrow_days: 1,
       location: "",
       images: "",
-      categories: "",
+      categories: [],
       ...(state?.fields ?? {}),
     },
     mode: "onTouched",
@@ -184,43 +185,53 @@ export default function NewToolPage() {
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "w-[200px] justify-between",
+                            "w-full justify-between",
                             !field.value && "text-muted-foreground",
                           )}
                         >
-                          {field.value ? field.value : "Select categories"}
+                          {field.value.length > 0
+                            ? field.value.join(", ")
+                            : "Select categories"}
                           <ChevronDown className="opacity-50" />
                           <Input {...field} type="hidden" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[200px] p-0">
+                    <PopoverContent className="w-full p-0">
                       <Command>
                         <CommandInput
-                          placeholder="Search framework..."
+                          placeholder="Search categories..."
                           className="h-9"
                         />
                         <CommandList>
-                          <CommandEmpty>No framework found.</CommandEmpty>
+                          <CommandEmpty>No category found.</CommandEmpty>
                           <CommandGroup>
                             {categories.map((category) => (
                               <CommandItem
                                 value={category.value}
                                 key={category.id}
-                                onSelect={() => {
-                                  form.setValue("categories", category.value);
-                                  form.clearErrors("categories");
-                                }}
                               >
-                                {category.value}
-                                <Check
-                                  className={cn(
-                                    "ml-auto",
-                                    category.value === field.value
-                                      ? "opacity-100"
-                                      : "opacity-0",
-                                  )}
+                                <Checkbox
+                                  checked={field.value.includes(category.value)}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      form.setValue("categories", [
+                                        ...field.value,
+                                        category.value,
+                                      ]);
+                                      form.clearErrors("categories");
+                                    } else {
+                                      // TODO: update errors on unselect
+                                      form.setValue(
+                                        "categories",
+                                        field.value.filter(
+                                          (cat) => cat !== category.value,
+                                        ),
+                                      );
+                                    }
+                                  }}
                                 />
+                                {category.value}
                               </CommandItem>
                             ))}
                           </CommandGroup>
