@@ -2,6 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
   Form,
   FormControl,
   FormField,
@@ -10,15 +18,34 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { createTool, ToolState } from "@/lib/actions";
+import { cn } from "@/lib/utils";
 import { CreateToolFormSchema } from "@/lib/zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Check, ChevronDown } from "lucide-react";
 import { useActionState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 export default function NewToolPage() {
+  // TODO: request categories from database using server action
+  type Category = {
+    id: number;
+    value: string;
+  };
+  const categories: Category[] = [
+    { id: 0, value: "Power Tools" },
+    { id: 1, value: "Hand Tools" },
+    { id: 2, value: "Hammer" },
+    { id: 3, value: "Screwdriver" },
+    { id: 4, value: "Nail gun" },
+  ];
   const initialState: ToolState = {
     message: null,
     errors: {},
@@ -36,7 +63,7 @@ export default function NewToolPage() {
       max_borrow_days: 0,
       location: "",
       images: "",
-      categories: "Power Tools",
+      categories: "",
       ...(state?.fields ?? {}),
     },
     mode: "onTouched",
@@ -144,17 +171,64 @@ export default function NewToolPage() {
               )}
             />
 
-            {/* TODO create custom categories input field*/}
             <FormField
               control={form.control}
               name="categories"
               render={({ field }) => (
-                <FormItem className="min-h-[84px]">
-                  <FormLabel>Categories*</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage>{state.errors?.name}</FormMessage>
+                <FormItem className="flex flex-col">
+                  <FormLabel>Categories</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            "w-[200px] justify-between",
+                            !field.value && "text-muted-foreground",
+                          )}
+                        >
+                          {field.value ? field.value : "Select categories"}
+                          <ChevronDown className="opacity-50" />
+                          <Input {...field} type="hidden" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[200px] p-0">
+                      <Command>
+                        <CommandInput
+                          placeholder="Search framework..."
+                          className="h-9"
+                        />
+                        <CommandList>
+                          <CommandEmpty>No framework found.</CommandEmpty>
+                          <CommandGroup>
+                            {categories.map((category) => (
+                              <CommandItem
+                                value={category.value}
+                                key={category.id}
+                                onSelect={() => {
+                                  form.setValue("categories", category.value);
+                                  form.clearErrors("categories");
+                                }}
+                              >
+                                {category.value}
+                                <Check
+                                  className={cn(
+                                    "ml-auto",
+                                    category.value === field.value
+                                      ? "opacity-100"
+                                      : "opacity-0",
+                                  )}
+                                />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage>{state.errors?.categories}</FormMessage>
                 </FormItem>
               )}
             />
