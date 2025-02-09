@@ -1,4 +1,4 @@
-import { auth, signOut } from "@/auth";
+import { auth } from "@/auth";
 import { HeaderLinks } from "@/components/header-links";
 import HeaderSearch from "@/components/header-search";
 import { Button } from "@/components/ui/button";
@@ -51,7 +51,7 @@ export default async function Header() {
           <AccountButton email={session?.user.email as string} />
           :
           <Button variant="outline" asChild>
-            <Link href="/auth/login">Log In</Link>
+            <a href="/auth/login">Log In</a>
           </Button>
         }
 
