@@ -235,9 +235,9 @@ export default function RegistrationPage() {
                 </div>
                 <p className="text-center text-sm text-gray-500">
                     Already have an account?{" "}
-                    <Link href="/auth/login" className="text-blue-600 hover:underline">
+                    <a href="/auth/login" className="text-blue-600 hover:underline">
                         Log In
-                    </Link>
+                    </a>
                 </p>
             </form>
         </div>
