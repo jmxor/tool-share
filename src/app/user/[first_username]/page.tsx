@@ -1,4 +1,4 @@
-import { getPublicUserData } from "@/lib/auth/actions";
+import { getPublicUserData, submitReview } from "@/lib/auth/actions";
 import { PublicUser } from "@/lib/types";
 import { UserRound, Calendar1, Gavel } from "lucide-react";
 import { formatDate } from "@/lib/utils";
@@ -9,6 +9,7 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import ReviewForm from "@/components/accounts/review-form";
 
 export default async function ProfilePage({
 	params,
@@ -54,30 +55,7 @@ export default async function ProfilePage({
 					</div>
 					<div className="flex flex-col bg-white shadow-md mb-4 gap-2 p-14 rounded-lg mt-2 flex-grow h-[50rem]">
 						<h2 className="font-medium text-xl">Feedback</h2>
-						<div className="h-32">
-							Leave your own review
-						</div>
-						<Carousel className="w-full" >
-							<CarouselContent className="-ml-1">
-								<CarouselItem className="basis-1/2 lg:basis-1/6 bg-gray-100 h-48">This is a review</CarouselItem>
-								<CarouselItem className="basis-1/2 lg:basis-1/6 bg-gray-300 h-48">This is a review</CarouselItem>
-								<CarouselItem className="basis-1/2 lg:basis-1/6 bg-gray-100 h-48">This is a review</CarouselItem>
-								<CarouselItem className="basis-1/2 lg:basis-1/6 bg-gray-300 h-48">This is a review</CarouselItem>
-								<CarouselItem className="basis-1/2 lg:basis-1/6 bg-gray-100 h-48">This is a review</CarouselItem>
-								<CarouselItem className="basis-1/2 lg:basis-1/6 bg-gray-300 h-48">This is a review</CarouselItem>
-								<CarouselItem className="basis-1/2 lg:basis-1/6 bg-gray-100 h-48">This is a review</CarouselItem>
-								<CarouselItem className="basis-1/2 lg:basis-1/6 bg-gray-300 h-48">This is a review</CarouselItem>
-								<CarouselItem className="basis-1/2 lg:basis-1/6 bg-gray-100 h-48">This is a review</CarouselItem>
-								<CarouselItem className="basis-1/2 lg:basis-1/6 bg-gray-300 h-48">This is a review</CarouselItem>
-								<CarouselItem className="basis-1/2 lg:basis-1/6 bg-gray-100 h-48">This is a review</CarouselItem>
-								<CarouselItem className="basis-1/2 lg:basis-1/6 bg-gray-300 h-48">This is a review</CarouselItem>
-								<CarouselItem className="basis-1/2 lg:basis-1/6 bg-gray-100 h-48">This is a review</CarouselItem>
-								<CarouselItem className="basis-1/2 lg:basis-1/6 bg-gray-300 h-48">This is a review</CarouselItem>
-								<CarouselItem className="basis-1/2 lg:basis-1/6 bg-gray-100 h-48">This is a review</CarouselItem>
-							</CarouselContent>
-							<CarouselPrevious />
-							<CarouselNext />
-						</Carousel>
+						<ReviewForm />
 					</div>
 				</div>
 			</TooltipProvider>

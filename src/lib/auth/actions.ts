@@ -10,6 +10,37 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+
+export type ReviewFormState = {
+    errors?: {
+        stars?: string[],
+        text?: string[],
+    };
+    message?: string | null;
+    success?: boolean;
+};
+
+export async function submitReview(
+    prevState: ReviewFormState,
+    formData: FormData,
+): Promise<ReviewFormState> {
+    const data = {
+        ...Object.fromEntries(formData),
+    };
+
+    const validatedFields = RegistrationFormSchema.safeParse(data);
+
+    if (!validatedFields.success) {
+        return {
+            message: "Invalid review text",
+            success: false
+        }
+    }
+    return {
+        success: true
+    }
+}
+
 export async function getPublicUserData(first_username: string): Promise<PublicUser | null> {
     try {
         const conn = await getConnection();

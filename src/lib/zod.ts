@@ -33,3 +33,21 @@ export const LoginFormSchema = z.object({
         .min(8, "Password must be more than 8 characters.")
         .max(32, "Password must be less than 32 characters."),
 });
+
+export const ReviewFormSchema = z.object({
+    stars: z
+        .number({
+            required_error: "Please select a star rating.",
+            invalid_type_error: "Star rating must be a number.",
+        })
+        .min(0, { message: "Rating must be at least 0 stars." })
+        .max(5, { message: "Rating must be at most 5 stars." })
+        .int({ message: "Rating must be an integer." }),
+    text: z
+        .string({
+            required_error: "Please enter a review.",
+            invalid_type_error: "Review must be a string.",
+        })
+        .min(10, { message: "Review must be at least 10 characters." })
+        .max(1000, { message: "Review must be at most 1000 characters." }),
+});
