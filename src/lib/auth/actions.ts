@@ -10,7 +10,76 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-export async function registerUser(formData: FormData): Promise<string> {
+export type RegistrationFormState = {
+    errors?: {
+        username?: string[],
+        email?: string[];
+        password?: string[];
+        confirmPassword?: string[];
+    };
+    message?: string | null;
+    fields?: Record<string, string>;
+    success?: boolean;
+};
+
+export async function registerUser(
+    _: RegistrationFormState,
+    formData: FormData,
+): Promise<RegistrationFormState> {
+    const data = {
+        ...Object.fromEntries(formData),
+    };
+
+    const validatedFields = RegistrationFormSchema.safeParse(data);
+
+    if (!validatedFields.success) {
+        return {
+            errors: validatedFields.error?.flatten().fieldErrors,
+            message: "Missing fields, failed to register.",
+            fields: validatedFields.data,
+            success: false
+        };
+    }
+
+    try {
+        const conn = await getConnection();
+
+        const checkQuery = `
+            SELECT id
+            FROM "user"
+            WHERE first_username = $1 OR email = $2
+            LIMIT 1
+        `;
+        const result = await conn.query(checkQuery, [validatedFields.data.username.toLowerCase().replace(/\s+/g, ''), validatedFields.data.email]);
+
+        if (result.rowCount !== null && result.rowCount > 0) {
+            return {
+                message: "Username or email already registered, try again.",
+                success: false
+            };
+        }
+
+        const insertQuery = `
+            INSERT INTO "user" (username, first_username, email, password_hash, user_privilege) 
+            VALUES ($1, $2, $3, $4, $5)
+        `;
+
+        const hashedPassword = await hashPassword(validatedFields.data.password);
+        await conn.query(insertQuery, [validatedFields.data.username, validatedFields.data.username.toLowerCase().replace(/\s+/g, ''), validatedFields.data.email, hashedPassword, "user"]);
+
+    } catch (error) {
+        console.error('Failed to register new user: ', error);
+        return {
+            message: "Failed to register new user.",
+            success: false
+        };
+    }
+
+    revalidatePath("/auth/login");
+    redirect('/auth/login');
+}
+
+export async function registerUserr(formData: FormData): Promise<string> {
     const data = Object.fromEntries(formData.entries());
 
     try {
