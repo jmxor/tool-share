@@ -5,10 +5,56 @@ import { getConnection } from "@/lib/db";
 import { LoginFormSchema, RegistrationFormSchema } from "@/lib/zod";
 import { hashPassword } from "./utils";
 import { signIn, signOut } from "@/auth";
-import { User } from "../types";
+import { PublicUser, User } from "../types";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+
+export async function getPublicUserData(first_username: string): Promise<PublicUser | null> {
+    try {
+        const conn = await getConnection();
+        const query = `
+            SELECT id, username, created_at, is_suspended
+            FROM "user"
+            WHERE first_username = $1
+        `;
+
+        const result = await conn.query(query, [first_username]);
+
+        if (result.rows.length == 0) {
+            return null;
+        }
+
+        const row = result.rows[0];
+
+        const suspensionCountQuery = `
+            SELECT COUNT(*)
+            FROM suspension
+            WHERE user_id = $1
+        `;
+
+        const countResult = await conn.query(suspensionCountQuery, [row.id]);
+
+        let suspensionCount = 0;
+        if (result.rows.length !== 0) {
+            suspensionCount = countResult.rows[0].count;
+        }
+
+        const publicUserData: PublicUser = {
+            username: row.username,
+            created_at: row.created_at,
+            is_suspended: row.is_suspended,
+            suspensionCount: suspensionCount
+        }
+
+        return publicUserData;
+
+    } catch (error) {
+        console.error("[ERROR] Failed to fetch public user data: ", error);
+
+        return null;
+    }
+}
 
 export type RegistrationFormState = {
     errors?: {
