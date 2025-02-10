@@ -142,8 +142,8 @@ export async function submitReview(
 
         const conn = await getConnection();
         const values = [userID, targetID, validatedFields.data.stars, validatedFields.data.text];
-        console.log("Inserting values into review table: ", values);
-        const result = conn.query(query, values);
+        const result = await conn.query(query, values);
+        // TODO: Check if it worked.
 
     } catch {
         console.error("[ERROR] Failed to insert review into database");
@@ -152,10 +152,8 @@ export async function submitReview(
             success: false
         }
     }
-    return {
-        message: "Successfully submitted",
-        success: true
-    }
+
+    redirect(`/user/${validatedFields.data.target}`);
 }
 
 export async function getPublicUserData(first_username: string): Promise<PublicUser | null> {
@@ -287,7 +285,6 @@ export async function registerUserr(formData: FormData): Promise<string> {
             LIMIT 1
         `;
         const result = await conn.query(checkQuery, [parsedData.username.toLowerCase().replace(/\s+/g, ''), parsedData.email]);
-        console.log(`Found this many users with same first_username: ${result.rowCount}`);
 
         if (result.rowCount !== null && result.rowCount > 0) {
             return "Username or email is already registered.";
@@ -514,11 +511,6 @@ export async function updateUsername(newUsername: string) {
 }
 
 export async function setPassword(newPassword: string) {
-    if (!newPassword) {
-        console.log("No new password.");
-        return false;
-    }
-
     try {
         const session = await auth();
         if (!session || !session.user || !session.user.email) {
@@ -527,7 +519,6 @@ export async function setPassword(newPassword: string) {
 
         // Update on database
         const newHash = await hashPassword(newPassword);
-        console.log("Hashed Password:", newHash);
         const email = session.user.email;
 
         const query = `
@@ -537,7 +528,6 @@ export async function setPassword(newPassword: string) {
         `;
 
         const conn = await getConnection();
-        console.log("Query Values:", [newHash, email]);
         const result = await conn.query(query, [newHash, email]);
 
         if (!result) {

@@ -18,8 +18,6 @@ export default function ReviewFormPage({ first_username }: { first_username: str
         initialState
     );
 
-    console.log(state);
-
     const [stars, setStars] = useState(0);
 
     const handleStarChange = (value: number) => {
@@ -29,7 +27,7 @@ export default function ReviewFormPage({ first_username }: { first_username: str
     return (
         <form
             action={formAction}
-            className="max-h-1/3 min-w-48 w-1/5 flex flex-col gap-2 items-center border-2 p-2 rounded-lg"
+            className="max-h-1/3 h-fit min-w-48 md:w-1/5 flex flex-col gap-2 items-center p-2 mr-2"
         >
             <h2>Leave your feedback</h2>
             <input type="hidden" name="target" value={first_username} />
