@@ -7,9 +7,9 @@ export default async function ReviewsDisplay({ first_username }: { first_usernam
         return <div>This user has no reviews.</div>
     }
     return (
-        <div className="flex flex-col md:flex-row gap-2 max-w-[60rem] overflow-x-auto h-1/3 flex-grow">
+        <div className="flex flex-col md:flex-row gap-2 max-w-[60rem] overflow-x-auto max-h-52 pb-4">
             {reviews.map((review, index) => (
-                <div key={index} className="overflow-y-auto overflow-x-clip min-h-32 min-w-64 p-6 bg-gray-100">
+                <div key={index} className="overflow-y-auto overflow-x-clip min-h-32 md:min-w-64 p-6 bg-gray-50 shadow-sm">
                     <div className="flex flex-row gap-2">
                         <a className="hover:underline" href={`/user/${review.reviewer_first_usename}`}>{review.reviewer_username}</a>
                         <p><span className="text-yellow-500">★</span><span>{review.stars}</span></p>
