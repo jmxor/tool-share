@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { getConnection } from "@/lib/db";
-import { LoginFormSchema, RegistrationFormSchema } from "@/lib/zod";
+import { LoginFormSchema, RegistrationFormSchema, ReviewFormSchema } from "@/lib/zod";
 import { hashPassword } from "./utils";
 import { signIn, signOut } from "@/auth";
 import { PublicUser, User } from "../types";
@@ -10,9 +10,64 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+export type Review = {
+    reviewer_username: string;
+    reviewer_first_usename: string;
+    stars: number;
+    text: string;
+    created_at: Date;
+};
+
+export async function getReviews(first_username: string): Promise<Review[] | null> {
+    try {
+        const targetID = await getFirstUsernameID(first_username);
+        if (!targetID) {
+            return null;
+        }
+
+        const conn = await getConnection();
+        const reviewsQuery = `
+            SELECT reviewer_id, stars, review_text, created_at
+            FROM review
+            WHERE reviewed_id = $1
+        `;
+
+        const result = await conn.query(reviewsQuery, [targetID]);
+        if (result.rows.length === 0) {
+            return [];
+        }
+
+        const reviewerQuery = `
+            SELECT username, first_username
+            FROM "user"
+            WHERE id = $1
+        `;
+        const reviewPromises = result.rows.map(async (row) => {
+            const reviewerResult = await conn.query(reviewerQuery, [row.reviewer_id]);
+            if (reviewerResult.rows.length === 0) {
+                return null;
+            }
+            const review: Review = {
+                reviewer_username: reviewerResult.rows[0].username,
+                reviewer_first_usename: reviewerResult.rows[0].first_username,
+                stars: row.stars,
+                text: row.review_text,
+                created_at: row.created_at
+            }
+            return review;
+        });
+
+        const reviewArray: Review[] = (await Promise.all(reviewPromises)).filter(review => review !== null) as Review[];
+        return reviewArray;
+    } catch (error) {
+        console.error("[ERROR] Failed to get reviews", error);
+        return null;
+    }
+}
 
 export type ReviewFormState = {
     errors?: {
+        target?: string[],
         stars?: string[],
         text?: string[],
     };
@@ -28,15 +83,77 @@ export async function submitReview(
         ...Object.fromEntries(formData),
     };
 
-    const validatedFields = RegistrationFormSchema.safeParse(data);
+    let parsedData;
+    let validatedFields;
+    // Stars is submitted as a string so try to parse to int and if not just use the data so that zod handles the non-integer error
+    try {
+        parsedData = {
+            ...data,
+            stars: parseInt(data.stars.toString())
+        }
+        validatedFields = ReviewFormSchema.safeParse(parsedData);
+    } catch {
+        console.error("[ERROR] Non integer value submitted as star rating in review form");
+    }
+
+    if (!validatedFields) {
+        validatedFields = ReviewFormSchema.safeParse(data);
+    }
 
     if (!validatedFields.success) {
         return {
-            message: "Invalid review text",
+            errors: validatedFields.error?.flatten().fieldErrors,
+            success: false
+        }
+    }
+
+    try {
+
+        // First get the id of the target user.
+        const targetID = await getFirstUsernameID(validatedFields.data.target);
+        if (!targetID) {
+            return {
+                message: "Couldn't find target user.",
+                success: false
+            }
+        }
+
+        const session = await auth();
+
+        if (!session || !session.user || !session.user.email) {
+            return {
+                message: "You must be logged in to submit a review.",
+                success: false
+            }
+        }
+
+        const userID = await getEmailID(session.user.email);
+        if (!userID) {
+            return {
+                message: "Could not find email id. You must be logged in to submit a review.",
+                success: false
+            }
+        }
+
+        const query = `
+            INSERT INTO review ( reviewer_id, reviewed_id, stars, review_text )
+            VALUES ($1, $2, $3, $4)
+        `;
+
+        const conn = await getConnection();
+        const values = [userID, targetID, validatedFields.data.stars, validatedFields.data.text];
+        console.log("Inserting values into review table: ", values);
+        const result = conn.query(query, values);
+
+    } catch {
+        console.error("[ERROR] Failed to insert review into database");
+        return {
+            message: "Failed to submit review. Try again later.",
             success: false
         }
     }
     return {
+        message: "Successfully submitted",
         success: true
     }
 }
@@ -206,6 +323,38 @@ export async function getUserRowFromEmail(email: string) {
         const result = await conn.query(query, [email]);
 
         return result;
+    } catch {
+        return null;
+    }
+}
+
+export async function getFirstUsernameID(first_username: string) {
+    try {
+        const conn = await getConnection();
+        const query = `
+        SELECT id
+        FROM "user"
+        WHERE first_username = $1
+        `
+        const result = await conn.query(query, [first_username]);
+
+        return result.rows[0].id;
+    } catch {
+        return null;
+    }
+}
+
+export async function getEmailID(email: string) {
+    try {
+        const conn = await getConnection();
+        const query = `
+        SELECT id
+        FROM "user"
+        WHERE email = $1
+        `
+        const result = await conn.query(query, [email]);
+
+        return result.rows[0].id;
     } catch {
         return null;
     }

@@ -6,6 +6,7 @@ import ChangePasswordForm from "@/components/accounts/change-password-form";
 import UsernameForm from "@/components/accounts/username-form";
 import DeleteAccountForm from "@/components/accounts/delete-account-form";
 import { formatDate } from "@/lib/utils"
+import { Button } from "@/components/ui/button";
 
 export default async function AccountPage() {
     const session = await auth();
@@ -34,6 +35,7 @@ export default async function AccountPage() {
                         <Calendar1 height="1rem" />
                         <span>{formatDate(userInfo.created_at)}</span>
                     </div>
+                    <a href="/users/jrippeth">Test Public Account Page</a>
                 </div>
                 <UsernameForm userInfo={userInfo} />
                 <ChangePasswordForm />

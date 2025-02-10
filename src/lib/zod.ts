@@ -35,6 +35,10 @@ export const LoginFormSchema = z.object({
 });
 
 export const ReviewFormSchema = z.object({
+    target: z
+        .string({
+            required_error: "No target. Refresh page and try again."
+        }),
     stars: z
         .number({
             required_error: "Please select a star rating.",

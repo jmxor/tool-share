@@ -4,19 +4,19 @@ import { useState, useCallback } from "react";
 
 interface StarRatingProps {
     name: string;
-    onChange: (value: number) => void;
+    action: (value: number) => void;
     value?: number;
 }
 
-export default function StarsPage({ name, onChange, value = 0 }: StarRatingProps) {
+export default function StarsPage({ name, action, value = 0 }: StarRatingProps) {
     const [rating, setRating] = useState(value);
 
     const handleClick = useCallback(
         (value: number) => {
             setRating(value);
-            onChange(value);
+            action(value);
         },
-        [onChange]
+        [action]
     );
 
     return (
