@@ -1,56 +1,98 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { useState } from "react";
-import { signInUser } from "@/lib/auth/actions";
-import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button"
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormMessage,
+} from "@/components/ui/form"
+
+import { Input } from "@/components/ui/input"
+import { LoginFormState, loginUser } from "@/lib/auth/actions";
+import { useActionState, useRef } from "react";
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import { LoginFormSchema } from "@/lib/zod";
+import { z } from "zod";
 
 export default function LoginPage() {
-    const [error, setError] = useState("");
-    const router = useRouter();
 
-    async function handleLogIn(event: React.FormEvent<HTMLFormElement>) {
-        event.preventDefault();
-        const formElement = event.currentTarget;
-        try {
-            const formData = new FormData(formElement);
-            const result = await signInUser(formData);
-
-            if (!!result.error) {
-                setError("Invalid credentials.");
-            } else {
-                router.push('/');
-            }
-        } catch {
-            setError("Invalid credentials.");
-        }
+    const initialState: LoginFormState = {
+        message: null,
+        errors: {}
     }
+
+    const [state, formAction, isPending] = useActionState(
+        loginUser,
+        initialState,
+    );
+
+    const form = useForm<z.output<typeof LoginFormSchema>>({
+        resolver: zodResolver(LoginFormSchema),
+        defaultValues: {
+            email: "",
+            password: "",
+        }
+    });
+
+    const formRef = useRef<HTMLFormElement>(null);
 
     return (
         <div className="flex min-h-screen w-full justify-center bg-gray-50">
-            <form
-                onSubmit={handleLogIn}
-                className="w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-md h-fit mt-20"
-            >
-                <h2 className="text-center text-3xl font-bold text-gray-800">Log In</h2>
-                <p className="text-center text-sm text-gray-500">
-                    Welcome back! Please log in to your account.
-                </p>
-                <div className="space-y-4">
-                    <Input name="email" type="email" placeholder="Enter your email" className="w-full" />
-                    <Input name="password" type="password" placeholder="Enter your password" className="w-full" />
-                </div>
-                <Button type="submit" className="w-full">Log In</Button>
-                <p className="text-center text-sm text-gray-500">
-                    Dont have an account?{' '}
-                    <Link href="/auth/register" className="text-blue-600 hover:underline">
-                        Register
-                    </Link>
-                </p>
-                {error ? <p className="text-red-400 flex justify-center text-sm">{error}</p> : ""}
-            </form>
+            <Form {...form}>
+                <form
+                    ref={formRef}
+                    onSubmit={form.handleSubmit(() => formRef.current?.submit())}
+                    action={formAction}
+                    className="w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-md h-fit mt-20"
+                >
+                    <h2 className="text-center text-3xl font-bold text-gray-800">Log In</h2>
+                    <p className="text-center text-sm text-gray-500">
+                        Welcome back! Please log in to your account.
+                    </p>
+                    <div className="space-y-4">
+                        <FormField
+                            control={form.control}
+                            name="email"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <Input {...field} placeholder="Enter your email" className="w-full" />
+                                    </FormControl>
+                                    <FormMessage>
+                                        {state?.errors?.email}
+                                    </FormMessage>
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="password"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormControl>
+                                        <Input {...field} type="password" placeholder="Enter your password" className="w-full" />
+                                    </FormControl>
+                                    <FormMessage>{state.errors?.password}</FormMessage>
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                    <Button type="submit" disabled={isPending} className="w-full">
+                        {isPending ? "Submitting .." : "Log In"}
+                    </Button>
+                    <p className="text-center text-sm text-gray-500">
+                        Dont have an account yet?{" "}
+                        <a href="/auth/register" className="text-blue-600 hover:underline">
+                            Register here
+                        </a>
+                    </p>
+                    {state.success === false ? <p className="text-red-400 flex justify-center text-sm">{state.message}</p> : ""}
+
+                </form>
+            </Form>
         </div>
     );
 }

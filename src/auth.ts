@@ -1,9 +1,9 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import bcrypt from 'bcryptjs';
-import { logInSchema } from "./lib/zod";
+import { LoginFormSchema } from "./lib/zod";
 import { ZodError } from "zod";
-import { getUserByEmail, getUserRowFromEmail } from "./lib/auth/actions";
+import { getUserRowFromEmail } from "./lib/auth/actions";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   debug: false,
@@ -18,7 +18,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       async authorize(credentials) {
         try {
-          const { email, password } = await logInSchema.parseAsync(credentials);
+          const { email, password } = await LoginFormSchema.parseAsync(credentials);
 
           const result = await getUserRowFromEmail(email)
           if (!result) {

@@ -174,3 +174,20 @@ CREATE TABLE IF NOT EXISTS report_message (
     FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE SET NULL,
     FOREIGN KEY (report_id) REFERENCES report (id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS conversation (
+    id SERIAL PRIMARY KEY,
+    user1_id INT NOT NULL,
+    user2_id INT NOT NULL,
+    FOREIGN KEY (user1_id) REFERENCES "user" (id) ON DELETE CASCADE,
+    FOREIGN KEY (user2_id) REFERENCES "user" (id) ON DELETE CASCADE
+);
+
+CREATE UNIQUE INDEX unique_conversation ON conversation (
+    LEAST(user1_id, user2_id),
+    GREATEST(user1_id, user2_id)
+);
+
+CREATE INDEX idx_conversation_user1_id ON conversation (user1_id);
+
+CREATE INDEX idx_conversation_user2_id ON conversation (user2_id);
