@@ -28,8 +28,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { createTool, ToolState } from "@/lib/actions";
 import { cn } from "@/lib/utils";
 import { CreateToolFormSchema } from "@/lib/zod";
+import { UploadButton } from "@/utils/uploadthing";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown } from "lucide-react";
+import Image from "next/image";
 import { useActionState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -63,7 +65,7 @@ export default function NewToolPage() {
       deposit: 1.0,
       max_borrow_days: 1,
       location: "",
-      images: "",
+      image_urls: [],
       categories: [],
       ...(state?.fields ?? {}),
     },
@@ -71,7 +73,6 @@ export default function NewToolPage() {
   });
 
   const formRef = useRef<HTMLFormElement>(null);
-  const fileRef = form.register("images");
 
   return (
     <div className="mb-auto flex w-full flex-1 justify-center bg-gray-50 px-4">
@@ -158,15 +159,41 @@ export default function NewToolPage() {
               )}
             />
 
+            {/*TODO: add multi image support, add dropzone support*/}
             <FormField
               control={form.control}
-              name="images"
+              name="image_urls"
               render={({ field }) => (
                 <FormItem className="min-h-[84px]">
                   <FormLabel>Images*</FormLabel>
                   <FormControl>
-                    <Input type="file" accept="image/*" multiple {...fileRef} />
+                    <Input {...field} type="hidden" />
                   </FormControl>
+                  <UploadButton
+                    endpoint="imageUploader"
+                    onClientUploadComplete={(res) => {
+                      // Do something with the response
+                      console.log("Files: ", res);
+                      form.setValue("image_urls", [
+                        ...res.map((image) => image.url),
+                      ]);
+                      form.clearErrors("image_urls");
+                      console.log("Upload Completed");
+                    }}
+                    onUploadError={(error: Error) => {
+                      // Do something with the error.
+                      alert(`ERROR! ${error.message}`);
+                    }}
+                  />
+                  {form.watch("image_urls").map((image_url) => (
+                    <Image
+                      key={image_url}
+                      src={image_url}
+                      alt={""}
+                      width={100}
+                      height={100}
+                    />
+                  ))}
                   <FormMessage>{state.errors?.images}</FormMessage>
                 </FormItem>
               )}
