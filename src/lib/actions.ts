@@ -1,5 +1,6 @@
 "use server";
 
+import { getConnection } from "@/lib/db";
 import { CreateToolFormSchema } from "@/lib/zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -40,6 +41,13 @@ export async function createTool(
   }
 
   try {
+    // const conn = await getConnection();
+    // const insertQuery = `
+    //         INSERT INTO "post" (user_id, tool_name, description, deposit, max_borrow_days, location_id, status)
+    //         VALUES ($1, $2, $3, $4)
+    //     `;
+    // await conn.query(insertQuery, [2, validatedFields.data.name, validatedFields.data.description, validatedFields.data.deposit, validatedFields.data.max_borrow_days, , ""]);
+
     console.log(formData);
     console.log(validatedFields.data);
   } catch (error) {
@@ -50,4 +58,15 @@ export async function createTool(
 
   revalidatePath("/tools");
   redirect("/tools");
+}
+
+export async function getPostCategories() {
+  const conn = await getConnection();
+  const query = `
+      SELECT id, name
+      FROM "category"
+  `;
+  const result = await conn.query(query);
+
+  return result.rows;
 }
