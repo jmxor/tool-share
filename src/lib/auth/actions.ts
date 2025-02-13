@@ -2,43 +2,109 @@
 
 import { z } from "zod";
 import { getConnection } from "@/lib/db";
-import { registrationSchema } from "@/lib/zod";
+import { LoginFormSchema, RegistrationFormSchema } from "@/lib/zod";
 import { hashPassword } from "./utils";
 import { signIn, signOut } from "@/auth";
 import { User } from "../types";
 import { auth } from "@/auth";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
-export async function registerUser(formData: FormData): Promise<string> {
-    const data = Object.fromEntries(formData.entries());
+export type RegistrationFormState = {
+    errors?: {
+        username?: string[],
+        email?: string[];
+        password?: string[];
+        confirmPassword?: string[];
+    };
+    message?: string | null;
+    fields?: Record<string, string>;
+    success?: boolean;
+};
+
+export async function registerUser(
+    _: RegistrationFormState,
+    formData: FormData,
+): Promise<RegistrationFormState> {
+    const data = {
+        ...Object.fromEntries(formData),
+    };
+
+    const validatedFields = RegistrationFormSchema.safeParse(data);
+
+    if (!validatedFields.success) {
+        return {
+            errors: validatedFields.error?.flatten().fieldErrors,
+            message: "Missing fields, failed to register.",
+            fields: validatedFields.data,
+            success: false
+        };
+    }
 
     try {
-        const parsedData = registrationSchema.parse(data);
         const conn = await getConnection();
 
         const checkQuery = `
-            SELECT username, email 
-            FROM "user" 
-            WHERE username = $1 OR email = $2
+            SELECT id
+            FROM "user"
+            WHERE first_username = $1 OR email = $2
             LIMIT 1
         `;
-        const result = await conn.query(checkQuery, [parsedData.username, parsedData.email]);
+        const result = await conn.query(checkQuery, [validatedFields.data.username.toLowerCase().replace(/\s+/g, ''), validatedFields.data.email]);
 
         if (result.rowCount !== null && result.rowCount > 0) {
-            const row = result.rows[0];
-            if (row.username === parsedData.username) {
-                return "Username is already registered.";
-            }
-            if (row.email === parsedData.email) {
-                return "Email is already registered.";
-            }
+            return {
+                message: "Username or email already registered, try again.",
+                success: false
+            };
         }
 
         const insertQuery = `
-            INSERT INTO "user" (username, email, password_hash, user_privilege) 
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO "user" (username, first_username, email, password_hash, user_privilege) 
+            VALUES ($1, $2, $3, $4, $5)
+        `;
+
+        const hashedPassword = await hashPassword(validatedFields.data.password);
+        await conn.query(insertQuery, [validatedFields.data.username, validatedFields.data.username.toLowerCase().replace(/\s+/g, ''), validatedFields.data.email, hashedPassword, "user"]);
+
+    } catch (error) {
+        console.error('Failed to register new user: ', error);
+        return {
+            message: "Failed to register new user.",
+            success: false
+        };
+    }
+
+    revalidatePath("/auth/login");
+    redirect('/auth/login');
+}
+
+export async function registerUserr(formData: FormData): Promise<string> {
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+        const parsedData = RegistrationFormSchema.parse(data);
+        const conn = await getConnection();
+
+        const checkQuery = `
+            SELECT id
+            FROM "user"
+            WHERE first_username = $1 OR email = $2
+            LIMIT 1
+        `;
+        const result = await conn.query(checkQuery, [parsedData.username.toLowerCase().replace(/\s+/g, ''), parsedData.email]);
+        console.log(`Found this many users with same first_username: ${result.rowCount}`);
+
+        if (result.rowCount !== null && result.rowCount > 0) {
+            return "Username or email is already registered.";
+        }
+
+        const insertQuery = `
+            INSERT INTO "user" (username, first_username, email, password_hash, user_privilege) 
+            VALUES ($1, $2, $3, $4, $5)
         `;
         const hashedPassword = await hashPassword(parsedData.password);
-        await conn.query(insertQuery, [parsedData.username, parsedData.email, hashedPassword, "user"]);
+        await conn.query(insertQuery, [parsedData.username, parsedData.username.toLowerCase().replace(/\s+/g, ''), parsedData.email, hashedPassword, "user"]);
 
         return "Success";
     } catch (error) {
@@ -66,6 +132,56 @@ export async function getUserRowFromEmail(email: string) {
     } catch {
         return null;
     }
+}
+
+export type LoginFormState = {
+    errors?: {
+        email?: string[],
+        password?: string[]
+    },
+    message?: string | null,
+    fields?: Record<string, string>,
+    success?: boolean | null,
+}
+
+export async function loginUser(
+    _: LoginFormState,
+    formData: FormData
+): Promise<LoginFormState> {
+    const data = {
+        ...Object.fromEntries(formData),
+    }
+
+    const validatedFields = LoginFormSchema.safeParse(data);
+
+    if (!validatedFields.success) {
+        return {
+            errors: validatedFields.error?.flatten().fieldErrors,
+            message: "Invalid or missing field values.",
+            success: false
+        }
+    }
+
+    try {
+        const result = await signIn("credentials", {
+            email: validatedFields.data.email,
+            password: validatedFields.data.password,
+            redirect: false
+        });
+
+        if (!result) {
+            throw new Error("Failed to signIn");
+        }
+    } catch (error) {
+        console.error("[ERROR: loginUser action] Unexpected error during user log in: ", error);
+        return {
+            message: "Failed to login user. Try again later.",
+            success: false
+        }
+    }
+
+    revalidatePath("/");
+    redirect("/");
 }
 
 export async function signInUser(formData: FormData) {

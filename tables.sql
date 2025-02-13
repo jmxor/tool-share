@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS "user" (
     id SERIAL PRIMARY KEY,
     username VARCHAR(256) NOT NULL,
+    first_username VARCHAR(256) UNIQUE NOT NULL, -- This is for public account url purposes, so it won't change
     email VARCHAR(256) NOT NULL,
     password_hash VARCHAR(256) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -9,6 +10,18 @@ CREATE TABLE IF NOT EXISTS "user" (
     CONSTRAINT unique_username UNIQUE (username),
     CONSTRAINT unique_email UNIQUE (email)
 );
+
+-- Migration Schema used for adding the first_username field from the initial schema, above is the final resulting schema
+ALTER TABLE "user"
+ADD COLUMN first_username VARCHAR(256) UNIQUE NULL;
+
+UPDATE "user"
+SET first_username = lower(replace(username, ' ', ''))
+WHERE first_username IS NULL;
+
+ALTER TABLE "user"
+ALTER COLUMN first_username SET NOT NULL;
+--
 
 CREATE TABLE IF NOT EXISTS direct_message (
     id SERIAL PRIMARY KEY,
@@ -161,3 +174,20 @@ CREATE TABLE IF NOT EXISTS report_message (
     FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE SET NULL,
     FOREIGN KEY (report_id) REFERENCES report (id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS conversation (
+    id SERIAL PRIMARY KEY,
+    user1_id INT NOT NULL,
+    user2_id INT NOT NULL,
+    FOREIGN KEY (user1_id) REFERENCES "user" (id) ON DELETE CASCADE,
+    FOREIGN KEY (user2_id) REFERENCES "user" (id) ON DELETE CASCADE
+);
+
+CREATE UNIQUE INDEX unique_conversation ON conversation (
+    LEAST(user1_id, user2_id),
+    GREATEST(user1_id, user2_id)
+);
+
+CREATE INDEX idx_conversation_user1_id ON conversation (user1_id);
+
+CREATE INDEX idx_conversation_user2_id ON conversation (user2_id);

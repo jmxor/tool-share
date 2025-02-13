@@ -1,7 +1,6 @@
 import { z } from "zod";
 
-export const registrationSchema = z
-  .object({
+export const RegistrationFormSchema = z.object({
     username: z
       .string()
       .min(1, "Username is required.")
@@ -19,17 +18,16 @@ export const registrationSchema = z
     path: ["confirmPassword"],
   });
 
-export const logInSchema = z.object({
-  email: z
-    .string({ required_error: "Email is required." })
-    .min(1, "Email is required")
-    .email("Invalid email"),
-  password: z
-    .string({ required_error: "Password is required." })
-    .min(1, "Password is required")
-    .min(8, "Password must be more than 8 characters.")
-    .max(32, "Password must be less than 32 characters."),
-});
+export const LoginFormSchema = z.object({
+    email: z
+        .string({ required_error: "Email is required." })
+        .min(1, "Email is required")
+        .email("Invalid email"),
+    password: z
+        .string({ required_error: "Password is required." })
+        .min(1, "Password is required")
+        .min(8, "Password must be more than 8 characters.")
+        .max(32, "Password must be less than 32 characters."),
 
 export const CreateToolFormSchema = z.object({
   name: z.string().min(1, "Name is required."),
@@ -53,15 +51,6 @@ export const CreateToolFormSchema = z.object({
       .min(1, "At least 1 Image is required.")
       .transform((str) => str.split(",")),
   ]),
-  // images:
-  //   typeof window === "undefined"
-  //     ? z.any()
-  //     : z
-  //         .instanceof(FileList, { message: "At least 1 image is required." })
-  //         .refine(
-  //           (files) => files?.[0]?.name != "",
-  //           "At least 1 image is required",
-  //         ),
   categories: z.union([
     z.string().array().min(1, "At least 1 category is required."),
     z
