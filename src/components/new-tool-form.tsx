@@ -214,7 +214,14 @@ export default function NewToolForm({
                         )}
                       >
                         {field.value.length > 0
-                          ? field.value.join(", ")
+                          ? field.value
+                              .map(
+                                (c1) =>
+                                  categories.find(
+                                    (c2) => c1 == c2.id.toString(),
+                                  )?.name,
+                              )
+                              .join(", ")
                           : "Select categories"}
                         <ChevronDown className="opacity-50" />
                         <Input {...field} type="hidden" />
@@ -236,12 +243,14 @@ export default function NewToolForm({
                               key={category.id}
                             >
                               <Checkbox
-                                checked={field.value.includes(category.name)}
+                                checked={field.value.includes(
+                                  category.id.toString(),
+                                )}
                                 onCheckedChange={(checked) => {
                                   if (checked) {
                                     form.setValue("categories", [
                                       ...field.value,
-                                      category.name,
+                                      category.id.toString(),
                                     ]);
                                     form.clearErrors("categories");
                                   } else {
@@ -249,7 +258,7 @@ export default function NewToolForm({
                                     form.setValue(
                                       "categories",
                                       field.value.filter(
-                                        (cat) => cat !== category.name,
+                                        (cat) => cat !== category.id.toString(),
                                       ),
                                     );
                                   }
