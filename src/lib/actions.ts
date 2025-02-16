@@ -101,6 +101,24 @@ export async function createTool(
   redirect("/tools");
 }
 
+export async function getTools() {
+  const conn = await getConnection();
+  const query = `
+      SELECT id,
+             user_id,
+             tool_name,
+             description,
+             deposit,
+             max_borrow_days,
+             location_id,
+             status
+      FROM "post"
+  `;
+  const result = await conn.query(query);
+
+  return result.rows;
+}
+
 export async function getPostCategories() {
   const conn = await getConnection();
   const query = `
@@ -109,5 +127,25 @@ export async function getPostCategories() {
   `;
   const result = await conn.query(query);
 
+  return result.rows;
+}
+
+export async function getCategoriesFromPostId(post_id: string) {
+  const conn = await getConnection();
+  const query = `
+      SELECT *
+      FROM "category"
+      WHERE post_id = $1`;
+  const result = await conn.query(query, [post_id]);
+  return result.rows;
+}
+
+export async function getPostImagesFromPostId(post_id: string) {
+  const conn = await getConnection();
+  const query = `
+      SELECT *
+      FROM "post_picture"
+      WHERE post_id = $1`;
+  const result = await conn.query(query, [post_id]);
   return result.rows;
 }
