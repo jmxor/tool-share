@@ -13,7 +13,6 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/auth";
 import DeleteReviewButton from "@/components/accounts/delete-review-button";
-import Image from "next/image";
 
 export default async function ProfilePage({
 	params,
@@ -204,17 +203,7 @@ export default async function ProfilePage({
 							<div
 								key={post.id}
 							>
-								{post.sources.map((image, index) => (
-									<Image
-										key={index}
-										src={image}
-										alt="Tool Image"
-										width={500}
-										height={500}
-									/>
-								))
-								}
-								{post.tool_name}
+								post.tool_name
 							</div>
 						))
 						) :
