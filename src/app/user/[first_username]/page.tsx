@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { auth } from "@/auth";
 import DeleteReviewButton from "@/components/accounts/delete-review-button";
 import Image from "next/image";
+import PostCard from "@/components/accounts/post-card";
 
 export default async function ProfilePage({
 	params,
@@ -190,40 +191,20 @@ export default async function ProfilePage({
 						</div>
 					</div>
 				</div>
-				<div
-					className="px-14 mt-8"
-				>
-					<h2
-						className="text-xl"
-					>
-						Tools Listed
-					</h2>
+				<div className="px-14 mt-8">
+					<h2 className="text-xl">Tools Listed</h2>
 					<hr />
-					{publicUserData.posts.length > 0 ?
-						(publicUserData.posts.map((post: Post) => (
-							<div
-								key={post.id}
-							>
-								{post.sources.map((image, index) => (
-									<Image
-										key={index}
-										src={image}
-										alt="Tool Image"
-										width={500}
-										height={500}
-									/>
-								))
-								}
-								{post.tool_name}
-							</div>
-						))
-						) :
-						<div
-							className="flex items-center justify-center text-xl text-gray-400 py-10"
-						>
+					{publicUserData.posts.length > 0 ? (
+						<div className="flex flex-row overflow-x-auto space-x-4 py-8">
+							{publicUserData.posts.map((post: Post) => (
+								<PostCard key={post.id} post={post} />
+							))}
+						</div>
+					) : (
+						<div className="flex items-center justify-center text-xl text-gray-400 py-10">
 							No Listings
 						</div>
-					}
+					)}
 				</div>
 			</div>
 		</div>
