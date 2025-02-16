@@ -27,11 +27,10 @@ export default function ReviewFormPage({ first_username }: { first_username: str
     return (
         <form
             action={formAction}
-            className="min-w-36 md:w-1/5 flex flex-col gap-2 items-center p-2 mr-2"
+            className="min-w-48 flex flex-col gap-2 items-center p-2 mr-2"
         >
-            <h2>Leave your feedback</h2>
             <input type="hidden" name="target" value={first_username} />
-            <Stars name="stars" action={handleStarChange} />
+            <div className="w-full"><Stars name="stars" action={handleStarChange} /></div>
             <p className="text-red-400 text-sm">{state.errors?.stars}</p>
             <Textarea name="text" placeholder="Write your review here." />
             <p className="text-red-400 text-sm">{state.errors?.text}</p>

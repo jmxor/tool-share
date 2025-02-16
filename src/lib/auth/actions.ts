@@ -10,7 +10,67 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+export type DeleteReviewState = {
+    message: string | null,
+    success: boolean | null
+}
+
+export async function deleteReview(first_username: string):
+    Promise<DeleteReviewState> {
+    if (!first_username) {
+        return {
+            success: false,
+            message: "User does not exist"
+        }
+    }
+
+    try {
+        const session = await auth();
+
+        if (!session || !session.user || !session.user.email) {
+            return {
+                message: "You must be logged in to delete your review.",
+                success: false
+            }
+        }
+
+        const sessionUserID = await getEmailID(session.user.email);
+        if (!sessionUserID) {
+            return {
+                message: "You must be logged in to delete your review.",
+                success: false
+            }
+        }
+        const targetUserID = await getFirstUsernameID(first_username);
+        if (!targetUserID) {
+            return {
+                message: "Couldn't find this user. Try again later.",
+                success: false
+            }
+        }
+
+        const conn = await getConnection();
+        const query = `
+            DELETE FROM review
+            WHERE reviewer_id = $1
+            AND reviewed_id = $2
+        `;
+
+        await conn.query(query, [sessionUserID, targetUserID]);
+    } catch (error) {
+        console.error("[ERROR] Failed to delete review: ", error);
+        return {
+            success: false,
+            message: "Failed to delete review. Try again later"
+        }
+    }
+
+    revalidatePath(`/user/${first_username}`);
+    redirect(`/user/${first_username}`);
+}
+
 export type Review = {
+    id: number;
     reviewer_username: string;
     reviewer_first_usename: string;
     stars: number;
@@ -27,7 +87,7 @@ export async function getReviews(first_username: string): Promise<Review[] | nul
 
         const conn = await getConnection();
         const reviewsQuery = `
-            SELECT reviewer_id, stars, review_text, created_at
+            SELECT id, reviewer_id, stars, review_text, created_at
             FROM review
             WHERE reviewed_id = $1
         `;
@@ -48,6 +108,7 @@ export async function getReviews(first_username: string): Promise<Review[] | nul
                 return null;
             }
             const review: Review = {
+                id: row.id,
                 reviewer_username: reviewerResult.rows[0].username,
                 reviewer_first_usename: reviewerResult.rows[0].first_username,
                 stars: row.stars,
@@ -142,9 +203,7 @@ export async function submitReview(
 
         const conn = await getConnection();
         const values = [userID, targetID, validatedFields.data.stars, validatedFields.data.text];
-        const result = await conn.query(query, values);
-        // TODO: Check if it worked.
-
+        await conn.query(query, values);
     } catch {
         console.error("[ERROR] Failed to insert review into database");
         return {
@@ -186,12 +245,34 @@ export async function getPublicUserData(first_username: string): Promise<PublicU
             suspensionCount = countResult.rows[0].count;
         }
 
+        const postsQuery = `
+            SELECT
+              p.id,
+              p.tool_name,
+              p.description,
+              array_agg(pic.source) AS sources
+            FROM
+              post p
+              JOIN post_picture pic ON p.id = pic.post_id
+            WHERE
+              p.user_id = $1
+            GROUP BY
+              p.id,
+              p.tool_name,
+              p.description;
+        `;
+
+        const postsResult = await conn.query(postsQuery, [row.id]);
+
         const publicUserData: PublicUser = {
             username: row.username,
             created_at: row.created_at,
             is_suspended: row.is_suspended,
-            suspensionCount: suspensionCount
+            suspensionCount: suspensionCount,
+            posts: postsResult.rows
         }
+
+        //console.dir(publicUserData, { depth: null });
 
         return publicUserData;
 
@@ -461,7 +542,7 @@ export async function deleteAccount() {
 export async function getUserByEmail(email: string) {
     try {
         const query = `
-            SELECT username, email, created_at, user_privilege, is_suspended
+            SELECT username, first_username, email, created_at, user_privilege, is_suspended
             FROM "user" 
             WHERE email = $1
             LIMIT 1

@@ -6,11 +6,19 @@ export type User = {
     is_suspended: boolean;
 };
 
+export type Post = {
+    id: number,
+    tool_name: string,
+    description: string,
+    sources: string[]
+}
+
 export type PublicUser = {
     username: string;
     created_at: Date,
     is_suspended: boolean,
     suspensionCount: number
+    posts: Post[]
 };
 
 export type ToolPostPreview = {
