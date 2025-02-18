@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import DataTable from "@/components/ui/data-table";
 import { getTools } from "@/lib/actions";
-import { ColumnDef } from "@tanstack/table-core";
+import { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
 
 // TODO: move all types to actions file
