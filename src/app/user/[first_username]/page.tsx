@@ -13,7 +13,6 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/auth";
 import DeleteReviewButton from "@/components/accounts/delete-review-button";
-import Image from "next/image";
 import PostCard from "@/components/accounts/post-card";
 
 export default async function ProfilePage({
@@ -195,7 +194,7 @@ export default async function ProfilePage({
 					<h2 className="text-xl">Tools Listed</h2>
 					<hr />
 					{publicUserData.posts.length > 0 ? (
-						<div className="flex flex-row overflow-x-auto space-x-4 py-8">
+						<div className="flex flex-col items-center md:flex-row overflow-x-auto gap-2 py-8">
 							{publicUserData.posts.map((post: Post) => (
 								<PostCard key={post.id} post={post} />
 							))}
