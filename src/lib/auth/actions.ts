@@ -325,3 +325,34 @@ export async function setPassword(newPassword: string) {
         return false;
     }
 }
+
+export async function createConversation(user1_id: string, user2_id: string) {
+    try {
+
+        const query =       `
+        SELECT id FROM conversations
+        WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)
+      `;
+        const conn = await getConnection();
+        const existingConversation = await conn.query(query, [user1_id, user2_id]);
+        
+        if (existingConversation.rows.length > 0) {
+            return Response.json(
+              { conversationId: existingConversation.rows[0].id },
+              { status: 200 }
+            );
+          }
+        const insertQuery = 
+        `
+        INSERT INTO conversations (user1_id, user2_id)
+        VALUES ($1, $2)
+        RETURNING id
+        `;
+
+        await conn.query(insertQuery, [user1_id, user2_id]);
+        
+    } catch {
+        return null;
+    }
+
+  }
