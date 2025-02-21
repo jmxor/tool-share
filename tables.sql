@@ -42,6 +42,18 @@ CREATE TABLE IF NOT EXISTS location (
     FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE
 );
 
+-- Changed location table by removing user_id and renaming "name" column to "postcode", also added unique contraint to the newly renamed "postcode" column. Following queries used:
+
+
+ALTER TABLE location
+RENAME COLUMN name TO postcode;
+
+ALTER TABLE location
+ADD CONSTRAINT unique_postcode UNIQUE (postcode);
+
+ALTER TABLE location
+DROP COLUMN user_id;
+
 CREATE TABLE IF NOT EXISTS post (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
