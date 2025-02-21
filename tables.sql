@@ -35,8 +35,7 @@ CREATE TABLE IF NOT EXISTS direct_message (
 
 CREATE TABLE IF NOT EXISTS location (
     id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL,
-    name VARCHAR(64) NOT NULL,
+    postcode VARCHAR(64) UNIQUE NOT NULL,
     longitude FLOAT NOT NULL,
     latitude FLOAT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE
