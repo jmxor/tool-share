@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import ChatForm from "@/components/ChatForm";
 import ChatMessage from "@/components/ChatMessage";
 import { socket } from "@/lib/socketClient";
+import { insertDirectMessage } from "@/lib/actions";
 
 interface ChatComponentProps {
   initialMessages: { sender: string; message: string }[];
@@ -41,17 +42,21 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   };
 
   return (
+    
+    <div className="w-full max-w-3xl mx-auto">
+    <title>Chat page</title> 
+    <h1>userName: {userName}</h1>
     <div className="flex-col-reverse justify-end h-[700px] overflow-y-auto p-4 mt-4 mb-4 bg-gradient-to-t from-white to-gray-100 border-2 rounded-lg">
-      <h1>Username: {userName}</h1>
       {messages.map((msg, index) => (
-        <ChatMessage
-          key={index}
-          sender={msg.sender}
-          message={msg.message}
-          isOwnMessage={msg.sender === userName}
+        <ChatMessage 
+        key={ index } 
+        sender={ msg.sender } 
+        message={ msg.message }
+        isOwnMessage={ msg.sender === userName }
         />
       ))}
-      <ChatForm onSendMessage={handleSendMessage} />
+    </div>
+    <ChatForm onSendMessage={handleSendMessage}/>
     </div>
   );
 };

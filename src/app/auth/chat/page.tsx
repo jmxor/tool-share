@@ -1,8 +1,15 @@
 import { auth } from "@/auth";
 import ChatComponent from "@/components/ChatComponent";
 import { redirect } from "next/navigation";
-import { getUserByEmail } from "@/lib/auth/actions";
+import { getUserByEmail, getUserRowFromEmail } from "@/lib/auth/actions";
+import { getMessagesByUserId } from "@/lib/actions";
 
+function mapMessages(messages: any[]): { sender: string; message: string }[] {
+  return messages.map((msg) => ({
+    sender: msg.sender_username || 'Unknown', // Get sender name
+    message: msg.message,
+  }));
+}
 
 export default async function Chat() {
 
@@ -11,24 +18,30 @@ export default async function Chat() {
       redirect('/auth/login');
   }
 
-  const userInfo = await getUserByEmail(session.user.email as string);
+  const userInfo = await getUserRowFromEmail(session.user.email as string);
   if (!userInfo) {
       redirect('/auth/login');
   }
-  
+
+  const messagesInfo = await getMessagesByUserId(userInfo.rows[0].id as string, "33");
+  if (!messagesInfo) {
+      console.log("No messages found.")
+  }
+
+  const formattedMessages = mapMessages(messagesInfo);
+
   return (
     <div>
       <div className="w-full max-w-3xl mx-auto">
         <title>Chat page</title>
-        <ChatComponent initialMessages={[  { sender: "Alice", message: "Hello!" },
-]}  userName={userInfo.username} room={"room"} />
+        <ChatComponent initialMessages={formattedMessages}  userName={userInfo.rows[0].username} room={"room"} />
       </div>
     </div>
   );
 }
 
 async function fetchInitialMessages() {
-  // Replace this with your actual database fetching logic
+  // Replace this with actual database fetching logic
   return [
     { sender: "Alice", message: "Hello!" },
     { sender: "Bob", message: "Hi there!" },
