@@ -23,16 +23,37 @@ export type ToolState = {
 
 export async function createPostImage(post_id: number, post_image_url: string) {
   const conn = await getConnection();
-  const insertImageQuery = `INSERT INTO "post_picture" (post_id, source)
-                            VALUES ($1, $2)`;
-  await conn.query(insertImageQuery, [post_id, post_image_url]);
+  const query = `INSERT INTO "post_picture" (post_id, source)
+                 VALUES ($1, $2)`;
+  await conn.query(query, [post_id, post_image_url]);
 }
 
 export async function createPostCategory(post_id: number, category_id: number) {
   const conn = await getConnection();
-  const insertCategoryQuery = `INSERT INTO "post_category" (category_id, post_id)
-                               VALUES ($1, $2)`;
-  await conn.query(insertCategoryQuery, [category_id, post_id]);
+  const query = `INSERT INTO "post_category" (category_id, post_id)
+                 VALUES ($1, $2)`;
+  await conn.query(query, [category_id, post_id]);
+}
+
+export async function getLocationIdFromPostcode(postcode: string) {
+  const conn = await getConnection();
+  const query = `SELECT id
+                 from "location"
+                 WHERE postcode = $1`;
+  const result = await conn.query(query, [postcode]);
+  return result;
+}
+
+export async function createLocationFromPostcode(postcode: string) {
+  const geocodedPostcode = await getGeocodeFromPostcode(postcode);
+  console.log(geocodedPostcode.geometry);
+  const { lat, lng } = geocodedPostcode.results[0].geometry.location;
+
+  const conn = await getConnection();
+  const query = `INSERT INTO "location" (postcode, latitude, longitude)
+                 VALUES ($1, $2, $3) RETURNING id`;
+  const result = await conn.query(query, [postcode, lat, lng]);
+  return result;
 }
 
 export async function createTool(
@@ -43,7 +64,7 @@ export async function createTool(
     ...Object.fromEntries(formData),
     images: formData.getAll("images"),
   };
-
+  // TODO: add validation for queries and geocoding
   // VALIDATE FORM DATA
   const validatedFields = CreateToolFormSchema.safeParse(data);
   if (!validatedFields.success) {
@@ -73,10 +94,20 @@ export async function createTool(
       };
     }
     const current_user = user_row.rows[0];
-
-    // TODO: CHECK IF LOCATION ALREADY EXISTS IN DB
-
-    // TODO: CREATE LOCATION IF NOT EXISTS
+    let location_id;
+    // CHECK IF LOCATION ALREADY EXISTS IN DB
+    const location_result = await getLocationIdFromPostcode(
+      validatedFields.data.location,
+    );
+    if (!location_result || location_result.rows.length === 0) {
+      // CREATE LOCATION IF NOT EXISTS
+      const new_location_result = await createLocationFromPostcode(
+        validatedFields.data.location,
+      );
+      location_id = new_location_result.rows[0].id;
+    } else {
+      location_id = location_result.rows[0].id;
+    }
 
     // CREATE POST TABLE ENTRY
     const conn = await getConnection();
@@ -90,7 +121,7 @@ export async function createTool(
       validatedFields.data.description,
       validatedFields.data.deposit,
       validatedFields.data.max_borrow_days,
-      1, // TODO: USE CREATED OR QUERIED LOCATION
+      location_id,
       "",
     ]);
 
