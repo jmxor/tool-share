@@ -1,29 +1,7 @@
+import ToolsDataTable from "@/components/tools-data-table";
 import { Button } from "@/components/ui/button";
-import DataTable from "@/components/ui/data-table";
 import { getTools } from "@/lib/actions";
-import { ColumnDef } from "@tanstack/react-table";
 import { Plus } from "lucide-react";
-
-// TODO: move all types to actions file
-type Tool = {
-  id: number;
-  user_id: number;
-  tool_name: string;
-  description: string;
-  deposit: number;
-  max_borrow_days: number;
-  location_id: number;
-  status: string;
-};
-
-const toolsColumns: ColumnDef<Tool>[] = [
-  { accessorKey: "tool_name", header: "Name" },
-  { accessorKey: "description", header: "Description" },
-  { accessorKey: "deposit", header: "Deposit" },
-  { accessorKey: "max_borrow_days", header: "Max Borrow Time (days)" },
-  { accessorKey: "location_id", header: "Location" },
-  { accessorKey: "status", header: "Status" },
-];
 
 export default async function ToolsPage() {
   const tools = await getTools();
@@ -46,7 +24,7 @@ export default async function ToolsPage() {
         <h1>Map Section</h1>
       </div>
 
-      <DataTable columns={toolsColumns} data={tools} />
+      <ToolsDataTable data={tools} />
     </div>
   );
 }
