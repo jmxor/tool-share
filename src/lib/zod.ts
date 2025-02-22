@@ -45,7 +45,7 @@ export const CreateToolFormSchema = z.object({
     })
     .positive("Must be greater than 0.")
     .int("Must be a whole number"),
-  location: z.string().min(1, "Location is required."),
+  location: z.string().min(1, "Location is required."), // TODO: add postcode validation
   image_urls: z.union([
     z.string().array().min(1, "At least 1 Image is required."),
     z

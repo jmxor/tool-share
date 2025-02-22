@@ -18,8 +18,22 @@ export type ToolState = {
     categories?: string[];
   };
   message?: string | null;
-  fields?: Record<string, string>;
+  fields?: Record<string, string | string[] | number>;
 };
+
+export async function createPostImage(post_id: number, post_image_url: string) {
+  const conn = await getConnection();
+  const insertImageQuery = `INSERT INTO "post_picture" (post_id, source)
+                            VALUES ($1, $2)`;
+  await conn.query(insertImageQuery, [post_id, post_image_url]);
+}
+
+export async function createPostCategory(post_id: number, category_id: number) {
+  const conn = await getConnection();
+  const insertCategoryQuery = `INSERT INTO "post_category" (category_id, post_id)
+                               VALUES ($1, $2)`;
+  await conn.query(insertCategoryQuery, [category_id, post_id]);
+}
 
 export async function createTool(
   prevState: ToolState,
@@ -30,8 +44,8 @@ export async function createTool(
     images: formData.getAll("images"),
   };
 
+  // VALIDATE FORM DATA
   const validatedFields = CreateToolFormSchema.safeParse(data);
-
   if (!validatedFields.success) {
     console.log(formData);
     console.log(validatedFields.error.flatten().fieldErrors);
@@ -42,6 +56,7 @@ export async function createTool(
     };
   }
 
+  // GET CURRENT USER
   try {
     const session = await auth();
     if (!session || !session.user || !session.user.email) {
@@ -59,6 +74,11 @@ export async function createTool(
     }
     const current_user = user_row.rows[0];
 
+    // TODO: CHECK IF LOCATION ALREADY EXISTS IN DB
+
+    // TODO: CREATE LOCATION IF NOT EXISTS
+
+    // CREATE POST TABLE ENTRY
     const conn = await getConnection();
     const insertPostQuery = `
         INSERT INTO "post" (user_id, tool_name, description, deposit, max_borrow_days, location_id, status)
@@ -70,25 +90,18 @@ export async function createTool(
       validatedFields.data.description,
       validatedFields.data.deposit,
       validatedFields.data.max_borrow_days,
-      1,
+      1, // TODO: USE CREATED OR QUERIED LOCATION
       "",
     ]);
 
-    // insert post -> category links
-    const insertCategoriesQuery = `INSERT INTO "post_category" (category_id, post_id)
-                                   VALUES ($1, $2)`;
+    // CREATE POST CATEGORY LINKS
     for (const category_id of validatedFields.data.categories) {
-      await conn.query(insertCategoriesQuery, [
-        parseInt(category_id),
-        result.rows[0].id,
-      ]);
+      createPostCategory(result.rows[0].id, parseInt(category_id));
     }
 
-    //insert post -> image links
-    const insertImagesQuery = `INSERT INTO "post_picture" (post_id, source)
-                               VALUES ($1, $2)`;
+    // CREATE POST IMAGE LINKS
     for (const image_url of validatedFields.data.image_urls) {
-      await conn.query(insertImagesQuery, [result.rows[0].id, image_url]);
+      await createPostImage(result.rows[0].id, image_url);
     }
   } catch (error) {
     console.log(error);
@@ -148,4 +161,10 @@ export async function getPostImagesFromPostId(post_id: string) {
       WHERE post_id = $1`;
   const result = await conn.query(query, [post_id]);
   return result.rows;
+}
+
+export async function getGeocodeFromPostcode(postcode: string) {
+  const request = `https://maps.googleapis.com/maps/api/geocode/json?address=${postcode}&key=${process.env.GOOGLE_MAPS_API_KEY as string}`;
+  const result = await fetch(request);
+  return result.json();
 }
