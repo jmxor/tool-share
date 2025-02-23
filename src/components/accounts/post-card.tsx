@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { Post } from "@/lib/types";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '../ui/button';
 
 export default function PostCard({ post }: { post: Post }) {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -22,7 +21,7 @@ export default function PostCard({ post }: { post: Post }) {
     };
 
     return (
-        <div className="flex flex-col items-center p-4 border rounded-lg shadow-md w-64">
+        <div className="flex flex-col items-center p-4 border rounded-lg shadow-md min-w-56">
             <div className="relative w-full h-48">
                 {post.sources.length > 1 && (
                     <button
@@ -49,8 +48,8 @@ export default function PostCard({ post }: { post: Post }) {
                     </button>
                 )}
             </div>
-            <h3 className="text-lg font-semibold mt-2">{post.tool_name}</h3>
-            <p className="text-gray-600 text-sm">{post.description}</p>
+            <h3 className="font-semibold mt-2 overflow-hidden text-nowrap">{post.tool_name}</h3>
+            <p className="text-gray-600 text-sm overflow-auto h-10">{post.description}</p>
             <a
                 href={`/tool/${post.id}`}
                 className="mt-2 text-blue-500 hover:text-blue-700 transition-colors duration-200"

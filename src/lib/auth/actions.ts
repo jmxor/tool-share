@@ -10,6 +10,35 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+
+export async function userIsAdmin(email: string): Promise<boolean> {
+    try {
+        const conn = await getConnection();
+
+        const query = `
+            SELECT user_privilege
+            FROM "user"
+            WHERE email = $1
+        `;
+
+        const result = await conn.query(query, [email]);
+
+        if ((result.rowCount || 0) <= 0) {
+            return false;
+        }
+
+        const user = result.rows[0];
+        if (user.user_privilege !== 'admin') {
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error("[ERROR] Failed to check whether user is admin: ", error);
+        return false;
+    }
+}
+
 export type DeleteReviewState = {
     message: string | null,
     success: boolean | null
@@ -554,10 +583,13 @@ export async function getUserByEmail(email: string) {
             return null;
         }
         const user = result.rows[0];
-        return {
+
+        const user_object = {
             ...user,
             created_at: new Date(user.created_at),
         } as User;
+
+        return user_object;
     } catch {
         return null;
     }

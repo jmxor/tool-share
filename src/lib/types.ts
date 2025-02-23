@@ -1,5 +1,6 @@
 export type User = {
     username: string;
+    first_username: string;
     email: string;
     created_at: Date;
     user_privilege: string;
