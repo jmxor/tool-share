@@ -1,13 +1,16 @@
+
 import React from 'react'
 
 interface ChatMessageProps {
     sender: string;
+    recipient: string;
     message: string;
     isOwnMessage: boolean;
 }
 
 // Chat message function
-const ChatMessage = ({ sender, message, isOwnMessage}: ChatMessageProps) => {
+const ChatMessage = ({ sender,  message, isOwnMessage}: ChatMessageProps) => {
+
 
     // Return a message that is blue and on the right hand side
     // on reciever screen, gray and on the left hand side if it is from the sender

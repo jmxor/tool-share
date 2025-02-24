@@ -9,6 +9,8 @@ export async function getMessagesByUserId(user1_Id: string, user2_Id : string) {
                 dm.id,
                 dm.message,
                 dm.sent_at,
+                dm.sender_id,
+                dm.recipient_id,
                 sender.username AS sender_username,
                 recipient.username AS recipient_username
             FROM 
@@ -40,16 +42,18 @@ export async function getMessagesByUserId(user1_Id: string, user2_Id : string) {
 }
 }
 
-export async function insertDirectMessage(user1_Id: string, user2_Id : string) {
+export async function insertDirectMessage(user1_Id: string, user2_Id : string, msg : string) {
     try {
+
+        console.log("insertDirectMessage called")
         const insertQuery = `
             INSERT INTO direct_message (sender_id, recipient_id, message)
-            VALUES ($1, $2, 'Hello, how are you?');
+            VALUES ($1, $2, $3);
         `
 
         const conn = await getConnection();
 
-        await conn.query(insertQuery, [user1_Id, user2_Id]);
+        await conn.query(insertQuery, [user1_Id, user2_Id, msg]);
 
 
     }catch {

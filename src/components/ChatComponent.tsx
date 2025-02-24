@@ -10,13 +10,13 @@ import { insertDirectMessage } from "@/lib/actions";
 interface ChatComponentProps {
   initialMessages: { sender: string; message: string }[];
   userName: string;
-  room: string;
+  conversationID: string;
 }
 
 const ChatComponent: React.FC<ChatComponentProps> = ({
   initialMessages,
   userName,
-  room,
+  conversationID,
 }) => {
   const [messages, setMessages] = useState(initialMessages);
 
@@ -25,20 +25,17 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       setMessages((prev) => [...prev, data]);
     });
 
-    socket.on("user_joined", (message) => {
-      setMessages((prev) => [...prev, { sender: "system", message }]);
-    });
-
     return () => {
       socket.off("user_joined");
       socket.off("message");
     };
   }, []);
 
-  const handleSendMessage = (message: string) => {
-    const data = { room, message, sender: userName };
+  const handleSendMessage = async (message: string) => {
+    const data = { conversationID, message, sender: userName };
     setMessages((prev) => [...prev, { sender: userName, message }]);
     socket.emit("message", data);
+    await insertDirectMessage("33", "38", message);
   };
 
   return (
