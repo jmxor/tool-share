@@ -1,10 +1,11 @@
 "use server";
 
 import { auth } from "@/auth";
-import { ReportFormSchema } from "../zod";
+import { ReportFormSchema, ReportMessageFormSchema } from "../zod";
 import { getEmailID, getFirstUsernameID } from "../auth/actions";
 import { getConnection } from "../db";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 export type ReportFormState = {
   errors?: {
@@ -14,6 +15,7 @@ export type ReportFormState = {
   message?: string,
   success?: boolean
 }
+
 
 export async function createReport(
   prevState: ReportFormState,
@@ -89,6 +91,12 @@ export async function createReport(
 
   if (newReportId) {
     redirect(`/reports/${newReportId}`)
+  }
+
+  console.error("[ERROR] Unexpected error, got no report id back from insert query. Try again.")
+  return {
+    message: "Failed to create report, please try again later.",
+    success: false
   }
 }
 
@@ -180,4 +188,83 @@ export async function getReportData(report_id: number): Promise<Report | null> {
     console.error("[ERROR] Failed to get report data: ", error);
     return null;
   }
+}
+
+export type ReportMessageFormState = {
+  errors?: {
+    reportID?: string[],
+    reportMessageText?: string[]
+  },
+  message?: string,
+  success?: boolean
+}
+
+export async function sendReportMessage(
+  prevState: ReportMessageFormState,
+  formData: FormData
+): Promise<ReportMessageFormState> {
+  const session = await auth();
+
+  if (!session || !session.user || !session.user.email) {
+    return {
+      message: "You must be logged in to send a report message.",
+      success: false
+    }
+  }
+
+  const userID = await getEmailID(session.user.email);
+  if (!userID) {
+    console.error("[ERROR] Couldn't find email from auth session in the database.")
+    return {
+      message: "You must be logged in to do this.",
+      success: false
+    }
+  }
+
+  const data = {
+    ...Object.fromEntries(formData),
+  };
+
+  let parsedData;
+  let validatedFields;
+  try {
+    parsedData = {
+      ...data,
+      reportID: parseInt(data.reportID.toString())
+    }
+    validatedFields = ReportMessageFormSchema.safeParse(parsedData);
+  } catch {
+    console.error("[ERROR] Non integer value submitted as report id in report message form");
+  }
+
+  if (!validatedFields) {
+    validatedFields = ReportMessageFormSchema.safeParse(data);
+  }
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error?.flatten().fieldErrors,
+      message: "Failed to send report message, try again.",
+      success: false
+    }
+  }
+
+  try {
+    const conn = await getConnection();
+
+    const query = `
+      INSERT INTO report_message (user_id, report_id, message)
+      VALUES ($1, $2, $3)
+    `;
+
+    await conn.query(query, [userID, validatedFields.data.reportID, validatedFields.data.reportMessageText]);
+  } catch (error) {
+    console.error("[ERROR] Failed to create report message: ", error);
+    return {
+      message: "Couldn't send message, try again later.",
+      success: false
+    }
+  }
+
+  redirect(`/reports/${validatedFields.data.reportID}`);
 }

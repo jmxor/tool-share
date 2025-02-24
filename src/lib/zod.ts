@@ -88,3 +88,10 @@ export const ReportFormSchema = z.object({
   profileURL: z.string({ required_error: "Please insert the link to the profile of the user who you are reporting." }),
   reportDescription: z.string({ required_error: "Please describe the report reason and all details of the situation." })
 });
+
+export const ReportMessageFormSchema = z.object({
+  reportID: z.number({ required_error: "Report ID hasn't been set, try restarting the page." }),
+  reportMessageText: z
+    .string({ required_error: "Please type the message you would like to send. " })
+    .min(1, { message: "Message cannot be empty." }),
+})
