@@ -4,17 +4,24 @@ import { Report_Message, ReportMessageFormState, sendReportMessage } from "@/lib
 import { getTimeAgo } from "@/lib/utils";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 export default function ReportMessages({ report_id, report_messages, loggedInUserID }: { report_id: number, report_messages: Report_Message[], loggedInUserID: number }) {
   const initialState: ReportMessageFormState = {
     errors: {}
   }
+  const [reportMessages, setReportMessages] = useState<Report_Message[]>(report_messages);
 
   const [state, formAction, isPending] = useActionState(
     sendReportMessage,
     initialState
   );
+
+  useEffect(() => {
+    if (state.success && state.newMessage) {
+      setReportMessages(prevMessages => [...prevMessages, state.newMessage!])
+    }
+  }, [state])
 
   return (
     <div className="flex-grow overflow-y-auto p-6">
@@ -22,7 +29,7 @@ export default function ReportMessages({ report_id, report_messages, loggedInUse
         Messages
       </h3>
       <div className="space-y-3 px-2 pr-4">
-        {report_messages.map((message: Report_Message) => (
+        {reportMessages.map((message: Report_Message) => (
           <div
             key={message.id}
             className={`flex flex-col ${message.user_id === loggedInUserID

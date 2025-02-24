@@ -194,9 +194,10 @@ export type ReportMessageFormState = {
   errors?: {
     reportID?: string[],
     reportMessageText?: string[]
-  },
-  message?: string,
-  success?: boolean
+  };
+  message?: string;
+  success?: boolean;
+  newMessage?: Report_Message;
 }
 
 export async function sendReportMessage(
@@ -255,9 +256,46 @@ export async function sendReportMessage(
     const query = `
       INSERT INTO report_message (user_id, report_id, message)
       VALUES ($1, $2, $3)
+      RETURNING id
     `;
 
-    await conn.query(query, [userID, validatedFields.data.reportID, validatedFields.data.reportMessageText]);
+    const result = await conn.query(query, [userID, validatedFields.data.reportID, validatedFields.data.reportMessageText]);
+    const id = result.rows[0].id;
+
+    const reportMessageQuery = `
+      SELECT
+        rm.id,
+        rm.user_id,
+        u.first_username AS user_first_username,
+        u.username AS user_username,
+        rm.message AS message_text,
+        rm.sent_at
+      FROM
+        report_message rm
+      JOIN
+        public.user u ON u.id = rm.user_id
+      WHERE
+        rm.id = $1;
+    `;
+    const secondResult = await conn.query(reportMessageQuery, [id]);
+    if ((secondResult?.rowCount || 0) <= 0) {
+      return {
+        success: true
+      }
+    }
+
+    const row = secondResult.rows[0]
+    return {
+      success: true,
+      newMessage: {
+        id: id,
+        user_id: row.user_id,
+        user_first_username: row.user_first_username,
+        user_username: row.user_username,
+        message_text: row.message_text,
+        sent_at: row.sent_at,
+      } as Report_Message
+    }
   } catch (error) {
     console.error("[ERROR] Failed to create report message: ", error);
     return {
@@ -266,5 +304,4 @@ export async function sendReportMessage(
     }
   }
 
-  redirect(`/reports/${validatedFields.data.reportID}`);
 }
