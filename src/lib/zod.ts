@@ -45,7 +45,14 @@ export const CreateToolFormSchema = z.object({
     })
     .positive("Must be greater than 0.")
     .int("Must be a whole number"),
-  location: z.string().min(1, "Location is required."), // TODO: add postcode validation
+  location: z
+    .string()
+    .toUpperCase()
+    .min(1, "Location is required.")
+    .regex(
+      new RegExp("^([A-Z]{1,2}\\d[A-Z\\d]? \\d[A-Z]{2}|GIR 0A{2})$"),
+      "Please enter a valid postcode with spaces",
+    ),
   image_urls: z.union([
     z.string().array().min(1, "At least 1 Image is required."),
     z
