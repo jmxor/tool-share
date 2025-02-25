@@ -204,19 +204,28 @@ export type ToolPost = {
   status: string;
 };
 
-export async function getTools(): Promise<ToolPost[] | null> {
+export type AllToolPostData = ToolPost &
+  Omit<PostLocation, "id"> & {
+    categories: string;
+    pictures: string;
+  };
+
+export async function getTools(): Promise<AllToolPostData[] | null> {
   try {
     const conn = await getConnection();
     const query = `
-        SELECT id,
-               user_id,
-               tool_name,
-               description,
-               deposit,
-               max_borrow_days,
-               location_id,
-               status
-        FROM "post"
+        SELECT p.*,
+               string_agg(DISTINCT pp.source, ', ') AS pictures,
+               string_agg(DISTINCT c.name, ', ')    AS categories,
+               l.postcode,
+               l.longitude,
+               l.latitude
+        FROM post p
+                 LEFT JOIN post_picture pp ON p.id = pp.post_id
+                 LEFT JOIN post_category pc ON p.id = pc.post_id
+                 LEFT JOIN category c ON pc.category_id = c.id
+                 LEFT JOIN location l ON p.location_id = l.id
+        GROUP BY p.id, l.id
     `;
     const result = await conn.query(query);
 

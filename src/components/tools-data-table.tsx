@@ -1,10 +1,10 @@
 "use client";
 
 import DataTable from "@/components/ui/data-table";
-import { ToolPost } from "@/lib/posts/actions";
+import { AllToolPostData } from "@/lib/posts/actions";
 import { ColumnDef } from "@tanstack/react-table";
 
-const toolsColumns: ColumnDef<ToolPost>[] = [
+const toolsColumns: ColumnDef<AllToolPostData>[] = [
   { accessorKey: "tool_name", header: "Name" },
   { accessorKey: "description", header: "Description" },
   { accessorKey: "deposit", header: "Deposit" },
@@ -16,10 +16,16 @@ const toolsColumns: ColumnDef<ToolPost>[] = [
       return <div>{max_borrow_days} days</div>;
     },
   },
-  { accessorKey: "location_id", header: "Postcode" },
+  {
+    accessorKey: "postcode",
+    header: "Postcode",
+    cell: ({ row }) => (
+      <div className="whitespace-nowrap"> {row.getValue("postcode")}</div>
+    ),
+  },
   { accessorKey: "status", header: "Status" },
 ];
 
-export default function ToolsDataTable({ data }: { data: ToolPost[] }) {
+export default function ToolsDataTable({ data }: { data: AllToolPostData[] }) {
   return <DataTable columns={toolsColumns} data={data} />;
 }
