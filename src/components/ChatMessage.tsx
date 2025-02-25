@@ -9,7 +9,7 @@ interface ChatMessageProps {
 }
 
 // Chat message function
-const ChatMessage = ({ sender,  message, isOwnMessage}: ChatMessageProps) => {
+const ChatMessage = ({ sender, message, isOwnMessage}: ChatMessageProps) => {
 
 
     // Return a message that is blue and on the right hand side
