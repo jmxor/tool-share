@@ -1,10 +1,13 @@
 import ToolsDataTable from "@/components/tools-data-table";
 import { Button } from "@/components/ui/button";
-import { getTools } from "@/lib/actions";
+import { getTools } from "@/lib/posts/actions";
 import { Plus } from "lucide-react";
 
 export default async function ToolsPage() {
-  const tools = await getTools();
+  let tools = await getTools();
+  if (!tools) {
+    tools = [];
+  }
 
   return (
     <div className="grid grid-cols-1 gap-2 p-2 lg:grid-cols-2 lg:px-4">

@@ -25,7 +25,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { createTool, ToolState } from "@/lib/actions";
+import { createTool, PostFormState } from "@/lib/posts/actions";
 import { cn } from "@/lib/utils";
 import { CreateToolFormSchema } from "@/lib/zod";
 import { UploadDropzone } from "@/utils/uploadthing";
@@ -46,7 +46,7 @@ export default function NewToolForm({
 }: {
   categories: Category[];
 }) {
-  const initialState: ToolState = {
+  const initialState: PostFormState = {
     message: null,
     errors: {},
   };

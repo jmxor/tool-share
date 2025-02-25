@@ -1,8 +1,11 @@
 import NewToolForm from "@/components/new-tool-form";
-import { getPostCategories } from "@/lib/actions";
+import { getCategories } from "@/lib/posts/actions";
 
 export default async function NewToolPage() {
-  const categories = await getPostCategories();
+  let categories = await getCategories();
+  if (!categories) {
+    categories = [];
+  }
 
   return (
     <div className="mb-auto flex w-full flex-1 justify-center bg-gray-50 px-4">
