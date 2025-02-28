@@ -3,7 +3,6 @@ import React from 'react'
 
 interface ChatMessageProps {
     sender: string;
-    recipient: string;
     message: string;
     isOwnMessage: boolean;
 }
