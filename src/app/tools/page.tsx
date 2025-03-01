@@ -1,4 +1,5 @@
 import ToolsDataTable from "@/components/tools-data-table";
+import ToolsMap from "@/components/tools-map";
 import { Button } from "@/components/ui/button";
 import { getTools } from "@/lib/posts/actions";
 import { Plus } from "lucide-react";
@@ -23,8 +24,8 @@ export default async function ToolsPage() {
         </Button>
       </div>
 
-      <div className="flex h-36 items-center justify-center rounded-md border px-4 py-2">
-        <h1>Map Section</h1>
+      <div className="flex items-center justify-center rounded-md border">
+        <ToolsMap tools={tools} />
       </div>
 
       <ToolsDataTable data={tools} />
