@@ -24,7 +24,7 @@ export default async function ToolsPage() {
         </Button>
       </div>
 
-      <div className="flex items-center justify-center rounded-md border">
+      <div className="flex items-center justify-center overflow-clip rounded-md border">
         <ToolsMap tools={tools} />
       </div>
 
