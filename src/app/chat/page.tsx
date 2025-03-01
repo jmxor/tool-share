@@ -25,9 +25,14 @@ export default async function Chat() {
       redirect('/auth/login');
   }
 
-  const allConversations = await getAllConversations(userInfo.rows[0].id);
+  let allConversations = await getAllConversations(userInfo.rows[0].id);
+  if (!allConversations) {
+    allConversations = [];
+  }
 
-  const conversationInfo = await  getConversation(userInfo.rows[0].id, "39");
+  const conversationInfo = await  getConversation(userInfo.rows[0].id, allConversations[0].user1_id=== userInfo.rows[0].idcurrentUserId
+                                                                        ? allConversations[0].user2_id
+                                                                        : allConversations[0].user1_id);
 
   let messagesInfo = await getMessagesByUserId(conversationInfo.user1_id, conversationInfo.user2_id);
   if (!messagesInfo) {
