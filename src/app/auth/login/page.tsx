@@ -40,7 +40,7 @@ export default function LoginPage() {
     const formRef = useRef<HTMLFormElement>(null);
 
     return (
-        <div className="flex min-h-screen w-full justify-center bg-gray-50">
+        <div className="flex h-[calc(100vh-4rem)] w-full justify-center bg-gray-50">
             <Form {...form}>
                 <form
                     ref={formRef}
