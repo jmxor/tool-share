@@ -1,3 +1,4 @@
+import PostCard from "@/components/post-card";
 import ToolsDataTable from "@/components/tools-data-table";
 import ToolsMap from "@/components/tools-map";
 import { Button } from "@/components/ui/button";
@@ -11,8 +12,8 @@ export default async function ToolsPage() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-2 p-2 lg:grid-cols-2 lg:px-4">
-      <div className="flex items-center justify-center gap-2 lg:col-span-2">
+    <div className="grid grid-cols-2 gap-2 p-2 lg:grid-cols-6 lg:px-4">
+      <div className="col-span-full flex items-center justify-center gap-2">
         <p>Have a tool to share?</p>
         <Button variant="outline" asChild>
           {/* This link needs to be an anchor element not a Next Link to prevent issues when submitting the form on
@@ -24,9 +25,13 @@ export default async function ToolsPage() {
         </Button>
       </div>
 
-      <div className="flex items-center justify-center overflow-clip rounded-md border">
+      <div className="col-span-2 flex h-72 items-center justify-center overflow-clip rounded-md border lg:col-span-3 lg:h-auto">
         <ToolsMap tools={tools} />
       </div>
+
+      {tools.map((tool) => (
+        <PostCard key={tool.id} post={tool} />
+      ))}
 
       <ToolsDataTable data={tools} />
     </div>

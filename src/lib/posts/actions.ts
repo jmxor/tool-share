@@ -206,8 +206,8 @@ export type ToolPost = {
 
 export type AllToolPostData = ToolPost &
   Omit<PostLocation, "id"> & {
-    categories: string;
-    pictures: string;
+    categories: string[];
+    pictures: string[];
   };
 
 export async function getTools(): Promise<AllToolPostData[] | null> {
@@ -215,8 +215,8 @@ export async function getTools(): Promise<AllToolPostData[] | null> {
     const conn = await getConnection();
     const query = `
         SELECT p.*,
-               string_agg(DISTINCT pp.source, ', ') AS pictures,
-               string_agg(DISTINCT c.name, ', ')    AS categories,
+               array_agg(DISTINCT pp.source) AS pictures,
+               array_agg(DISTINCT c.name)    AS categories,
                l.postcode,
                l.longitude,
                l.latitude
