@@ -70,9 +70,6 @@ export default async function ProfilePage({
 		starCount = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
 	}
 
-	console.log(first_username)
-	console.log(loggedInFirstUsername)
-
 	return (
 
 		<div
@@ -88,7 +85,6 @@ export default async function ProfilePage({
 						Joined <span>{formatDate(publicUserData.created_at)}</span>
 					</p>
 					<p className="text-sm"><span className="font-bold">5</span> transactions</p>
-					<p className="text-sm"><span className="font-bold">{publicUserData.suspensionCount}</span> suspensions</p>
 				</div>
 				<div className="flex flex-col gap-1 items-center">
 					{first_username !== loggedInFirstUsername ? <>

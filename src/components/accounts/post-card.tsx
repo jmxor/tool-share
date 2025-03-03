@@ -21,7 +21,7 @@ export default function PostCard({ post }: { post: Post }) {
     };
 
     return (
-        <div className="flex flex-col items-center p-4 border rounded-lg shadow-md min-w-56">
+        <div className="flex flex-col items-center p-4 border rounded-lg shadow-md min-w-56 w-full">
             <div className="relative w-full h-48">
                 {post.sources.length > 1 && (
                     <button
