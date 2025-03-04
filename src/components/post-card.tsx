@@ -23,7 +23,7 @@ export default function PostCard({ post }: { post: AllToolPostData }) {
 
   return (
     <div className="col-span-1 flex flex-col rounded-lg border shadow-md">
-      <div className="relative h-48 w-full">
+      <div className="relative h-24 w-full">
         {post.pictures.length > 1 && (
           <button
             onClick={handlePrevImage}
@@ -36,7 +36,7 @@ export default function PostCard({ post }: { post: AllToolPostData }) {
           src={post.pictures[currentImageIndex]}
           alt="Tool Image"
           width={200}
-          height={150}
+          height={100}
           className="rounded-md object-cover"
           style={{ objectFit: "cover", width: "100%", height: "100%" }}
         />
@@ -50,22 +50,27 @@ export default function PostCard({ post }: { post: AllToolPostData }) {
         )}
       </div>
       <div className="p-2 lg:px-4">
-        <h3 className="text-lg font-semibold capitalize">{post.tool_name}</h3>
+        <h3 className="truncate text-lg font-semibold capitalize">
+          {post.tool_name}
+        </h3>
         <div className="flex justify-between">
           <span className="text-sm">{post.postcode}</span>
           <span className="text-sm">{post.deposit} deposit</span>
           {/* <span className="text-sm">{post.max_borrow_days}</span> */}
         </div>
-        <p className="max-h-10 text-ellipsis text-sm text-gray-600">
+
+        <p className="line-clamp-2 h-10 text-sm text-gray-600">
           {post.description}
         </p>
       </div>
-      <div className="flex flex-col gap-2 px-2 pb-2 lg:flex-row">
-        <Button className="w-full lg:w-auto" size="sm" asChild>
-          <a href={`/tool/${post.id}`}>View Tool</a>
+      <div className="flex gap-2 px-2 pb-2">
+        <Button className="w-full" size="sm" asChild>
+          {/* TODO: change button content to Edit if current user is owner */}
+          <a href={`/tool/${post.id}`}>Details</a>
         </Button>
-        <Button className="w-full lg:w-auto" size="sm">
-          Message Owner
+        <Button className="w-full" size="sm">
+          {/* TODO: change button content if tool is currently borrowed */}
+          Borrow
         </Button>
       </div>
     </div>

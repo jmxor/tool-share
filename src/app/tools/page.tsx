@@ -25,7 +25,7 @@ export default async function ToolsPage() {
         </Button>
       </div>
 
-      <div className="col-span-2 flex h-72 items-center justify-center overflow-clip rounded-md border lg:col-span-3 lg:h-auto">
+      <div className="col-span-2 row-span-2 flex h-72 items-center justify-center overflow-clip rounded-md border lg:col-span-3 lg:h-auto">
         <ToolsMap tools={tools} />
       </div>
 
