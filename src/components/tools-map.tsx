@@ -2,9 +2,13 @@
 
 import { AllToolPostData } from "@/lib/posts/actions";
 import { AdvancedMarker, APIProvider, Map } from "@vis.gl/react-google-maps";
+import { useContext } from "react";
+import { PostsContext } from "@/components/tools-page-content";
 
 export default function ToolsMap({ tools }: { tools: AllToolPostData[] }) {
   const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string;
+
+  const { currentPostId, setCurrentPostId } = useContext(PostsContext);
 
   // TOD0: add marker clustering, and a method to differentiate unstacked tools
   return (
@@ -23,6 +27,8 @@ export default function ToolsMap({ tools }: { tools: AllToolPostData[] }) {
               position={{ lat: tool.latitude, lng: tool.longitude }}
               clickable={true}
               onClick={() => alert(tool.tool_name)}
+              onMouseEnter={() => setCurrentPostId(tool.id)}
+              onMouseLeave={() => setCurrentPostId(null)}
               title={tool.tool_name}
             />
           );

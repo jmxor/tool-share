@@ -35,6 +35,7 @@ import Image from "next/image";
 import { useActionState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Badge } from "./ui/badge";
 
 type Category = {
   id: number;
@@ -210,21 +211,23 @@ export default function NewToolForm({
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "w-full justify-between",
+                            "relative flex h-auto w-full flex-wrap justify-start pr-8",
                             !field.value && "text-muted-foreground",
                           )}
                         >
                           {field.value.length > 0
-                            ? field.value
-                                .map(
-                                  (c1) =>
+                            ? field.value.map((c1) => (
+                                <Badge key={c1}>
+                                  {
                                     categories.find(
                                       (c2) => c1 == c2.id.toString(),
-                                    )?.name,
-                                )
-                                .join(", ")
-                            : "Select categories"}
-                          <ChevronDown className="opacity-50" />
+                                    )?.name
+                                  }
+                                </Badge>
+                              ))
+                            : // .join(", ")
+                              "Select categories"}
+                          <ChevronDown className="absolute right-2 top-2.5 opacity-50" />
                           <Input {...field} type="hidden" />
                         </Button>
                       </FormControl>

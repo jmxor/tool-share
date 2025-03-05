@@ -6,7 +6,13 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { AllToolPostData } from "@/lib/posts/actions";
 import { Button } from "./ui/button";
 
-export default function PostCard({ post }: { post: AllToolPostData }) {
+export default function PostCard({
+  post,
+  isHighlighted,
+}: {
+  post: AllToolPostData;
+  isHighlighted: boolean;
+}) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const handlePrevImage = () => {
@@ -22,7 +28,9 @@ export default function PostCard({ post }: { post: AllToolPostData }) {
   };
 
   return (
-    <div className="col-span-1 flex flex-col rounded-lg border shadow-md">
+    <div
+      className={`col-span-1 flex flex-col rounded-lg border shadow-md ${isHighlighted ? "border-black" : "hover:border-black"}`}
+    >
       <div className="relative h-24 w-full">
         {post.pictures.length > 1 && (
           <button
