@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { AllToolPostData } from "@/lib/posts/actions";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 
 export default function PostCard({
   post,

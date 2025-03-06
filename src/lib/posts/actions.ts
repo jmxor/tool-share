@@ -226,6 +226,7 @@ export async function getTools(): Promise<AllToolPostData[] | null> {
                  LEFT JOIN category c ON pc.category_id = c.id
                  LEFT JOIN location l ON p.location_id = l.id
         GROUP BY p.id, l.id
+        ORDER BY p.location_id
     `;
     const result = await conn.query(query);
 
