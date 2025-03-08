@@ -3,6 +3,7 @@ import { getEmailID, userIsAdmin } from "@/lib/auth/actions";
 import { getReportData } from "@/lib/reports/user-actions";
 import { redirect } from "next/navigation";
 import ReportMessages from "@/components/reports/report-messages";
+import AdminStatusUpdate from "@/components/reports/admin-status-update";
 
 export default async function ReportPage({ params }: { params: Promise<{ report_id: number }> }) {
 
@@ -21,6 +22,8 @@ export default async function ReportPage({ params }: { params: Promise<{ report_
   if (loggedInUserID !== report_data.reporter_id && !(await userIsAdmin(session.user.email))) {
     redirect("/");
   }
+  
+  const isAdmin = await userIsAdmin(session.user.email);
 
   return (
     <div className="bg-gray-100 min-h-[calc(100vh-4rem)] flex justify-center py-8 px-2">
@@ -31,9 +34,12 @@ export default async function ReportPage({ params }: { params: Promise<{ report_
 
         {/* Report Header */}
         <div className="p-6">
-          <h3 className="text-lg font-semibold text-gray-700 mb-3">
-            Report Details
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-700">Report Details</h3>
+            <div className="px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+              {report_data.report_status || "open"}
+            </div>
+          </div>
 
           <div className="mb-3">
             <div className="text-sm font-medium text-gray-700">Reporter:</div>
@@ -65,6 +71,13 @@ export default async function ReportPage({ params }: { params: Promise<{ report_
               {report_data.report_text}
             </div>
           </div>
+          
+          {isAdmin && (
+            <AdminStatusUpdate 
+              reportId={report_data.id} 
+              currentStatus={report_data.report_status || "open"} 
+            />
+          )}
         </div>
         <ReportMessages report_id={report_data.id} report_messages={report_data.report_messages} loggedInUserID={loggedInUserID} />
       </div>

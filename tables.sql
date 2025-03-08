@@ -108,7 +108,7 @@ CREATE TABLE IF NOT EXISTS tool_request (
     tool_name VARCHAR(64),
     category_id INT,
     user_id INT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULl,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     status VARCHAR(64) NOT NULL,
     FOREIGN KEY (category_id) REFERENCES category (id) ON DELETE SET NULL,
     FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE
@@ -164,16 +164,17 @@ CREATE TABLE IF NOT EXISTS extension_request (
     FOREIGN KEY (transaction_id) REFERENCES transaction (id) ON DELETE CASCADE
 );
 
+-- Updated report table schema (removed transaction_id field)
+-- Reports are now directly between users without being tied to specific transactions
 CREATE TABLE IF NOT EXISTS report (
     id SERIAL PRIMARY KEY,
     accuser_id INT,
     accused_id INT,
-    transaction_id INT NOT NULl,
     report_description TEXT NOT NULL,
-    report_status VARCHAR(64),
+    report_status VARCHAR(64) NOT NULL,
+    CONSTRAINT check_accuser_accused_different CHECK (accuser_id <> accused_id),
     FOREIGN KEY (accuser_id) REFERENCES "user" (id) ON DELETE SET NULL,
-    FOREIGN KEY (accused_id) REFERENCES "user" (id) ON DELETE SET NULL,
-    FOREIGN KEY (transaction_id) REFERENCES transaction (id) ON DELETE CASCADE
+    FOREIGN KEY (accused_id) REFERENCES "user" (id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS report_message (

@@ -1,10 +1,23 @@
 "use client"
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User, LogOut, FileUser } from 'lucide-react';
-import { signOutUser } from "@/lib/auth/actions";
+import { User, LogOut, FileUser, ShieldAlert } from 'lucide-react';
+import { signOutUser, userIsAdmin } from "@/lib/auth/actions";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function AccountButton({ email }: { email: string }) {
+    const [isAdmin, setIsAdmin] = useState(false);
+    
+    useEffect(() => {
+        const checkAdminStatus = async () => {
+            const adminStatus = await userIsAdmin(email);
+            setIsAdmin(adminStatus);
+        };
+        
+        checkAdminStatus();
+    }, [email]);
+    
     async function handleLogOut() {
         await signOutUser();
     }
@@ -20,11 +33,24 @@ export default function AccountButton({ email }: { email: string }) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                     <a href='/auth/account'>
-                        <FileUser />
+                        <FileUser className="mr-2 h-4 w-4" />
                         Account Page
                     </a>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleLogOut}><LogOut />Logout</DropdownMenuItem>
+                
+                {isAdmin && (
+                    <DropdownMenuItem asChild>
+                        <Link href="/admin">
+                            <ShieldAlert className="mr-2 h-4 w-4" />
+                            Admin Dashboard
+                        </Link>
+                    </DropdownMenuItem>
+                )}
+                
+                <DropdownMenuItem onClick={handleLogOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     )

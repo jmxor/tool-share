@@ -5,7 +5,6 @@ import { ReportFormSchema, ReportMessageFormSchema } from "../zod";
 import { getEmailID, getFirstUsernameID } from "../auth/actions";
 import { getConnection } from "../db";
 import { redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
 
 export type ReportFormState = {
   errors?: {
@@ -109,6 +108,7 @@ export type Report = {
   reported_username: string;
   reported_first_username: string;
   report_text: string;
+  report_status: string;
   report_messages: Report_Message[]
 }
 
@@ -133,6 +133,7 @@ export async function getReportData(report_id: number): Promise<Report | null> {
         u2.username AS reported_username,
         u2.first_username AS reported_first_username,
         r.report_description AS report_text,
+        r.report_status,
         (
              SELECT
                   json_agg(
@@ -181,6 +182,7 @@ export async function getReportData(report_id: number): Promise<Report | null> {
       reported_username: report.reported_username,
       reported_first_username: report.reported_first_username,
       report_text: report.report_text,
+      report_status: report.report_status,
       report_messages: report.report_messages || [], // Ensure it's an array
     } as Report;
 
@@ -304,4 +306,22 @@ export async function sendReportMessage(
     }
   }
 
+}
+
+// Direct programmatic way to add a report message (for admin use)
+export async function addReportMessageDirect(userId: number, reportId: number, message: string): Promise<boolean> {
+  try {
+    const conn = await getConnection();
+
+    const query = `
+      INSERT INTO report_message (user_id, report_id, message)
+      VALUES ($1, $2, $3)
+    `;
+
+    await conn.query(query, [userId, reportId, message]);
+    return true;
+  } catch (error) {
+    console.error("[ERROR] Failed to add report message:", error);
+    return false;
+  }
 }
