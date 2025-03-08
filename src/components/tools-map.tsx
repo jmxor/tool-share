@@ -1,39 +1,64 @@
 "use client";
 
 import { AllToolPostData } from "@/lib/posts/actions";
-import { AdvancedMarker, APIProvider, Map } from "@vis.gl/react-google-maps";
-import { useContext } from "react";
+import { Map, useMap } from "@vis.gl/react-google-maps";
+import { type Marker, MarkerClusterer } from "@googlemaps/markerclusterer";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { PostsContext } from "@/components/tools-page-content";
+import PostMarker from "@/components/post-marker";
 
 export default function ToolsMap({ tools }: { tools: AllToolPostData[] }) {
-  const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string;
+  const { selectedPostId, setSelectedPostId } = useContext(PostsContext);
+  const [markers, setMarkers] = useState<{ [id: number]: Marker }>({});
 
-  const { currentPostId, setCurrentPostId } = useContext(PostsContext);
+  const map = useMap();
+  const clusterer = useMemo(() => {
+    if (!map) return null;
 
-  // TOD0: add marker clustering, and a method to differentiate unstacked tools
+    return new MarkerClusterer({ map });
+  }, [map]);
+
+  useEffect(() => {
+    if (!clusterer) return;
+
+    clusterer.clearMarkers();
+    clusterer.addMarkers(Object.values(markers));
+  }, [clusterer, markers]);
+
+  const setMarkerRef = useCallback((marker: Marker | null, id: number) => {
+    setMarkers((markers) => {
+      if ((marker && markers[id]) || (!marker && !markers[id])) return markers;
+
+      if (marker) {
+        return { ...markers, [id]: marker };
+      } else {
+        const { [id]: _, ...newMarkers } = markers;
+
+        return newMarkers;
+      }
+    });
+  }, []);
+
+  const handleMarkerClick = useCallback((tool: AllToolPostData) => {
+    setSelectedPostId(tool.id);
+  }, []);
+
   return (
-    <APIProvider apiKey={API_KEY}>
-      <Map
-        mapId={"test"}
-        defaultZoom={12}
-        defaultCenter={{ lat: 51.4892, lng: -3.1786 }}
-        gestureHandling={"greedy"}
-        disableDefaultUI={true}
-      >
-        {tools.map((tool) => {
-          return (
-            <AdvancedMarker
-              key={tool.id}
-              position={{ lat: tool.latitude, lng: tool.longitude }}
-              clickable={true}
-              onClick={() => alert(tool.tool_name)}
-              onMouseEnter={() => setCurrentPostId(tool.id)}
-              onMouseLeave={() => setCurrentPostId(null)}
-              title={tool.tool_name}
-            />
-          );
-        })}
-      </Map>
-    </APIProvider>
+    <Map
+      mapId={"test"}
+      defaultZoom={12}
+      defaultCenter={{ lat: 51.4892, lng: -3.1786 }}
+      gestureHandling={"greedy"}
+      disableDefaultUI={true}
+    >
+      {tools.map((tool) => (
+        <PostMarker
+          key={tool.id}
+          post={tool}
+          onClick={handleMarkerClick}
+          setMarkerRef={setMarkerRef}
+        />
+      ))}
+    </Map>
   );
 }
