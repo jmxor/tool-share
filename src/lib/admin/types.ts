@@ -49,6 +49,7 @@ export type Report = {
   };
   description: string;
   status: ReportStatus;
+  created_at: Date;
 };
 
 export enum ReportStatus {

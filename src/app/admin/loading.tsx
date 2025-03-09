@@ -1,6 +1,3 @@
-import { StatCardSkeleton } from "@/components/admin/dashboard/stat-card-skeleton";
-import { ChartSkeleton } from "@/components/admin/dashboard/chart-skeleton";
-
 export default function AdminLoading() {
   return (
     <div className="space-y-6">
