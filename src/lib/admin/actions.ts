@@ -2,10 +2,11 @@
 
 import { getConnection } from "@/lib/db";
 import { auth } from "@/auth";
-import { AdminDashboardStats, AdminUser, Category, PagedResult, Report, ReportStatus, Transaction, UserPrivilege } from "./types";
+import { AdminDashboardStats, AdminUser, Category, PagedResult, Report, ReportStatus, Transaction, UserPrivilege, Warning, Suspension } from "./types";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { addReportMessageDirect } from "../reports/user-actions";
+import { getEmailID } from "../auth/actions";
 
 export async function isCurrentUserAdmin(): Promise<boolean> {
   const session = await auth();
@@ -152,15 +153,16 @@ export async function getUsers(page: number = 1, limit: number = 10, searchTerm:
     const totalCount = parseInt(countResult.rows[0].count);
     
     const usersQuery = `
-      SELECT id, username, first_username, email, created_at, user_privilege, is_suspended
-      FROM "user"
+      SELECT u.id, u.username, u.first_username, u.email, u.created_at, u.user_privilege, u.is_suspended,
+        (SELECT COUNT(*) FROM warning w WHERE w.user_id = u.id) as warnings
+      FROM "user" u
       ${whereClause}
-      ORDER BY created_at DESC
+      ORDER BY u.created_at DESC
       LIMIT $${params.length + 1} OFFSET $${params.length + 2}
     `;
     
     const usersResult = await conn.query(usersQuery, [...params, limit, offset]);
-    
+
     const users = usersResult.rows.map(row => ({
       id: row.id,
       username: row.username,
@@ -168,9 +170,9 @@ export async function getUsers(page: number = 1, limit: number = 10, searchTerm:
       email: row.email,
       created_at: new Date(row.created_at),
       user_privilege: row.user_privilege as UserPrivilege,
-      is_suspended: row.is_suspended
+      is_suspended: row.is_suspended,
+      warnings: parseInt(row.warnings)
     }));
-    
     return {
       data: users,
       totalCount,
@@ -235,8 +237,8 @@ export async function toggleUserSuspension(userId: number, suspend: boolean, rea
     
     if (suspend && reason) {
       const suspensionQuery = `
-        INSERT INTO suspension (user_id, admin_id, starts_at, expires_at, reason)
-        VALUES ($1, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + INTERVAL '30 days', $3)
+        INSERT INTO suspension (user_id, issuing_admin_id, reason)
+        VALUES ($1, $2, $3)
       `;
       
       await conn.query(suspensionQuery, [userId, adminId, reason]);
@@ -591,3 +593,177 @@ export async function getCurrentUserEmail(): Promise<{user?: {email: string}}> {
     } : undefined
   };
 } 
+
+export async function issueWarning(userId: number, reason: string): Promise<boolean> {
+  const isAdmin = await isCurrentUserAdmin();
+  if (!isAdmin) return false;
+  
+  try {
+    const session = await auth();
+    if (!session?.user?.email) return false;
+
+    const adminId = await getEmailID(session.user.email);
+    if (!adminId) return false;
+
+    const conn = await getConnection();
+
+    const query = `
+      INSERT INTO warning (user_id, issuing_admin_id, reason)
+      VALUES ($1, $2, $3)
+    `;
+    await conn.query(query, [userId, adminId, reason]);
+
+    const warningsQuery = `
+      SELECT COUNT(*) as count FROM warning WHERE user_id = $1
+    `;
+    const warningsResult = await conn.query(warningsQuery, [userId]);
+    const warningCount = parseInt(warningsResult.rows[0].count);
+    
+    if (warningCount >= 3) {
+      const suspendQuery = `
+        UPDATE "user"
+        SET is_suspended = true
+        WHERE id = $1
+      `;
+      await conn.query(suspendQuery, [userId]);
+      
+      const suspensionQuery = `
+        INSERT INTO suspension (user_id, issuing_admin_id, reason)
+        VALUES ($1, $2, $3)
+      `;
+      await conn.query(suspensionQuery, [userId, adminId, "Automatic suspension after 3 warnings"]);
+    }
+    
+    revalidatePath("/admin/users");
+    return true;
+  } catch (error) {
+    console.error("[ERROR] Failed to issue warning:", error);
+    return false;
+  }
+}
+
+export async function getWarnings(page: number = 1, limit: number = 10): Promise<PagedResult<Warning>> {
+  const isAdmin = await isCurrentUserAdmin();
+  if (!isAdmin) redirect("/");
+  
+  try {
+    const conn = await getConnection();
+    const offset = (page - 1) * limit;
+    
+    const countQuery = `
+      SELECT COUNT(*) as count 
+      FROM warning
+    `;
+    
+    const countResult = await conn.query(countQuery);
+    const totalCount = parseInt(countResult.rows[0].count);
+    
+    const warningsQuery = `
+      SELECT 
+        w.id,
+        w.user_id,
+        w.issuing_admin_id,
+        w.reason,
+        w.issued_at,
+        u.username,
+        u.first_username,
+        a.username as admin_username
+      FROM warning w
+      JOIN "user" u ON w.user_id = u.id
+      LEFT JOIN "user" a ON w.issuing_admin_id = a.id
+      ORDER BY w.issued_at DESC
+      LIMIT $1 OFFSET $2
+    `;
+    
+    const warningsResult = await conn.query(warningsQuery, [limit, offset]);
+    
+    const warnings = warningsResult.rows.map(row => ({
+      id: row.id,
+      user_id: row.user_id,
+      username: row.username,
+      first_username: row.first_username,
+      issuing_admin_id: row.issuing_admin_id,
+      admin_username: row.admin_username,
+      reason: row.reason,
+      issued_at: new Date(row.issued_at)
+    }));
+    
+    return {
+      data: warnings,
+      totalCount,
+      pageCount: Math.ceil(totalCount / limit),
+      currentPage: page
+    };
+  } catch (error) {
+    console.error("[ERROR] Failed to fetch warnings:", error);
+    return {
+      data: [],
+      totalCount: 0,
+      pageCount: 0,
+      currentPage: page
+    };
+  }
+}
+
+export async function getSuspensions(page: number = 1, limit: number = 10): Promise<PagedResult<Suspension>> {
+  const isAdmin = await isCurrentUserAdmin();
+  if (!isAdmin) redirect("/");
+  
+  try {
+    const conn = await getConnection();
+    const offset = (page - 1) * limit;
+    
+    const countQuery = `
+      SELECT COUNT(*) as count 
+      FROM suspension
+    `;
+    
+    const countResult = await conn.query(countQuery);
+    const totalCount = parseInt(countResult.rows[0].count);
+    
+    const suspensionsQuery = `
+      SELECT 
+        s.id,
+        s.user_id,
+        s.issuing_admin_id,
+        s.reason,
+        s.issued_at,
+        u.username,
+        u.first_username,
+        a.username as admin_username
+      FROM suspension s
+      JOIN "user" u ON s.user_id = u.id
+      LEFT JOIN "user" a ON s.issuing_admin_id = a.id
+      ORDER BY s.issued_at DESC
+      LIMIT $1 OFFSET $2
+    `;
+    
+    const suspensionsResult = await conn.query(suspensionsQuery, [limit, offset]);
+    
+    const suspensions = suspensionsResult.rows.map(row => ({
+      id: row.id,
+      user_id: row.user_id,
+      username: row.username,
+      first_username: row.first_username,
+      issuing_admin_id: row.issuing_admin_id,
+      admin_username: row.admin_username,
+      reason: row.reason,
+      issued_at: new Date(row.issued_at)
+    }));
+    
+    return {
+      data: suspensions,
+      totalCount,
+      pageCount: Math.ceil(totalCount / limit),
+      currentPage: page
+    };
+  } catch (error) {
+    console.error("[ERROR] Failed to fetch suspensions:", error);
+    return {
+      data: [],
+      totalCount: 0,
+      pageCount: 0,
+      currentPage: page
+    };
+  }
+}

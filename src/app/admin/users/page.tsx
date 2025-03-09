@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { AdminUser, UserPrivilege } from "@/lib/admin/types";
-import { getUsers, toggleUserSuspension, updateUserPrivilege, getCurrentUserEmail } from "@/lib/admin/actions";
-import { CheckCircle, MoreHorizontal, Search, Shield, XCircle } from "lucide-react";
+import { getUsers, toggleUserSuspension, updateUserPrivilege, getCurrentUserEmail, issueWarning } from "@/lib/admin/actions";
+import { AlertTriangle, CheckCircle, MoreHorizontal, Search, Shield, XCircle, } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,21 +25,31 @@ export default function UsersManagement() {
   const [isLoading, setIsLoading] = useState(true);
   const [suspendReason, setSuspendReason] = useState("");
   const [userToSuspend, setUserToSuspend] = useState<AdminUser | null>(null);
+  const [userToWarn, setUserToWarn] = useState<AdminUser | null>(null);
+  const [warnReason, setWarnReason] = useState("");
   const [privilegeUser, setPrivilegeUser] = useState<AdminUser | null>(null);
   const [newPrivilege, setNewPrivilege] = useState<UserPrivilege>(UserPrivilege.USER);
   const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
   const [isPrivilegeDialogOpen, setIsPrivilegeDialogOpen] = useState(false);
   const [isSuspendDialogOpen, setIsSuspendDialogOpen] = useState(false);
-  
+  const [isWarningDialogOpen, setIsWarningDialogOpen] = useState(false);
+
   useEffect(() => {
     const loadInitialData = async () => {
       try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const usernameParam = urlParams.get('username');
+        
+        if (usernameParam) {
+          setSearchTerm(usernameParam);
+        }
+        
         const userData = await getCurrentUserEmail();
         if (userData?.user?.email) {
           setCurrentUserEmail(userData.user.email);
         }
         
-        await fetchUsers(1);
+        await fetchUsers(1, usernameParam || '');
       } catch (error) {
         console.error("Error initializing page:", error);
       }
@@ -70,6 +80,11 @@ export default function UsersManagement() {
     fetchUsers(page);
   };
   
+  const openWarningDialog = (user: AdminUser) => {
+    setUserToWarn(user);
+    setWarnReason("");
+  };
+
   const openSuspendDialog = (user: AdminUser) => {
     setUserToSuspend(user);
     setSuspendReason("");
@@ -79,6 +94,31 @@ export default function UsersManagement() {
     setPrivilegeUser(user);
     setNewPrivilege(user.user_privilege);
     console.log("Setting privilege user:", user.id, "with privilege:", user.user_privilege);
+  };
+
+  const handleIssueWarning = async () => {
+    if (!userToWarn) return;
+    try {
+      const success = await issueWarning(userToWarn.id, warnReason);
+      if (success) {
+        setUsers(users.map(user => {
+          if (user.id === userToWarn.id) {
+            const newWarningCount = user.warnings + 1;
+            return { 
+              ...user, 
+              warnings: newWarningCount,
+              is_suspended: newWarningCount >= 3 ? true : user.is_suspended
+            };
+          }
+          return user;
+        }));
+        setUserToWarn(null);
+        setIsWarningDialogOpen(false);
+        router.refresh();
+      }
+    } catch (error) {
+      console.error("Failed to issue warning:", error);
+    }
   };
   
   const handleSuspendUser = async (suspend: boolean) => {
@@ -179,6 +219,7 @@ export default function UsersManagement() {
               <TableHead>Email</TableHead>
               <TableHead>Joined</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Warnings</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
@@ -213,6 +254,7 @@ export default function UsersManagement() {
                       {user.user_privilege}
                     </Badge>
                   </TableCell>
+                  <TableCell>{user.warnings}</TableCell>
                   <TableCell>
                     {user.is_suspended ? (
                       <Badge variant="destructive">Suspended</Badge>
@@ -289,6 +331,50 @@ export default function UsersManagement() {
                               </Button>
                               <Button onClick={handleUpdatePrivilege}>
                                 Save Changes
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
+                        <Dialog open={isWarningDialogOpen && userToWarn?.id === user.id}
+                          onOpenChange={(open) => {
+                            if (!open) setIsWarningDialogOpen(false);
+                          }}
+                        >
+                          <DialogTrigger asChild>
+                            <DropdownMenuItem 
+                              onSelect={(e) => {
+                                e.preventDefault();
+                                openWarningDialog(user);
+                                setIsWarningDialogOpen(true);
+                              }}
+                              disabled={user.email === currentUserEmail}
+                              className={user.email === currentUserEmail ? "opacity-50 cursor-not-allowed" : ""}
+                            >
+                              <AlertTriangle className="mr-2 h-4 w-4" />
+                              Issue Warning
+                            </DropdownMenuItem>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Issue Warning</DialogTitle>
+                              <DialogDescription>
+                                Issue a warning to {user.username}
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="py-4">
+                              <Textarea
+                                placeholder="Reason for warning..."
+                                value={warnReason}
+                                onChange={(e) => setWarnReason(e.target.value)}
+                                rows={3}
+                              />
+                            </div>
+                            <DialogFooter>
+                              <Button variant="outline" onClick={() => setUserToWarn(null)}>
+                                Cancel
+                              </Button>
+                              <Button onClick={handleIssueWarning}>
+                                Issue Warning
                               </Button>
                             </DialogFooter>
                           </DialogContent>

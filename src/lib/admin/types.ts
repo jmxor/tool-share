@@ -12,6 +12,7 @@ export type AdminUser = {
   created_at: Date;
   user_privilege: UserPrivilege;
   is_suspended: boolean;
+  warnings: number;
 };
 
 export type AdminDashboardStats = {
@@ -94,4 +95,26 @@ export type PagedResult<T> = {
   totalCount: number;
   pageCount: number;
   currentPage: number;
+};
+
+export type Warning = {
+  id: number;
+  user_id: number;
+  username: string;
+  first_username: string;
+  issuing_admin_id: number;
+  admin_username: string;
+  reason: string;
+  issued_at: Date;
+};
+
+export type Suspension = {
+  id: number;
+  user_id: number;
+  username: string;
+  first_username: string;
+  issuing_admin_id: number;
+  admin_username: string;
+  reason: string;
+  issued_at: Date;
 }; 

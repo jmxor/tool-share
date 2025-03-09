@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart2, ChevronLeft, FileSpreadsheet, Flag, Menu, Tag, Users } from "lucide-react";
+import { AlertTriangle, Ban, BarChart2, ChevronLeft, FileSpreadsheet, Flag, Menu, Tag, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,16 @@ export function AdminSidebar() {
       href: "/admin/reports",
       label: "Reports",
       icon: Flag
+    },
+    {
+      href: "/admin/warnings",
+      label: "Warnings",
+      icon: AlertTriangle
+    },
+    {
+      href: "/admin/suspensions",
+      label: "Suspensions",
+      icon: Ban
     },
     {
       href: "/admin/categories",
