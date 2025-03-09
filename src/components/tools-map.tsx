@@ -3,11 +3,24 @@
 import { AllToolPostData } from "@/lib/posts/actions";
 import { Map, useMap } from "@vis.gl/react-google-maps";
 import { type Marker, MarkerClusterer } from "@googlemaps/markerclusterer";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  MutableRefObject,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { PostsContext } from "@/components/tools-page-content";
 import PostMarker from "@/components/post-marker";
 
-export default function ToolsMap({ tools }: { tools: AllToolPostData[] }) {
+export default function ToolsMap({
+  tools,
+  postRefs,
+}: {
+  tools: AllToolPostData[];
+  postRefs: MutableRefObject<{ [id: number]: HTMLDivElement | null }>;
+}) {
   const { selectedPostId, setSelectedPostId } = useContext(PostsContext);
   const [markers, setMarkers] = useState<{ [id: number]: Marker }>({});
 
@@ -39,9 +52,10 @@ export default function ToolsMap({ tools }: { tools: AllToolPostData[] }) {
     });
   }, []);
 
-  const handleMarkerClick = useCallback((tool: AllToolPostData) => {
+  const handleMarkerClick = (tool: AllToolPostData) => {
     setSelectedPostId(tool.id);
-  }, []);
+    postRefs.current[tool.id]?.scrollIntoView();
+  };
 
   return (
     <Map

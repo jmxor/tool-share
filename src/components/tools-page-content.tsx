@@ -13,6 +13,7 @@ import {
   Dispatch,
   SetStateAction,
   useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -38,6 +39,10 @@ export default function ToolsPageContent({
   const [postNameFilter, setPostNameFilter] = useState("");
   const [minBorrowFilter, setMinBorrowFilter] = useState(0);
   const [maxDepositFilter, setMaxDepositFilter] = useState<number>(0);
+
+  const postRefs = useRef<{ [id: number]: HTMLDivElement | null }>({});
+
+  useEffect(() => console.log(postRefs.current));
 
   useEffect(() => {
     setFilteredPosts(
@@ -70,7 +75,7 @@ export default function ToolsPageContent({
         <div className="grid grid-cols-2 gap-2 p-2 lg:grid-cols-6 lg:px-4">
           <div className="col-span-2 row-span-3 grid grid-cols-subgrid grid-rows-subgrid lg:col-span-3">
             <div className="col-span-full row-span-2 flex h-72 items-center justify-center overflow-clip rounded-md border lg:col-span-3 lg:h-auto">
-              <ToolsMap tools={filteredPosts} />
+              <ToolsMap tools={filteredPosts} postRefs={postRefs} />
             </div>
 
             {/* TODO: use ZOD and ShadCN forms instead */}
@@ -108,6 +113,7 @@ export default function ToolsPageContent({
               key={post.id}
               post={post}
               isHighlighted={post.id == selectedPostId}
+              ref={(element) => (postRefs.current[post.id] = element)}
             />
           ))}
 
