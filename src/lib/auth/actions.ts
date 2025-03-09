@@ -654,3 +654,60 @@ export async function setPassword(newPassword: string) {
         return false;
     }
 }
+
+export async function getUserWarningsAndSuspensions() {
+  const session = await auth();
+  if (!session?.user?.email) return { warnings: [], suspensions: [] };
+  
+  try {
+    const conn = await getConnection();
+    
+    const userId = await getEmailID(session.user.email);
+    
+    const warningsQuery = `
+      SELECT 
+        id,
+        reason,
+        issued_at
+      FROM warning
+      WHERE user_id = $1
+      AND issued_at > NOW() - INTERVAL '30 days'
+      ORDER BY issued_at DESC
+      LIMIT 5
+    `;
+    
+    const warningsResult = await conn.query(warningsQuery, [userId]);
+    
+    const suspensionsQuery = `
+      SELECT 
+        id,
+        reason,
+        issued_at
+      FROM suspension 
+      WHERE user_id = $1
+      AND issued_at > NOW() - INTERVAL '90 days'
+      ORDER BY issued_at DESC
+      LIMIT 5
+    `;
+    
+    const suspensionsResult = await conn.query(suspensionsQuery, [userId]);
+    
+    return {
+      warnings: warningsResult.rows.map(row => ({
+        id: row.id,
+        reason: row.reason,
+        issuedAt: new Date(row.issued_at),
+        adminUsername: row.admin_username
+      })),
+      suspensions: suspensionsResult.rows.map(row => ({
+        id: row.id,
+        reason: row.reason,
+        issuedAt: new Date(row.issued_at),
+        adminUsername: row.admin_username
+      }))
+    };
+  } catch (error) {
+    console.error("Failed to fetch user warnings and suspensions:", error);
+    return { warnings: [], suspensions: [] };
+  }
+}
