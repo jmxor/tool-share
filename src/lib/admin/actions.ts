@@ -282,6 +282,10 @@ export async function getReports(page: number = 1, limit: number = 10, status: R
         r.id,
         r.report_description,
         r.report_status,
+<<<<<<< HEAD
+        r.created_at,
+=======
+>>>>>>> main
         accuser.id as accuser_id,
         accuser.username as accuser_username,
         accuser.first_username as accuser_first_username,
@@ -317,7 +321,8 @@ export async function getReports(page: number = 1, limit: number = 10, status: R
         first_username: row.accused_first_username
       },
       description: row.report_description,
-      status: row.report_status as ReportStatus
+      status: row.report_status as ReportStatus,
+      created_at: new Date(row.created_at)
     }));
     
     return {

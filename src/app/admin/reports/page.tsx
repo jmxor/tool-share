@@ -28,7 +28,7 @@ export default function ReportsManagement() {
   const [message, setMessage] = useState("");
   
   useEffect(() => {
-    fetchReports(1);
+    fetchReports(1, "all");
   }, []);
   
   async function fetchReports(page: number, status: ReportStatus | "all" = currentStatus) {
@@ -90,7 +90,7 @@ export default function ReportsManagement() {
   };
   
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleDateString('en-GB', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -118,6 +118,9 @@ export default function ReportsManagement() {
         <div>
           <h1 className="text-3xl font-bold">Report Management</h1>
           <p className="text-muted-foreground mt-1">Manage user reports and disputes</p>
+        </div>
+        <div className="text-right">
+          <p className="text-sm font-medium">Total Reports: {totalCount}</p>
         </div>
       </div>
       
@@ -147,19 +150,20 @@ export default function ReportsManagement() {
               <TableHead>Accuser</TableHead>
               <TableHead>Accused</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Date Created</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
+                <TableCell colSpan={6} className="text-center py-8">
                   Loading reports...
                 </TableCell>
               </TableRow>
             ) : reports.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
+                <TableCell colSpan={6} className="text-center py-8">
                   No reports found
                 </TableCell>
               </TableRow>
@@ -177,6 +181,7 @@ export default function ReportsManagement() {
                       {report.status}
                     </Badge>
                   </TableCell>
+                  <TableCell>{formatDate(report.created_at)}</TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
