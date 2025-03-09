@@ -1,8 +1,10 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { formatDistanceToNow } from 'date-fns';
+import { enGB } from 'date-fns/locale';
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+    return twMerge(clsx(inputs))
 }
 
 export function formatDate(dateString) {
@@ -15,4 +17,13 @@ export function formatDate(dateString) {
         n + (['st', 'nd', 'rd'][(n % 10) - 1] || 'th');
 
     return `${ordinal(day)} ${month} ${year}`;
+}
+
+
+export function getTimeAgo(date: Date) {
+    const dateObj = new Date(date);
+    return formatDistanceToNow(dateObj, {
+        addSuffix: true,
+        locale: enGB
+    })
 }
