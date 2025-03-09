@@ -5,7 +5,6 @@ import { auth } from "@/auth";
 import { AdminDashboardStats, AdminUser, Category, PagedResult, Report, ReportStatus, Transaction, UserPrivilege, Warning, Suspension } from "./types";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { addReportMessageDirect } from "../reports/user-actions";
 import { getEmailID } from "../auth/actions";
 
 export async function isCurrentUserAdmin(): Promise<boolean> {
@@ -356,35 +355,6 @@ export async function updateReportStatus(reportId: number, status: ReportStatus)
     return true;
   } catch (error) {
     console.error("[ERROR] Failed to update report status:", error);
-    return false;
-  }
-}
-
-export async function addReportMessage(reportId: number, message: string): Promise<boolean> {
-  const isAdmin = await isCurrentUserAdmin();
-  if (!isAdmin) return false;
-  
-  const session = await auth();
-  if (!session?.user?.email) return false;
-  
-  try {
-    const conn = await getConnection();
-    
-    const adminQuery = `SELECT id FROM "user" WHERE email = $1`;
-    const adminResult = await conn.query(adminQuery, [session.user.email]);
-    if (!adminResult.rows || adminResult.rows.length === 0) return false;
-    
-    const adminId = adminResult.rows[0].id;
-    
-    const success = await addReportMessageDirect(adminId, reportId, message);
-    if (success) {
-      revalidatePath(`/admin/reports`);
-      revalidatePath(`/reports/${reportId}`);
-      return true;
-    }
-    return false;
-  } catch (error) {
-    console.error("[ERROR] Failed to add report message:", error);
     return false;
   }
 }

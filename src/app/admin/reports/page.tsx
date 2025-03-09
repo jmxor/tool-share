@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Report, ReportStatus } from "@/lib/admin/types";
-import { getReports, updateReportStatus, addReportMessage } from "@/lib/admin/actions";
-import { MoreHorizontal, MessageSquare, AlertCircle, CheckCircle, Eye } from "lucide-react";
+import { getReports } from "@/lib/admin/actions";
+import { MoreHorizontal, AlertCircle, Eye } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/admin/pagination";
@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function ReportsManagement() {
@@ -24,8 +23,6 @@ export default function ReportsManagement() {
   const [currentStatus, setCurrentStatus] = useState<ReportStatus | "all">("all");
   const [isLoading, setIsLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-  const [newStatus, setNewStatus] = useState<ReportStatus>(ReportStatus.OPEN);
-  const [message, setMessage] = useState("");
   
   useEffect(() => {
     fetchReports(1, "all");
@@ -53,40 +50,6 @@ export default function ReportsManagement() {
   
   const handlePageChange = (page: number) => {
     fetchReports(page);
-  };
-  
-  const handleUpdateStatus = async () => {
-    if (!selectedReport) return;
-    
-    try {
-      const success = await updateReportStatus(selectedReport.id, newStatus);
-      if (success) {
-        setReports(reports.map(report => 
-          report.id === selectedReport.id 
-            ? { ...report, status: newStatus } 
-            : report
-        ));
-        setSelectedReport(null);
-        router.refresh();
-      }
-    } catch (error) {
-      console.error("Failed to update report status:", error);
-    }
-  };
-  
-  const handleAddReportMessage = async () => {
-    if (!selectedReport || !message.trim()) return;
-    
-    try {
-      const success = await addReportMessage(selectedReport.id, message);
-      if (success) {
-        setMessage("");
-        setSelectedReport(null);
-        router.refresh();
-      }
-    } catch (error) {
-      console.error("Failed to add report message:", error);
-    }
   };
   
   const formatDate = (date: Date) => {
@@ -194,7 +157,7 @@ export default function ReportsManagement() {
                           href={`/reports/${report.id}`}
                           className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
                         >
-                          <Eye className="mr-2 h-4 w-4" />
+                          <Eye className="mr-4 h-4 w-4" />
                           View Report Page
                         </Link>
 
@@ -224,85 +187,6 @@ export default function ReportsManagement() {
                                 </Badge>
                               </div>
                             </div>
-                          </DialogContent>
-                        </Dialog>
-                        
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                              <CheckCircle className="mr-2 h-4 w-4" />
-                              Update Status
-                            </DropdownMenuItem>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Update Report Status</DialogTitle>
-                              <DialogDescription>
-                                Change the status of report #{report.id}
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="py-4">
-                              <Select 
-                                value={selectedReport?.id === report.id ? newStatus : report.status}
-                                onValueChange={(value) => setNewStatus(value as ReportStatus)}
-                                onOpenChange={() => {
-                                  setSelectedReport(report);
-                                  setNewStatus(report.status);
-                                }}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value={ReportStatus.OPEN}>Open</SelectItem>
-                                  <SelectItem value={ReportStatus.IN_PROGRESS}>In Progress</SelectItem>
-                                  <SelectItem value={ReportStatus.RESOLVED}>Resolved</SelectItem>
-                                  <SelectItem value={ReportStatus.DISMISSED}>Dismissed</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <DialogFooter>
-                              <Button variant="outline" onClick={() => setSelectedReport(null)}>
-                                Cancel
-                              </Button>
-                              <Button onClick={handleUpdateStatus}>
-                                Update Status
-                              </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-                        
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                              <MessageSquare className="mr-2 h-4 w-4" />
-                              Add Report Message
-                            </DropdownMenuItem>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Add Report Message</DialogTitle>
-                              <DialogDescription>
-                                Add a message to report #{report.id}
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="py-4">
-                              <Textarea
-                                placeholder="Your message..."
-                                value={selectedReport?.id === report.id ? message : ""}
-                                onChange={(e) => setMessage(e.target.value)}
-                                rows={4}
-                                onFocus={() => setSelectedReport(report)}
-                              />
-                            </div>
-                            <DialogFooter>
-                              <Button variant="outline" onClick={() => setSelectedReport(null)}>
-                                Cancel
-                              </Button>
-                              <Button onClick={handleAddReportMessage}>
-                                Add Message
-                              </Button>
-                            </DialogFooter>
                           </DialogContent>
                         </Dialog>
                       </DropdownMenuContent>
