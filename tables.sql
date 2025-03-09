@@ -133,8 +133,19 @@ CREATE TABLE IF NOT EXISTS review (
 CREATE TABLE IF NOT EXISTS suspension (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULl,
-    admin_id INT,
+    issuing_admin_id INT,
     reason TEXT NOT NULL,
+    issued_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE,
+    FOREIGN KEY (admin_id) REFERENCES "user" (id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS warning (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULl,
+    issuing_admin_id INT,
+    reason TEXT NOT NULL,
+    issued_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE,
     FOREIGN KEY (admin_id) REFERENCES "user" (id) ON DELETE SET NULL
 );
