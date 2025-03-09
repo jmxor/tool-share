@@ -307,21 +307,3 @@ export async function sendReportMessage(
   }
 
 }
-
-// Direct programmatic way to add a report message (for admin use)
-export async function addReportMessageDirect(userId: number, reportId: number, message: string): Promise<boolean> {
-  try {
-    const conn = await getConnection();
-
-    const query = `
-      INSERT INTO report_message (user_id, report_id, message)
-      VALUES ($1, $2, $3)
-    `;
-
-    await conn.query(query, [userId, reportId, message]);
-    return true;
-  } catch (error) {
-    console.error("[ERROR] Failed to add report message:", error);
-    return false;
-  }
-}
