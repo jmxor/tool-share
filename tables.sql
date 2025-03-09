@@ -42,8 +42,6 @@ CREATE TABLE IF NOT EXISTS location (
 );
 
 -- Changed location table by removing user_id and renaming "name" column to "postcode", also added unique contraint to the newly renamed "postcode" column. Following queries used:
-
-
 ALTER TABLE location
 RENAME COLUMN name TO postcode;
 
@@ -135,12 +133,21 @@ CREATE TABLE IF NOT EXISTS review (
 CREATE TABLE IF NOT EXISTS suspension (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULl,
-    admin_id INT,
-    starts_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULl,
-    expires_at TIMESTAMP NOT NULL,
+    issuing_admin_id INT,
     reason TEXT NOT NULL,
+    issued_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE,
-    FOREIGN KEY (admin_id) REFERENCES "user" (id) ON DELETE SET NULL
+    FOREIGN KEY (issuing_admin_id) REFERENCES "user" (id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS warning (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULl,
+    issuing_admin_id INT,
+    reason TEXT NOT NULL,
+    issued_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE,
+    FOREIGN KEY (issuing_admin_id) REFERENCES "user" (id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS transaction_code (
@@ -171,8 +178,8 @@ CREATE TABLE IF NOT EXISTS report (
     accuser_id INT,
     accused_id INT,
     report_description TEXT NOT NULL,
-    report_status VARCHAR(64) NOT NULL,
-    CONSTRAINT check_accuser_accused_different CHECK (accuser_id <> accused_id),
+    report_status VARCHAR(64),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (accuser_id) REFERENCES "user" (id) ON DELETE SET NULL,
     FOREIGN KEY (accused_id) REFERENCES "user" (id) ON DELETE SET NULL
 );
