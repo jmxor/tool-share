@@ -44,9 +44,9 @@ export default function PostFiltersForm() {
           ref={formRef}
           // onSubmit={}
           // action={}
-          className="col-span-2 h-fit w-full max-w-md space-y-6 rounded-lg border bg-white p-2 shadow-md lg:col-span-3"
+          className="col-span-2 row-span-1 h-fit w-full rounded-lg border bg-white p-2 shadow-md lg:col-span-3"
         >
-          <div className="grid grid-cols-2 gap-x-2">
+          <div className="mb-auto grid w-full grid-cols-2 gap-x-2">
             <FormField
               control={form.control}
               name="name"
@@ -104,7 +104,12 @@ export default function PostFiltersForm() {
             />
           </div>
 
-          <Button type="submit" disabled={false} className="w-full" size="sm">
+          <Button
+            type="submit"
+            disabled={false}
+            className="mt-0 w-full"
+            size="sm"
+          >
             Filter Results
           </Button>
         </form>
