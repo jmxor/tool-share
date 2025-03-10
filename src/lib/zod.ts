@@ -70,23 +70,39 @@ export const CreateToolFormSchema = z.object({
 });
 
 export const ReviewFormSchema = z.object({
-    target: z
-        .string({
-            required_error: "No target. Refresh page and try again."
-        }),
-    stars: z
-        .number({
-            required_error: "Please select a star rating.",
-            invalid_type_error: "Star rating must be a number.",
-        })
-        .min(0, { message: "Rating must be at least 0 stars." })
-        .max(5, { message: "Rating must be at most 5 stars." })
-        .int({ message: "Rating must be an integer." }),
-    text: z
-        .string({
-            required_error: "Please enter a review.",
-            invalid_type_error: "Review must be a string.",
-        })
-        .min(10, { message: "Review must be at least 10 characters." })
-        .max(1000, { message: "Review must be at most 1000 characters." }),
+  target: z.string({
+    required_error: "No target. Refresh page and try again.",
+  }),
+  stars: z
+    .number({
+      required_error: "Please select a star rating.",
+      invalid_type_error: "Star rating must be a number.",
+    })
+    .min(0, { message: "Rating must be at least 0 stars." })
+    .max(5, { message: "Rating must be at most 5 stars." })
+    .int({ message: "Rating must be an integer." }),
+  text: z
+    .string({
+      required_error: "Please enter a review.",
+      invalid_type_error: "Review must be a string.",
+    })
+    .min(10, { message: "Review must be at least 10 characters." })
+    .max(1000, { message: "Review must be at most 1000 characters." }),
+});
+
+export const PostFiltersFormSchema = z.object({
+  name: z.string().optional(),
+  location: z.string().optional(),
+  max_deposit: z
+    .number({ coerce: true })
+    .positive("Must be greater than 0.")
+    .multipleOf(0.01, "Max 2 decimal places.")
+    .optional(),
+  min_borrow_days: z
+    .number({
+      coerce: true,
+    })
+    .positive("Must be greater than 0.")
+    .int("Must be a whole number")
+    .optional(),
 });

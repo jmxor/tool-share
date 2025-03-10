@@ -16,6 +16,7 @@ import {
   useRef,
   useState,
 } from "react";
+import PostFiltersForm from "./post-filters-form";
 
 interface PostsContextType {
   selectedPostId: number | null;
@@ -78,34 +79,7 @@ export default function ToolsPageContent({
               <ToolsMap tools={filteredPosts} postRefs={postRefs} />
             </div>
 
-            {/* TODO: use ZOD and ShadCN forms instead */}
-            <div className="col-span-full row-span-1 flex flex-col gap-2 lg:col-span-3">
-              <Input
-                type="search"
-                placeholder="Filter tools..."
-                value={postNameFilter}
-                onChange={(e) => setPostNameFilter(e.target.value)}
-              />
-              <Input
-                type="number"
-                placeholder=""
-                value={minBorrowFilter}
-                onChange={(e) => setMinBorrowFilter(parseInt(e.target.value))}
-              />
-              <Input
-                type="number"
-                step={0.01}
-                placeholder="Filter tools..."
-                value={maxDepositFilter}
-                onChange={(e) =>
-                  setMaxDepositFilter(parseFloat(e.target.value))
-                }
-              />
-
-              <h1 className="flex items-center justify-center rounded-md border font-bold">
-                Map controls & Filtering
-              </h1>
-            </div>
+            <PostFiltersForm />
           </div>
 
           {filteredPosts.map((post) => (
@@ -117,7 +91,7 @@ export default function ToolsPageContent({
             />
           ))}
 
-          <ToolsDataTable data={filteredPosts} />
+          {/* <ToolsDataTable data={filteredPosts} /> */}
         </div>
       </APIProvider>
     </PostsContext.Provider>
