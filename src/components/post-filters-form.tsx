@@ -44,7 +44,7 @@ export default function PostFiltersForm() {
           ref={formRef}
           // onSubmit={}
           // action={}
-          className="col-span-2 row-span-1 h-fit w-full rounded-lg border bg-white p-2 shadow-md lg:col-span-3"
+          className="col-span-2 row-span-1 h-auto w-full rounded-lg border bg-white p-2 shadow-md lg:col-span-3"
         >
           <div className="mb-auto grid w-full grid-cols-2 gap-x-2">
             <FormField

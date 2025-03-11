@@ -17,6 +17,7 @@ import {
   useState,
 } from "react";
 import PostFiltersForm from "./post-filters-form";
+import { ScrollArea } from "./ui/scroll-area";
 
 interface PostsContextType {
   selectedPostId: number | null;
@@ -82,16 +83,19 @@ export default function ToolsPageContent({
             <PostFiltersForm />
           </div>
 
-          {filteredPosts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              isHighlighted={post.id == selectedPostId}
-              ref={(element) => (postRefs.current[post.id] = element)}
-            />
-          ))}
-
-          {/* <ToolsDataTable data={filteredPosts} /> */}
+          {/* TODO: properly calculate the card height and width for grid rows and columns */}
+          <ScrollArea className="col-span-2 row-span-3 lg:col-span-3 lg:max-h-[742px]">
+            <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+              {filteredPosts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  isHighlighted={post.id == selectedPostId}
+                  ref={(element) => (postRefs.current[post.id] = element)}
+                />
+              ))}
+            </div>
+          </ScrollArea>
         </div>
       </APIProvider>
     </PostsContext.Provider>
