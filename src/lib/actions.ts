@@ -61,7 +61,7 @@ export async function insertDirectMessage(user1: string, user2 : string, msg : s
         const user1_id = await conn.query(query, [user1]);
         const user2_id = await conn.query(query, [user2]);
 
-        await conn.query(insertQuery, [String(user1_id.rows[0].id), user2, msg]);
+        await conn.query(insertQuery, [String(user1_id.rows[0].id), String(user2_id.rows[0].id), msg]);
 
 
     }catch {
@@ -95,9 +95,28 @@ export async function getAllConversations(user_id: string) {
     try {
 
         const query = `
-            SELECT *
-            FROM conversation
-            WHERE user1_id = $1 OR user2_id = $1;
+            SELECT 
+                c.id AS id,
+                CASE 
+                    WHEN c.user1_id = $1 THEN c.user1_id
+                    ELSE c.user2_id
+                END AS current_user_id,
+                CASE 
+                    WHEN c.user1_id = $1 THEN c.user2_id
+                    ELSE c.user1_id
+                END AS recipient_user_id,
+                CASE 
+                    WHEN c.user1_id = $1 THEN u2.username
+                    ELSE u1.username
+                END AS recipient_username
+            FROM 
+                conversation c
+            JOIN 
+                "user" u1 ON c.user1_id = u1.id
+            JOIN 
+                "user" u2 ON c.user2_id = u2.id
+            WHERE 
+                c.user1_id = $1 OR c.user2_id = $1;  -- Replace ? with your actual user ID
         `
 
         const conn = await getConnection();
@@ -111,6 +130,8 @@ export async function getAllConversations(user_id: string) {
 
 }
 }
+
+
 
 
 

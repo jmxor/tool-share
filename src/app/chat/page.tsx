@@ -4,7 +4,6 @@ import ChatComponent from "@/components/ChatComponent";
 import { getUserRowFromEmail } from "@/lib/auth/actions";
 import { getAllConversations, getConversation, getMessagesByUserId } from "@/lib/actions";
 
-
 function mapMessages(messages: any[]): { sender: string; recipient: number; message: string }[] {
   return messages.map((msg) => ({
     sender: msg.sender_username,
@@ -15,6 +14,8 @@ function mapMessages(messages: any[]): { sender: string; recipient: number; mess
 
 export default async function Chat() {
 
+  let currentUserId = "";
+
   const session = await auth();
   if (!session?.user) {
       redirect('/auth/login');
@@ -24,35 +25,31 @@ export default async function Chat() {
   if (!userInfo) {
       redirect('/auth/login');
   }
+  currentUserId = userInfo.rows[0].id;
 
-  let allConversations = await getAllConversations(userInfo.rows[0].id);
+  let allConversations = await getAllConversations(currentUserId);
   if (!allConversations) {
     allConversations = [];
   }
 
-  const conversationInfo = await  getConversation(userInfo.rows[0].id, allConversations[0].user1_id=== userInfo.rows[0].idcurrentUserId
-                                                                        ? allConversations[0].user2_id
-                                                                        : allConversations[0].user1_id);
+  const conversationInfo = await  getConversation(currentUserId, allConversations[0].recipient_user_id);
 
-  let messagesInfo = await getMessagesByUserId(conversationInfo.user1_id, conversationInfo.user2_id);
-  if (!messagesInfo) {
-    messagesInfo = [];
+  let messages = await getMessagesByUserId(conversationInfo.user1_id, conversationInfo.user2_id);
+  if (!messages) {
+    messages = [];
   }
-  const formattedMessages = mapMessages(messagesInfo);
+  const formattedMessages = mapMessages(messages);
 
   return (
     <div>
-      <div className="w-full max-w-3xl mx-auto">
+      <div className="">
         <title>Chat page</title>
         <ChatComponent initialMessages={formattedMessages} userName={userInfo.rows[0].username} 
-        conversationID={conversationInfo.id} initialRecipient={conversationInfo.user2_id} 
+        conversationID={conversationInfo.id} initialRecipient={allConversations[0].recipient_username} 
         allConversations={allConversations} currentUserId={userInfo.rows[0].id} />    
-
-        
       </div>
     </div>
-  );
-}
+);};
 
 
 

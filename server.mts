@@ -4,41 +4,40 @@ import { createServer } from "node:http";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = process.env.HOSTNAME || "localhost";
-const port = parseInt(process.env.PORT || "3000", 10); 
+const port = parseInt(process.env.PORT || "3000", 10);
 
-const app = next({ dev , hostname, port });
+const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
+  const httpServer = createServer(handle);
 
-    const httpServer = createServer(handle);
-    // io is a room in whcih multiple sockets can exist
+  // Use a global variable to store the Socket.IO instance
+  if (!(global as any).io) {
     const io = new Server(httpServer);
-    // User connection
-    io.on("connection" , (socket) =>{
+    (global as any).io = io;
 
-        // User has made a connection to the server
-        // console.log(`User connected: ${socket.id}`);
+    io.on("connection", (socket) => {
+      // console.log(`User connected: ${socket.id}`);
 
-        // User joined chat room
-        socket.on("join-room", ({ room }) => {
-            socket.join(room);
-        });
+      socket.on("join-room", ({ room, username }) => {
+        console.log(`User ${username} joined room ${room}`);
+        socket.join(room);
+        socket.to(room).emit("user_joined", `${username} joined the chat`);
+      });
 
-        // Message from user to a given chat room
-        socket.on("message", ({ room, message, sender }) =>{
-            socket.to(room).emit("message", { sender, message });
-        });
+      socket.on("message", ({ room, message, sender }) => {
+        console.log(`Message from ${sender} in room ${room}: ${message}`);
+        io.to(room).emit("message", { sender, message }); // Send to everyone in the room
+      });
 
-        // User Disconnect
-        socket.on("disconnect", () => {
-            console.log(`User disconnected: ${socket.id}`);
-        });
+      socket.on("disconnect", () => {
+        console.log(`User disconnected: ${socket.id}`);
+      });
     });
+  }
 
-    // Listen to the server on a given port
-    // Display the port the server is running on
-    httpServer.listen(port, () => {
-        console.log(`Server is running on http://${hostname}:${port}`);
-    });
+  httpServer.listen(port, () => {
+    console.log(`Server is running on http://${hostname}:${port}`);
+  });
 });
