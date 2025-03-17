@@ -10,6 +10,35 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+
+export async function userIsAdmin(email: string): Promise<boolean> {
+    try {
+        const conn = await getConnection();
+
+        const query = `
+            SELECT user_privilege
+            FROM "user"
+            WHERE email = $1
+        `;
+
+        const result = await conn.query(query, [email]);
+
+        if ((result.rowCount || 0) <= 0) {
+            return false;
+        }
+
+        const user = result.rows[0];
+        if (user.user_privilege !== 'admin') {
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error("[ERROR] Failed to check whether user is admin: ", error);
+        return false;
+    }
+}
+
 export type DeleteReviewState = {
     message: string | null,
     success: boolean | null
@@ -554,10 +583,13 @@ export async function getUserByEmail(email: string) {
             return null;
         }
         const user = result.rows[0];
-        return {
+
+        const user_object = {
             ...user,
             created_at: new Date(user.created_at),
         } as User;
+
+        return user_object;
     } catch {
         return null;
     }
@@ -621,4 +653,61 @@ export async function setPassword(newPassword: string) {
         console.error("Error in setPassword:", error);
         return false;
     }
+}
+
+export async function getUserWarningsAndSuspensions() {
+  const session = await auth();
+  if (!session?.user?.email) return { warnings: [], suspensions: [] };
+  
+  try {
+    const conn = await getConnection();
+    
+    const userId = await getEmailID(session.user.email);
+    
+    const warningsQuery = `
+      SELECT 
+        id,
+        reason,
+        issued_at
+      FROM warning
+      WHERE user_id = $1
+      AND issued_at > NOW() - INTERVAL '30 days'
+      ORDER BY issued_at DESC
+      LIMIT 5
+    `;
+    
+    const warningsResult = await conn.query(warningsQuery, [userId]);
+    
+    const suspensionsQuery = `
+      SELECT 
+        id,
+        reason,
+        issued_at
+      FROM suspension 
+      WHERE user_id = $1
+      AND issued_at > NOW() - INTERVAL '90 days'
+      ORDER BY issued_at DESC
+      LIMIT 5
+    `;
+    
+    const suspensionsResult = await conn.query(suspensionsQuery, [userId]);
+    
+    return {
+      warnings: warningsResult.rows.map(row => ({
+        id: row.id,
+        reason: row.reason,
+        issuedAt: new Date(row.issued_at),
+        adminUsername: row.admin_username
+      })),
+      suspensions: suspensionsResult.rows.map(row => ({
+        id: row.id,
+        reason: row.reason,
+        issuedAt: new Date(row.issued_at),
+        adminUsername: row.admin_username
+      }))
+    };
+  } catch (error) {
+    console.error("Failed to fetch user warnings and suspensions:", error);
+    return { warnings: [], suspensions: [] };
+  }
 }

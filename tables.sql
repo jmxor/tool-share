@@ -42,8 +42,6 @@ CREATE TABLE IF NOT EXISTS location (
 );
 
 -- Changed location table by removing user_id and renaming "name" column to "postcode", also added unique contraint to the newly renamed "postcode" column. Following queries used:
-
-
 ALTER TABLE location
 RENAME COLUMN name TO postcode;
 
@@ -108,7 +106,7 @@ CREATE TABLE IF NOT EXISTS tool_request (
     tool_name VARCHAR(64),
     category_id INT,
     user_id INT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULl,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     status VARCHAR(64) NOT NULL,
     FOREIGN KEY (category_id) REFERENCES category (id) ON DELETE SET NULL,
     FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE
@@ -135,12 +133,21 @@ CREATE TABLE IF NOT EXISTS review (
 CREATE TABLE IF NOT EXISTS suspension (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULl,
-    admin_id INT,
-    starts_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULl,
-    expires_at TIMESTAMP NOT NULL,
+    issuing_admin_id INT,
     reason TEXT NOT NULL,
+    issued_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE,
-    FOREIGN KEY (admin_id) REFERENCES "user" (id) ON DELETE SET NULL
+    FOREIGN KEY (issuing_admin_id) REFERENCES "user" (id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS warning (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULl,
+    issuing_admin_id INT,
+    reason TEXT NOT NULL,
+    issued_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE,
+    FOREIGN KEY (issuing_admin_id) REFERENCES "user" (id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS transaction_code (
@@ -164,16 +171,17 @@ CREATE TABLE IF NOT EXISTS extension_request (
     FOREIGN KEY (transaction_id) REFERENCES transaction (id) ON DELETE CASCADE
 );
 
+-- Updated report table schema (removed transaction_id field)
+-- Reports are now directly between users without being tied to specific transactions
 CREATE TABLE IF NOT EXISTS report (
     id SERIAL PRIMARY KEY,
     accuser_id INT,
     accused_id INT,
-    transaction_id INT NOT NULl,
     report_description TEXT NOT NULL,
     report_status VARCHAR(64),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     FOREIGN KEY (accuser_id) REFERENCES "user" (id) ON DELETE SET NULL,
-    FOREIGN KEY (accused_id) REFERENCES "user" (id) ON DELETE SET NULL,
-    FOREIGN KEY (transaction_id) REFERENCES transaction (id) ON DELETE CASCADE
+    FOREIGN KEY (accused_id) REFERENCES "user" (id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS report_message (

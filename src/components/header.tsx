@@ -29,7 +29,7 @@ export default async function Header() {
   const session = await auth();
 
   return (
-    <header className="flex h-16 w-full items-center border-b px-4">
+    <header className="flex h-16 w-full items-center border-b px-4 gap-2">
       <Sheet>
         <div className="mr-auto flex items-center">
           <SheetTrigger className="mr-2 lg:hidden">

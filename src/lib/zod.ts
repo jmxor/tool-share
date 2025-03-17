@@ -70,9 +70,10 @@ export const CreateToolFormSchema = z.object({
 });
 
 export const ReviewFormSchema = z.object({
-  target: z.string({
-    required_error: "No target. Refresh page and try again.",
-  }),
+  target: z
+    .string({
+      required_error: "No target. Refresh page and try again."
+    }),
   stars: z
     .number({
       required_error: "Please select a star rating.",
@@ -106,3 +107,15 @@ export const PostFiltersFormSchema = z.object({
     .int("Must be a whole number")
     .optional(),
 });
+
+export const ReportFormSchema = z.object({
+  profileURL: z.string({ required_error: "Please insert the link to the profile of the user who you are reporting." }),
+  reportDescription: z.string({ required_error: "Please describe the report reason and all details of the situation." })
+});
+
+export const ReportMessageFormSchema = z.object({
+  reportID: z.number({ required_error: "Report ID hasn't been set, try restarting the page." }),
+  reportMessageText: z
+    .string({ required_error: "Please type the message you would like to send. " })
+    .min(1, { message: "Message cannot be empty." }),
+})

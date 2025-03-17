@@ -28,7 +28,7 @@ export default async function ProfilePage({
 		loggedIn = true;
 		const userData = await getUserByEmail(session.user.email);
 		if (userData) {
-			loggedInFirstUsername = userData?.username;
+			loggedInFirstUsername = userData?.first_username;
 		}
 	}
 
@@ -85,21 +85,22 @@ export default async function ProfilePage({
 						Joined <span>{formatDate(publicUserData.created_at)}</span>
 					</p>
 					<p className="text-sm"><span className="font-bold">5</span> transactions</p>
-					<p className="text-sm"><span className="font-bold">{publicUserData.suspensionCount}</span> suspensions</p>
 				</div>
 				<div className="flex flex-col gap-1 items-center">
-					<Button
-						disabled={first_username === loggedInFirstUsername}
-						className="rounded-none font-semibold bg-blue-500 items-center text-white px-4 py-1 shadow-md hover:cursor-pointer hover:bg-blue-600 flex gap-1"
-					>
-						Message<MessageCircle className="w-4 h-4" />
-					</Button>
-					<Button
-						disabled={first_username === loggedInFirstUsername}
-						className="px-4 py-1 font-semibold text-red-400 hover:cursor-pointer hover:underline flex items-center gap-1 bg-transparent rounded-none shadow-none hover:bg-transparent"
-					>
-						Report<Flag className="w-4 h-4" />
-					</Button>
+					{first_username !== loggedInFirstUsername ? <>
+						<Button
+							className="rounded-none font-semibold bg-blue-500 items-center text-white px-4 py-1 shadow-md hover:cursor-pointer hover:bg-blue-600 flex gap-1"
+						>
+							Message<MessageCircle className="w-4 h-4" />
+						</Button>
+						<a
+							href={`/reports/new/${first_username}`}
+							className="px-4 py-1 font-semibold text-red-400 hover:cursor-pointer hover:underline flex items-center gap-1 bg-transparent rounded-none shadow-none hover:bg-transparent"
+						>
+							Report<Flag className="w-4 h-4" />
+						</a>
+					</>
+						: ''}
 				</div>
 			</div>
 			<div
@@ -194,7 +195,7 @@ export default async function ProfilePage({
 					<h2 className="text-xl">Tools Listed</h2>
 					<hr />
 					{publicUserData.posts.length > 0 ? (
-						<div className="flex flex-col items-center md:flex-row overflow-x-auto gap-2 py-8">
+						<div className="flex flex-col items-center lg:flex-row overflow-x-auto gap-2 py-8">
 							{publicUserData.posts.map((post: Post) => (
 								<PostCard key={post.id} post={post} />
 							))}
