@@ -91,6 +91,23 @@ export const ReviewFormSchema = z.object({
     .max(1000, { message: "Review must be at most 1000 characters." }),
 });
 
+export const PostFiltersFormSchema = z.object({
+  name: z.string().optional(),
+  location: z.string().optional(),
+  max_deposit: z
+    .number({ coerce: true })
+    .positive("Must be greater than 0.")
+    .multipleOf(0.01, "Max 2 decimal places.")
+    .optional(),
+  min_borrow_days: z
+    .number({
+      coerce: true,
+    })
+    .positive("Must be greater than 0.")
+    .int("Must be a whole number")
+    .optional(),
+});
+
 export const ReportFormSchema = z.object({
   profileURL: z.string({ required_error: "Please insert the link to the profile of the user who you are reporting." }),
   reportDescription: z.string({ required_error: "Please describe the report reason and all details of the situation." })
