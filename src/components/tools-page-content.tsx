@@ -1,10 +1,8 @@
 "use client";
 
 import PostCard from "@/components/post-card";
-import ToolsDataTable from "@/components/tools-data-table";
 import ToolsMap from "@/components/tools-map";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { AllToolPostData } from "@/lib/posts/actions";
 import { APIProvider } from "@vis.gl/react-google-maps";
 import { Plus } from "lucide-react";
@@ -54,8 +52,6 @@ export default function ToolsPageContent({
 
   const postRefs = useRef<{ [id: number]: HTMLDivElement | null }>({});
 
-  useEffect(() => console.log(postRefs.current));
-
   useEffect(() => {
     setFilteredPosts(
       tools.filter(
@@ -88,10 +84,9 @@ export default function ToolsPageContent({
           </Button>
         </div>
 
-        {/* TODO fix rows collapsing when empty of tools */}
         <div className="grid grid-cols-2 gap-2 p-2 lg:grid-cols-6 lg:px-4">
-          <div className="col-span-2 row-span-3 grid grid-cols-subgrid grid-rows-subgrid lg:col-span-3">
-            <div className="col-span-full row-span-2 flex h-72 items-center justify-center overflow-clip rounded-md border lg:col-span-3 lg:h-auto">
+          <div className="col-span-2 row-span-3 flex flex-col gap-2 lg:col-span-3">
+            <div className="flex h-72 grow items-center justify-center overflow-clip rounded-md border bg-gray-500">
               <ToolsMap tools={filteredPosts} postRefs={postRefs} />
             </div>
 
