@@ -29,6 +29,13 @@ export const PostsContext = createContext<PostsContextType>({
   setSelectedPostId: () => {},
 });
 
+export type PostFilterState = {
+  name: string;
+  location: string;
+  max_deposit: number;
+  min_borrow_days: number;
+};
+
 export default function ToolsPageContent({
   tools,
 }: {
@@ -38,9 +45,12 @@ export default function ToolsPageContent({
 
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
   const [filteredPosts, setFilteredPosts] = useState(tools);
-  const [postNameFilter, setPostNameFilter] = useState("");
-  const [minBorrowFilter, setMinBorrowFilter] = useState(0);
-  const [maxDepositFilter, setMaxDepositFilter] = useState<number>(0);
+  const [postFiltersState, setPostFiltersState] = useState<PostFilterState>({
+    name: "",
+    location: "",
+    min_borrow_days: 0,
+    max_deposit: 0,
+  });
 
   const postRefs = useRef<{ [id: number]: HTMLDivElement | null }>({});
 
@@ -50,13 +60,18 @@ export default function ToolsPageContent({
     setFilteredPosts(
       tools.filter(
         (post) =>
-          post.tool_name.toLowerCase().includes(postNameFilter.toLowerCase()) &&
-          post.max_borrow_days > minBorrowFilter &&
-          (maxDepositFilter <= 0 ||
-            parseFloat(post.deposit) <= maxDepositFilter),
+          post.tool_name
+            .toLowerCase()
+            .includes(postFiltersState.name.toLowerCase()) &&
+          post.max_borrow_days > postFiltersState.min_borrow_days &&
+          (postFiltersState.max_deposit <= 0 ||
+            parseFloat(post.deposit) <= postFiltersState.max_deposit) &&
+          post.postcode
+            .toLowerCase()
+            .includes(postFiltersState.location.toLowerCase()),
       ),
     );
-  }, [tools, postNameFilter, minBorrowFilter, maxDepositFilter]);
+  }, [tools, postFiltersState]);
 
   return (
     <PostsContext.Provider value={{ selectedPostId, setSelectedPostId }}>
@@ -80,7 +95,10 @@ export default function ToolsPageContent({
               <ToolsMap tools={filteredPosts} postRefs={postRefs} />
             </div>
 
-            <PostFiltersForm />
+            <PostFiltersForm
+              setPostFiltersState={setPostFiltersState}
+              postFiltersState={postFiltersState}
+            />
           </div>
 
           {/* TODO: properly calculate the card height and width for grid rows and columns */}
