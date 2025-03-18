@@ -19,7 +19,7 @@ export default async function AccountPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex justify-center p-6">
+        <div className="h-[calc(100vh-4rem)] bg-gray-50 flex justify-center p-6">
             <div className="flex flex-col gap-2 bg-white shadow-md h-fit p-8 min-w-[500px] w-1/4 rounded-lg">
                 <div className="flex flex-col items-center mb-4 gap-2">
                     <div className="bg-gray-100 w-20 h-20 rounded-full flex justify-center items-center">
