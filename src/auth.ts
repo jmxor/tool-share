@@ -6,6 +6,7 @@ import { ZodError } from "zod";
 import { getUserRowFromEmail } from "./lib/auth/actions";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
   debug: false,
   pages: {
     signIn: "/auth/login",

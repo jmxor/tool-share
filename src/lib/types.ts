@@ -1,15 +1,30 @@
-export type LocalErrors = {
-    username: string;
-    email: string;
-    password: string;
-    confirmPassword: string;
-    termsOfService: string;
-};
-
 export type User = {
     username: string;
+    first_username: string;
     email: string;
     created_at: Date;
     user_privilege: string;
     is_suspended: boolean;
 };
+
+export type Post = {
+    id: number,
+    tool_name: string,
+    description: string,
+    sources: string[]
+}
+
+export type PublicUser = {
+    username: string;
+    created_at: Date,
+    is_suspended: boolean,
+    suspensionCount: number
+    posts: Post[]
+};
+
+export type ToolPostPreview = {
+    toolName: string;
+    deposit: number;
+    mainImagePath: string;
+    status: string;
+}
