@@ -18,7 +18,6 @@ app.prepare().then(() => {
     (global as any).io = io;
 
     io.on("connection", (socket) => {
-      // console.log(`User connected: ${socket.id}`);
 
       socket.on("join-room", ({ room, username }) => {
         console.log(`User ${username} joined room ${room}`);
@@ -27,7 +26,7 @@ app.prepare().then(() => {
       });
 
       socket.on("message", ({ room, message, sender }) => {
-        console.log(`Message from ${sender} in room ${room}: ${message}`);
+
         io.to(room).emit("message", { sender, message }); // Send to everyone in the room
       });
 

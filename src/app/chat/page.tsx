@@ -4,6 +4,9 @@ import ChatComponent from "@/components/ChatComponent";
 import { getUserRowFromEmail } from "@/lib/auth/actions";
 import { getAllConversations, getConversation, getMessagesByUserId } from "@/lib/actions";
 
+
+// Function to map conversation messages into a desired format.
+// [ sender: string; recipient: number; message: string ]
 function mapMessages(messages: any[]): { sender: string; recipient: number; message: string }[] {
   return messages.map((msg) => ({
     sender: msg.sender_username,
@@ -14,19 +17,23 @@ function mapMessages(messages: any[]): { sender: string; recipient: number; mess
 
 export default async function Chat() {
 
-  let currentUserId = "";
+  let currentUserId = ""
 
+  // Verify user is logged in
+  // if not redirect to home page
   const session = await auth();
   if (!session?.user) {
       redirect('/auth/login');
   }
-
   const userInfo = await getUserRowFromEmail(session.user.email as string);
   if (!userInfo) {
       redirect('/auth/login');
   }
+
+  // Get the signed-in user id
   currentUserId = userInfo.rows[0].id;
 
+  // Get all conversations between signed-in user and others
   let allConversations = await getAllConversations(currentUserId);
   if (!allConversations) {
     allConversations = [];
@@ -34,10 +41,13 @@ export default async function Chat() {
 
   const conversationInfo = await  getConversation(currentUserId, allConversations[0].recipient_user_id);
 
+  // Get messages from the conversations
   let messages = await getMessagesByUserId(conversationInfo.user1_id, conversationInfo.user2_id);
   if (!messages) {
     messages = [];
   }
+
+  // Format the messages for ChatComponent.tsx to be able to manipulate them
   const formattedMessages = mapMessages(messages);
 
   return (

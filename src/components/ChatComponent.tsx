@@ -2,15 +2,19 @@
 
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { useEffect, useState, useRef } from "react";
 import { socket } from "@/lib/socketClient";
-import { getMessagesByUserId, insertDirectMessage } from "@/lib/actions";
 import ChatMessage from "@/components/ChatMessage";
+import { useEffect, useState, useRef } from "react";
+import { getMessagesByUserId, insertDirectMessage } from "@/lib/actions";
 
+// ChatComponent props,
+// All information needed from page.tsx
+// To display chat contents and information
+// from the database.
 interface ChatComponentProps {
   initialMessages: { sender: string; message: string }[];
   userName: string;
-  conversationID: number;
+  initialConversationID: number;
   initialRecipient: string;
   allConversations: any[];
   currentUserId: string;
@@ -26,7 +30,7 @@ function mapMessages(messages: any[]): { sender: string; message: string }[] {
 const ChatComponent: React.FC<ChatComponentProps> = ({
   initialMessages,
   userName,
-  conversationID,
+  initialConversationID,
   initialRecipient,
   allConversations,
   currentUserId,
@@ -34,6 +38,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState(initialMessages);
   const [recipient, setRecipient] = useState(initialRecipient); // State for recipient
+  const [conversationID, setConversationId] = useState(initialConversationID); // State for recipient
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -74,15 +79,21 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     userId: string,
     recipient_username: string,
   ) => {
-    socket.emit("join-room", { room: conversationID, username: userName });
     let messagesInfo = await getMessagesByUserId(currentUserId, userId);
-    if (!messagesInfo) {
+    let newConversationId = initialConversationID; // Default to initial value
+  
+    if (messagesInfo && messagesInfo.length > 0) {
+      newConversationId = messagesInfo[0].conversation_id;
+    } else {
       messagesInfo = [];
     }
-    const formattedMessages = mapMessages(messagesInfo);
-    setMessages(formattedMessages);
-    setRecipient(recipient_username);
+      setConversationId(newConversationId);
+      const formattedMessages = mapMessages(messagesInfo);
+      setMessages(formattedMessages);
+      setRecipient(recipient_username);
+      socket.emit("join-room", { room: newConversationId, username: userName });
   };
+  
 
   return (
     <div className="grid grid-cols-4"> 

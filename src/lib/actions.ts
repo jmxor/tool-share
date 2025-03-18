@@ -5,24 +5,30 @@ import { getConnection } from "@/lib/db";
 export async function getMessagesByUserId(user1_Id: string, user2_Id : string) {
     try {
         const query = `
-            SELECT 
+            SELECT
                 dm.id,
                 dm.message,
                 dm.sent_at,
                 dm.sender_id,
                 dm.recipient_id,
                 sender.username AS sender_username,
-                recipient.username AS recipient_username
-            FROM 
+                recipient.username AS recipient_username,
+                c.id AS conversation_id  -- Include the conversation ID
+            FROM
                 direct_message dm
-            JOIN 
+            JOIN
                 "user" sender ON dm.sender_id = sender.id
-            JOIN 
+            JOIN
                 "user" recipient ON dm.recipient_id = recipient.id
-            WHERE 
-                (dm.sender_id = $1 AND dm.recipient_id = $2) OR 
+            JOIN
+                conversation c ON (
+                    (c.user1_id = dm.sender_id AND c.user2_id = dm.recipient_id) OR
+                    (c.user1_id = dm.recipient_id AND c.user2_id = dm.sender_id)
+                )
+            WHERE
+                (dm.sender_id = $1 AND dm.recipient_id = $2) OR
                 (dm.sender_id = $2 AND dm.recipient_id = $1)
-            ORDER BY 
+            ORDER BY
                 dm.sent_at;
         `
 
