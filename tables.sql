@@ -210,5 +210,3 @@ CREATE UNIQUE INDEX unique_conversation ON conversation (
 CREATE INDEX idx_conversation_user1_id ON conversation (user1_id);
 
 CREATE INDEX idx_conversation_user2_id ON conversation (user2_id);
-
-

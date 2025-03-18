@@ -10,5 +10,4 @@ declare module "next-auth" {
         user_privilege?: string | null;
         is_suspended?: boolean | null;
     }
-
 }
