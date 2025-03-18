@@ -1,6 +1,6 @@
 import { PostFiltersFormSchema } from "@/lib/zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useActionState, useRef } from "react";
+import { Dispatch, SetStateAction, useRef } from "react";
 import { useForm } from "react-hook-form";
 import {
   Form,
@@ -12,19 +12,16 @@ import {
 } from "./ui/form";
 import { Input } from "./ui/input";
 import { z } from "zod";
+import { PostFilterState } from "./tools-page-content";
 import { Button } from "./ui/button";
 
-export default function PostFiltersForm() {
-  // const initialState: PostFormState = {
-  //   message: null,
-  //   errors: {},
-  // };
-
-  // const [state, formAction, isPending] = useActionState(
-  //     (): PostFormState => {},
-  //     initialState,
-  //   );
-
+export default function PostFiltersForm({
+  setPostFiltersState,
+  postFiltersState,
+}: {
+  setPostFiltersState: Dispatch<SetStateAction<PostFilterState>>;
+  postFiltersState: PostFilterState;
+}) {
   const form = useForm<z.output<typeof PostFiltersFormSchema>>({
     resolver: zodResolver(PostFiltersFormSchema),
     defaultValues: {
@@ -42,9 +39,7 @@ export default function PostFiltersForm() {
       <Form {...form}>
         <form
           ref={formRef}
-          // onSubmit={}
-          // action={}
-          className="col-span-2 row-span-1 h-auto w-full rounded-lg border bg-white p-2 shadow-md lg:col-span-3"
+          className="h-fit w-full rounded-lg border bg-white p-2 shadow-md lg:col-span-3"
         >
           <div className="mb-auto grid w-full grid-cols-2 gap-x-2">
             <FormField
@@ -54,7 +49,16 @@ export default function PostFiltersForm() {
                 <FormItem className="min-h-[84px]">
                   <FormLabel>Tool Name</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input
+                      {...field}
+                      value={postFiltersState.name}
+                      onChange={(e) =>
+                        setPostFiltersState((state) => ({
+                          ...state,
+                          name: e.target.value,
+                        }))
+                      }
+                    />
                   </FormControl>
                   {/* <FormMessage>{state.errors?.name}</FormMessage> */}
                 </FormItem>
@@ -68,7 +72,16 @@ export default function PostFiltersForm() {
                 <FormItem className="min-h-[84px]">
                   <FormLabel>Postcode</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input
+                      {...field}
+                      value={postFiltersState.location}
+                      onChange={(e) =>
+                        setPostFiltersState((state) => ({
+                          ...state,
+                          location: e.target.value,
+                        }))
+                      }
+                    />
                   </FormControl>
                   {/* <FormMessage>{state.errors?.name}</FormMessage> */}
                 </FormItem>
@@ -80,9 +93,20 @@ export default function PostFiltersForm() {
               name="max_deposit"
               render={({ field }) => (
                 <FormItem className="min-h-[84px]">
-                  <FormLabel>Max Despoit</FormLabel>
+                  <FormLabel>Max Deposit (£)</FormLabel>
                   <FormControl>
-                    <Input {...field} type="number" step={0.01} />
+                    <Input
+                      {...field}
+                      type="number"
+                      step={0.01}
+                      value={postFiltersState.max_deposit}
+                      onChange={(e) =>
+                        setPostFiltersState((state) => ({
+                          ...state,
+                          max_deposit: parseFloat(e.target.value),
+                        }))
+                      }
+                    />
                   </FormControl>
                   {/* <FormMessage>{state.errors?.name}</FormMessage> */}
                 </FormItem>
@@ -94,24 +118,25 @@ export default function PostFiltersForm() {
               name="min_borrow_days"
               render={({ field }) => (
                 <FormItem className="min-h-[84px]">
-                  <FormLabel>Minimum Borrow Limit</FormLabel>
+                  <FormLabel>Minimum Borrow Time (Days)</FormLabel>
                   <FormControl>
-                    <Input {...field} type="number" />
+                    <Input
+                      {...field}
+                      type="number"
+                      value={postFiltersState.min_borrow_days}
+                      onChange={(e) =>
+                        setPostFiltersState((state) => ({
+                          ...state,
+                          min_borrow_days: parseFloat(e.target.value),
+                        }))
+                      }
+                    />
                   </FormControl>
                   {/* <FormMessage>{state.errors?.name}</FormMessage> */}
                 </FormItem>
               )}
             />
           </div>
-
-          <Button
-            type="submit"
-            disabled={false}
-            className="mt-0 w-full"
-            size="sm"
-          >
-            Filter Results
-          </Button>
         </form>
       </Form>
     </>
