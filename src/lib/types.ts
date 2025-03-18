@@ -5,6 +5,7 @@ export type User = {
     created_at: Date;
     user_privilege: string;
     is_suspended: boolean;
+    warnings: number;
 };
 
 export type Post = {

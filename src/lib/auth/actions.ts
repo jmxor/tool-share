@@ -571,9 +571,12 @@ export async function deleteAccount() {
 export async function getUserByEmail(email: string) {
     try {
         const query = `
-            SELECT username, first_username, email, created_at, user_privilege, is_suspended
-            FROM "user" 
-            WHERE email = $1
+            SELECT u.username, u.first_username, u.email, u.created_at, u.user_privilege, u.is_suspended,
+                   COUNT(w.id) AS warnings
+            FROM "user" u
+            LEFT JOIN warning w ON u.id = w.user_id
+            WHERE u.email = $1
+            GROUP BY u.username, u.first_username, u.email, u.created_at, u.user_privilege, u.is_suspended
             LIMIT 1
         `;
         const conn = await getConnection();
