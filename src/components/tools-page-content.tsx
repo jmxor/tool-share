@@ -72,43 +72,44 @@ export default function ToolsPageContent({
   return (
     <PostsContext.Provider value={{ selectedPostId, setSelectedPostId }}>
       <APIProvider apiKey={API_KEY}>
-        <div className="col-span-full mt-2 flex items-center justify-center gap-2">
-          <p>Have a tool to share?</p>
-          <Button variant="outline" asChild>
-            {/* This link needs to be an anchor element not a Next Link to prevent issues when submitting the form on
-          /tools/new page. For reference: https://github.com/vercel/next.js/discussions/56234 */}
-            <a href="/tools/new">
-              <Plus />
-              Share Tool
-            </a>
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 p-2 lg:grid-cols-6 lg:px-4">
-          <div className="col-span-2 row-span-3 flex flex-col gap-2 lg:col-span-3">
-            <div className="flex h-72 grow items-center justify-center overflow-clip rounded-md border bg-gray-500">
-              <ToolsMap tools={filteredPosts} postRefs={postRefs} />
-            </div>
-
-            <PostFiltersForm
-              setPostFiltersState={setPostFiltersState}
-              postFiltersState={postFiltersState}
-            />
+        <div className="pt-2 lg:max-h-[calc(100vh-64px)] lg:min-h-[calc(100vh-64px)]">
+          <div className="flex w-full items-center justify-center gap-2">
+            <p>Have a tool to share?</p>
+            <Button variant="outline" asChild>
+              {/* This link needs to be an anchor element not a Next Link to prevent issues when submitting the form on
+            /tools/new page. For reference: https://github.com/vercel/next.js/discussions/56234 */}
+              <a href="/tools/new">
+                <Plus />
+                Share Tool
+              </a>
+            </Button>
           </div>
 
-          {/* TODO: properly calculate the card height and width for grid rows and columns */}
-          <ScrollArea className="col-span-2 row-span-3 lg:col-span-3 lg:max-h-[742px]">
-            <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
-              {filteredPosts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  isHighlighted={post.id == selectedPostId}
-                  ref={(element) => (postRefs.current[post.id] = element)}
-                />
-              ))}
+          <div className="grid min-h-[calc(100vh-124px)] grid-cols-2 grid-rows-1 gap-2 p-2 lg:px-4">
+            <div className="col-span-2 row-span-1 flex flex-col gap-2 lg:col-span-1">
+              <div className="flex h-72 grow items-center justify-center overflow-clip rounded-md border bg-gray-500">
+                <ToolsMap tools={filteredPosts} postRefs={postRefs} />
+              </div>
+
+              <PostFiltersForm
+                setPostFiltersState={setPostFiltersState}
+                postFiltersState={postFiltersState}
+              />
             </div>
-          </ScrollArea>
+
+            <ScrollArea className="col-span-2 lg:col-span-1 lg:max-h-[calc(100vh-124px)]">
+              <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+                {filteredPosts.map((post) => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    isHighlighted={post.id == selectedPostId}
+                    ref={(element) => (postRefs.current[post.id] = element)}
+                  />
+                ))}
+              </div>
+            </ScrollArea>
+          </div>
         </div>
       </APIProvider>
     </PostsContext.Provider>
