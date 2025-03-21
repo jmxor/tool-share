@@ -1,6 +1,7 @@
 'use server';
 
 import { getConnection } from "@/lib/db";
+import { getEmailID, getFirstUsernameID } from "./auth/actions";
 
 export async function getMessagesByUserId(user1_Id: string, user2_Id : string) {
     try {
@@ -135,6 +136,39 @@ export async function getAllConversations(user_id: string) {
         return null;
 
 }
+}
+
+export async function createConversation(user1_email : string, user2_first_username: string): Promise<number>{
+    try{
+        const conn = await getConnection();
+        const user1_id = await getEmailID(user1_email);
+        const user2_id = await getFirstUsernameID(user2_first_username);
+
+        const checkQuery = `
+            SELECT id
+            FROM conversation
+            WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1);
+        `
+        const checkResult = await conn.query(checkQuery, [user1_id, user2_id]);
+
+        const insertQuery = `
+            INSERT INTO conversation (user1_id, user2_id)
+            VALUES ($1, $2)
+            RETURNING id;
+        `
+        console.log(checkResult.rows.length)
+
+        if (checkResult.rows.length < 1){
+            const insertResult = await conn.query(insertQuery, [user1_id, user2_id])
+            return insertResult.rows[0]
+        }
+       
+        return checkResult.rows[0].id
+
+    } catch(error) {
+        console.error("[ERROR] Failed to create conversation:", error);
+        return -1
+    }
 }
 
 

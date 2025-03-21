@@ -102,7 +102,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         <h2 className="text-lg font-semibold p-4">Conversations</h2>
         <ul className="divide-y divide-gray-200">
 
-          {allConversations.map((conversation) => {
+          {allConversations.length > 0 ? allConversations.map((conversation) => {
             const otherUserId = conversation.recipient_user_id
             const otherUsername = conversation.recipient_username
             return (
@@ -114,12 +114,15 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
                 <span className="font-medium">{otherUsername}</span>
               </li>
             );
-          })}
+          }) :
+            <span>No conversations</span>
+          }
 
         </ul>
       </div>  
     
-      <div className="col-start-2 col-end-5 mr-4">
+      {allConversations.length > 0 ?
+        <div className="col-start-2 col-end-5 mr-4">
         <div className="flex-col-reverse justify-end h-[750px] overflow-y-auto p-4 mt-4 mb-4 bg-gradient-to-t from-white to-gray-100 border-2 rounded-lg">
           {messages.map((msg, index) => (
             <ChatMessage
@@ -148,6 +151,10 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         </form>
 
       </div>
+      :
+      <span>No conversations</span>
+      }
+      
     </div>
   );
 };

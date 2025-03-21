@@ -39,10 +39,10 @@ export default async function Chat() {
     allConversations = [];
   }
 
-  const conversationInfo = await  getConversation(currentUserId, allConversations[0].recipient_user_id);
+  const conversationInfo = await  getConversation(currentUserId, allConversations[0]?.recipient_user_id);
 
   // Get messages from the conversations
-  let messages = await getMessagesByUserId(conversationInfo.user1_id, conversationInfo.user2_id);
+  let messages = await getMessagesByUserId(conversationInfo?.user1_id, conversationInfo?.user2_id);
   if (!messages) {
     messages = [];
   }
@@ -54,9 +54,13 @@ export default async function Chat() {
     <div>
       <div className="">
         <title>Chat page</title>
-        <ChatComponent initialMessages={formattedMessages} userName={userInfo.rows[0].username} 
-        conversationID={conversationInfo.id} initialRecipient={allConversations[0].recipient_username} 
-        allConversations={allConversations} currentUserId={userInfo.rows[0].id} />    
+        <ChatComponent 
+          initialMessages={formattedMessages} 
+          userName={userInfo.rows[0].username} 
+          initialConversationID={conversationInfo?.id} 
+          initialRecipient={allConversations[0]?.recipient_username} 
+          allConversations={allConversations} 
+          currentUserId={userInfo.rows[0].id} />    
       </div>
     </div>
 );};
