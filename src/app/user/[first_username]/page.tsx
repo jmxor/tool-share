@@ -14,6 +14,9 @@ import { Button } from "@/components/ui/button";
 import { auth } from "@/auth";
 import DeleteReviewButton from "@/components/accounts/delete-review-button";
 import PostCard from "@/components/accounts/post-card";
+import { createConversation } from "@/lib/actions";
+import { MouseEventHandler } from "react";
+import SendMessageButton from "@/components/SendMessageComponent";
 
 export default async function ProfilePage({
 	params,
@@ -88,11 +91,8 @@ export default async function ProfilePage({
 				</div>
 				<div className="flex flex-col gap-1 items-center">
 					{first_username !== loggedInFirstUsername ? <>
-						<Button
-							className="rounded-none font-semibold bg-blue-500 items-center text-white px-4 py-1 shadow-md hover:cursor-pointer hover:bg-blue-600 flex gap-1"
-						>
-							Message<MessageCircle className="w-4 h-4" />
-						</Button>
+					<SendMessageButton email={session?.user.email} first_username={first_username} />
+						
 						<a
 							href={`/reports/new/${first_username}`}
 							className="px-4 py-1 font-semibold text-red-400 hover:cursor-pointer hover:underline flex items-center gap-1 bg-transparent rounded-none shadow-none hover:bg-transparent"
