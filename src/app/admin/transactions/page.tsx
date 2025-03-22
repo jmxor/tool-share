@@ -4,28 +4,46 @@ import { useState, useEffect } from "react";
 import { Transaction, TransactionStatus } from "@/lib/admin/types";
 import { getTransactions } from "@/lib/admin/actions";
 import { Calendar, Clock, Eye, MoreHorizontal } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Pagination } from "@/components/admin/pagination";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function TransactionsMonitoring() {
-  const router = useRouter();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [pageCount, setPageCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
-  
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<Transaction | null>(null);
+
   useEffect(() => {
     fetchTransactions(1);
   }, []);
-  
+
   async function fetchTransactions(page: number) {
     setIsLoading(true);
     try {
@@ -40,31 +58,31 @@ export default function TransactionsMonitoring() {
       setIsLoading(false);
     }
   }
-  
+
   const handlePageChange = (page: number) => {
     fetchTransactions(page);
   };
-  
+
   const formatDate = (date: Date | null) => {
     if (!date) return "N/A";
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
-  
+
   const formatDateTime = (date: Date | null) => {
     if (!date) return "N/A";
-    return new Date(date).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(date).toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
-  
+
   const getStatusBadgeVariant = (status: TransactionStatus) => {
     switch (status) {
       case TransactionStatus.PENDING:
@@ -81,16 +99,18 @@ export default function TransactionsMonitoring() {
         return "";
     }
   };
-  
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Transaction Monitoring</h1>
-          <p className="text-muted-foreground mt-1">Monitor all tool borrowing transactions</p>
+          <p className="mt-1 text-muted-foreground">
+            Monitor all tool borrowing transactions
+          </p>
         </div>
       </div>
-      
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -107,13 +127,13 @@ export default function TransactionsMonitoring() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8">
+                <TableCell colSpan={7} className="py-8 text-center">
                   Loading transactions...
                 </TableCell>
               </TableRow>
             ) : transactions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8">
+                <TableCell colSpan={7} className="py-8 text-center">
                   No transactions found
                 </TableCell>
               </TableRow>
@@ -121,20 +141,32 @@ export default function TransactionsMonitoring() {
               transactions.map((transaction) => (
                 <TableRow key={transaction.id}>
                   <TableCell>#{transaction.id}</TableCell>
-                  <TableCell className="font-medium">{transaction.post.tool_name}</TableCell>
+                  <TableCell className="font-medium">
+                    {transaction.post.tool_name}
+                  </TableCell>
                   <TableCell>
-                    <Link href={`/user/${transaction.post.user.first_username}`} className="hover:underline text-primary">
+                    <Link
+                      href={`/user/${transaction.post.user.first_username}`}
+                      className="text-primary hover:underline"
+                    >
                       {transaction.post.user.username}
                     </Link>
                   </TableCell>
                   <TableCell>
-                    <Link href={`/user/${transaction.borrower.first_username}`} className="hover:underline text-primary">
+                    <Link
+                      href={`/user/${transaction.borrower.first_username}`}
+                      className="text-primary hover:underline"
+                    >
                       {transaction.borrower.username}
                     </Link>
                   </TableCell>
                   <TableCell>{formatDate(transaction.created_at)}</TableCell>
                   <TableCell>
-                    <Badge className={getStatusBadgeVariant(transaction.transaction_status)}>
+                    <Badge
+                      className={getStatusBadgeVariant(
+                        transaction.transaction_status,
+                      )}
+                    >
                       {transaction.transaction_status}
                     </Badge>
                   </TableCell>
@@ -148,73 +180,105 @@ export default function TransactionsMonitoring() {
                       <DropdownMenuContent align="end">
                         <Dialog>
                           <DialogTrigger asChild>
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <DropdownMenuItem
+                              onSelect={(e) => e.preventDefault()}
+                            >
                               <Eye className="mr-2 h-4 w-4" />
                               View Details
                             </DropdownMenuItem>
                           </DialogTrigger>
                           <DialogContent className="max-w-md">
                             <DialogHeader>
-                              <DialogTitle>Transaction #{transaction.id}</DialogTitle>
+                              <DialogTitle>
+                                Transaction #{transaction.id}
+                              </DialogTitle>
                               <DialogDescription>
-                                Transaction details for {transaction.post.tool_name}
+                                Transaction details for{" "}
+                                {transaction.post.tool_name}
                               </DialogDescription>
                             </DialogHeader>
-                            <div className="py-4 space-y-4">
+                            <div className="space-y-4 py-4">
                               <div>
                                 <h3 className="text-sm font-medium">Tool</h3>
-                                <p className="mt-1 text-sm">{transaction.post.tool_name}</p>
+                                <p className="mt-1 text-sm">
+                                  {transaction.post.tool_name}
+                                </p>
                               </div>
                               <div className="grid grid-cols-2 gap-4">
                                 <div>
                                   <h3 className="text-sm font-medium">Owner</h3>
-                                  <p className="mt-1 text-sm">{transaction.post.user.username}</p>
+                                  <p className="mt-1 text-sm">
+                                    {transaction.post.user.username}
+                                  </p>
                                 </div>
                                 <div>
-                                  <h3 className="text-sm font-medium">Borrower</h3>
-                                  <p className="mt-1 text-sm">{transaction.borrower.username}</p>
+                                  <h3 className="text-sm font-medium">
+                                    Borrower
+                                  </h3>
+                                  <p className="mt-1 text-sm">
+                                    {transaction.borrower.username}
+                                  </p>
                                 </div>
                               </div>
                               <div>
                                 <h3 className="text-sm font-medium">Status</h3>
-                                <Badge className={`mt-1 ${getStatusBadgeVariant(transaction.transaction_status)}`}>
+                                <Badge
+                                  className={`mt-1 ${getStatusBadgeVariant(transaction.transaction_status)}`}
+                                >
                                   {transaction.transaction_status}
                                 </Badge>
                               </div>
                               <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
-                                  <h3 className="text-sm font-medium flex items-center">
+                                  <h3 className="flex items-center text-sm font-medium">
                                     <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
                                     Created
                                   </h3>
-                                  <p className="text-sm">{formatDateTime(transaction.created_at)}</p>
+                                  <p className="text-sm">
+                                    {formatDateTime(transaction.created_at)}
+                                  </p>
                                 </div>
-                                {transaction.transaction_status === TransactionStatus.ACTIVE && (
+                                {transaction.transaction_status ===
+                                  TransactionStatus.ACTIVE && (
                                   <div className="space-y-1">
-                                    <h3 className="text-sm font-medium flex items-center">
+                                    <h3 className="flex items-center text-sm font-medium">
                                       <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
                                       Expires
                                     </h3>
-                                    <p className="text-sm">{formatDateTime(transaction.expires_at)}</p>
+                                    <p className="text-sm">
+                                      {formatDateTime(transaction.expires_at)}
+                                    </p>
                                   </div>
                                 )}
                               </div>
                               {transaction.borrowed_at && (
                                 <div className="space-y-1">
-                                  <h3 className="text-sm font-medium">Borrowed At</h3>
-                                  <p className="text-sm">{formatDateTime(transaction.borrowed_at)}</p>
+                                  <h3 className="text-sm font-medium">
+                                    Borrowed At
+                                  </h3>
+                                  <p className="text-sm">
+                                    {formatDateTime(transaction.borrowed_at)}
+                                  </p>
                                 </div>
                               )}
                               {transaction.returned_at && (
                                 <div className="space-y-1">
-                                  <h3 className="text-sm font-medium">Returned At</h3>
-                                  <p className="text-sm">{formatDateTime(transaction.returned_at)}</p>
+                                  <h3 className="text-sm font-medium">
+                                    Returned At
+                                  </h3>
+                                  <p className="text-sm">
+                                    {formatDateTime(transaction.returned_at)}
+                                  </p>
                                 </div>
                               )}
                               {transaction.completed_at && (
                                 <div className="space-y-1">
-                                  <h3 className="text-sm font-medium">Completed At</h3>
-                                  <p className="text-sm">{formatDateTime(transaction.completed_at)}</p>
+                                  <h3 className="text-sm font-medium">
+                                    Completed At
+                                  </h3>
+                                  <p className="text-sm">
+                                    {formatDateTime(transaction.completed_at)}
+                                  </p>
                                 </div>
                               )}
                             </div>
@@ -229,7 +293,7 @@ export default function TransactionsMonitoring() {
           </TableBody>
         </Table>
       </div>
-      
+
       <Pagination
         currentPage={currentPage}
         pageCount={pageCount}
@@ -237,4 +301,5 @@ export default function TransactionsMonitoring() {
       />
     </div>
   );
-} 
+}
+

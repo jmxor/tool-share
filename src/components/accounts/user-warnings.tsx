@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getUserWarningsAndSuspensions } from "@/lib/auth/actions";
-import { Bell } from "lucide-react";
+import { Gavel } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -31,8 +31,12 @@ export default function UserWarnings() {
       try {
         setIsLoading(true);
         const data = await getUserWarningsAndSuspensions();
-        setWarnings(data.warnings);
-        setSuspensions(data.suspensions);
+        if (data && data.warnings) {
+          setWarnings(data.warnings);
+        }
+        if (data && data.suspensions) {
+          setSuspensions(data.suspensions);
+        }
       } catch (error) {
         console.error("Failed to fetch warnings:", error);
       } finally {
@@ -54,10 +58,14 @@ export default function UserWarnings() {
   
   const hasItems = warnings.length > 0 || suspensions.length > 0;
   
+  if (!hasItems) {
+    return null;
+  }
+  
   return (
     <Popover>
       <PopoverTrigger className="relative p-2 hover:bg-neutral-100 rounded-md">
-        <Bell size={20} />
+        <Gavel size={22} />
         {hasItems && (
           <Badge 
             variant="destructive" 
@@ -81,54 +89,56 @@ export default function UserWarnings() {
             No recent warnings or suspensions
           </div>
         ) : (
-          <ScrollArea className="max-h-80">
-            {suspensions.length > 0 && (
-              <div className="px-1">
-                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">
-                  ACCOUNT SUSPENSIONS
-                </div>
-                {suspensions.map(suspension => (
-                  <div 
-                    key={suspension.id} 
-                    className="px-3 py-2 hover:bg-muted rounded-md my-1 text-sm"
-                  >
-                    <div className="font-medium flex justify-between">
-                      <span>Account Suspended</span>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDate(suspension.issuedAt)}
-                      </span>
-                    </div>
-                    <div className="text-muted-foreground">
-                      {suspension.reason}
-                    </div>
+          <ScrollArea className="h-[300px]">
+            <div className="py-2">
+              {suspensions.length > 0 && (
+                <div className="px-1">
+                  <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">
+                    ACCOUNT SUSPENSIONS
                   </div>
-                ))}
-              </div>
-            )}
-            
-            {warnings.length > 0 && (
-              <div className="px-1">
-                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">
-                  WARNINGS
+                  {suspensions.map(suspension => (
+                    <div 
+                      key={suspension.id} 
+                      className="px-3 py-2 hover:bg-muted rounded-md my-1 text-sm"
+                    >
+                      <div className="font-medium flex justify-between">
+                        <span>Account Suspended</span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDate(suspension.issuedAt)}
+                        </span>
+                      </div>
+                      <div className="text-muted-foreground">
+                        {suspension.reason}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                {warnings.map(warning => (
-                  <div 
-                    key={warning.id} 
-                    className="px-3 py-2 hover:bg-muted rounded-md my-1 text-sm"
-                  >
-                    <div className="font-medium flex justify-between">
-                      <span>Warning Issued</span>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDate(warning.issuedAt)}
-                      </span>
-                    </div>
-                    <div className="text-muted-foreground">
-                      {warning.reason}
-                    </div>
+              )}
+              
+              {warnings.length > 0 && (
+                <div className="px-1">
+                  <div className="px-3 py-2 text-xs font-semibold text-muted-foreground">
+                    WARNINGS ({warnings.length})
                   </div>
-                ))}
-              </div>
-            )}
+                  {warnings.map(warning => (
+                    <div 
+                      key={warning.id} 
+                      className="px-3 py-2 hover:bg-muted rounded-md my-1 text-sm"
+                    >
+                      <div className="font-medium flex justify-between">
+                        <span>Warning Issued</span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDate(warning.issuedAt)}
+                        </span>
+                      </div>
+                      <div className="text-muted-foreground">
+                        {warning.reason}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </ScrollArea>
         )}
       </PopoverContent>
