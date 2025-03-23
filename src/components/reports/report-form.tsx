@@ -1,6 +1,6 @@
 "use client";
 
-import { createReport, ReportFormState } from "@/lib/reports/user-actions";
+import { createReport, ReportFormState } from "@/lib/reports/actions";
 import { ReportFormSchema } from "@/lib/zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useActionState, useRef } from "react";
