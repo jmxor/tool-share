@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 type PostCardProps = {
   post: AllToolPostData;
@@ -27,7 +28,9 @@ export const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [requestedDays, setRequestedDays] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const { toast } = useToast();
+    
     const handlePrevImage = () => {
       setCurrentImageIndex((prevIndex) =>
         prevIndex > 0 ? prevIndex - 1 : post.pictures.length - 1,
@@ -42,22 +45,34 @@ export const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
 
     const handleBorrowClick = () => {
       setIsDialogOpen(true);
+      setErrorMessage(null);
     };
 
     const handleRequestSubmit = async () => {
       setIsSubmitting(true);
+      setErrorMessage(null);
       try {
         const result = await requestTransaction(post.id, requestedDays);
         if (result.success) {
           window.location.href = `/transactions/request/${result.transaction_id}`;
         } else {
-          console.error("Failed to request transaction:", result.message);
           setIsSubmitting(false);
-          setIsDialogOpen(false);
+          setErrorMessage(result.message || "Failed to request transaction");
+          toast({
+            title: "Request Failed",
+            description: result.message || "Failed to request transaction",
+            variant: "destructive",
+          });
         }
       } catch (error) {
         console.error("Failed to request transaction:", error);
         setIsSubmitting(false);
+        setErrorMessage("An unexpected error occurred. Please try again.");
+        toast({
+          title: "Request Failed",
+          description: "An unexpected error occurred. Please try again.",
+          variant: "destructive",
+        });
       }
     };
 
@@ -126,6 +141,11 @@ export const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
               <DialogTitle>Borrow {post.tool_name}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
+              {errorMessage && (
+                <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+                  {errorMessage}
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="days">How many days do you need it?</Label>
                 <Input

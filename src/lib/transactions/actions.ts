@@ -5,6 +5,12 @@ import { getEmailID } from "@/lib/auth/actions";
 import { auth } from "@/auth";
 import { getConnection } from "@/lib/db";
 import { BorrowRequest } from "../types";
+import { 
+    UserBorrowRequest, 
+    UserTransactionView, 
+    PagedRequestResult, 
+    PagedTransactionResult 
+} from "./types";
 
 export async function requestTransaction(tool_id: number, requested_length: number) {
     const session = await auth();
@@ -29,7 +35,6 @@ export async function requestTransaction(tool_id: number, requested_length: numb
         };
       }
       
-      // Check if user already has a pending or active request/transaction for this tool
       const checkExistingRequestQuery = `
         SELECT 1
         FROM borrow_request
@@ -37,7 +42,6 @@ export async function requestTransaction(tool_id: number, requested_length: numb
       `;
       const existingRequestResult = await conn.query(checkExistingRequestQuery, [userID, tool_id]);
       
-      // Check if user has an active transaction for this tool
       const checkExistingTransactionQuery = `
         SELECT 1
         FROM transaction
@@ -54,7 +58,7 @@ export async function requestTransaction(tool_id: number, requested_length: numb
   
       const query = `
         INSERT INTO borrow_request (requester_id, post_id, requested_length, status)
-        VALUES ($1, $2, $3, 'pending')
+        VALUES ($1, $2, $3 * INTERVAL '1 day', 'pending')
         RETURNING id
       `;
   
@@ -101,13 +105,17 @@ export async function getRequestData(request_id: number): Promise<BorrowRequestD
         br.status as request_status,
         br.result,
         p.tool_name,
-        p.deposit,
+        p.deposit::numeric,
         p.status as tool_status,
         u.username as owner_username,
-        u.first_username as owner_first_username
+        u.first_username as owner_first_username,
+        req.username as requester_username,
+        req.first_username as requester_first_username,
+        u.id as owner_id
       FROM borrow_request br
       JOIN post p ON br.post_id = p.id
       JOIN "user" u ON p.user_id = u.id
+      JOIN "user" req ON br.requester_id = req.id
       WHERE br.id = $1
     `;
 
@@ -125,13 +133,16 @@ export async function getRequestData(request_id: number): Promise<BorrowRequestD
         post_id: request.post_id,
         requested_at: request.requested_at,
         requested_length: request.requested_length,
-        request_status: request.status,
+        request_status: request.request_status,
         result: request.result,
         tool_name: request.tool_name,
         deposit: request.deposit,
         tool_status: request.tool_status,
         owner_username: request.owner_username,
-        owner_first_username: request.owner_first_username
+        owner_first_username: request.owner_first_username,
+        requester_username: request.requester_username,
+        requester_first_username: request.requester_first_username,
+        owner_id: request.owner_id
       }
     };
     
@@ -144,7 +155,6 @@ export async function getRequestData(request_id: number): Promise<BorrowRequestD
     };
   }
 }
-
 export async function resolveRequest(request_id: number, result: string) {
   const session = await auth();
   if (!session?.user?.email) redirect("/auth/login");
@@ -155,13 +165,13 @@ export async function resolveRequest(request_id: number, result: string) {
   try {
     const conn = await getConnection();
 
-    // First check if the request exists and if the user is the owner of the post
     const checkQuery = `
       SELECT 
         br.id,
         br.post_id,
         br.requester_id,
         br.requested_length,
+        br.status as request_status,
         p.user_id as owner_id,
         p.status as tool_status
       FROM borrow_request br
@@ -179,39 +189,64 @@ export async function resolveRequest(request_id: number, result: string) {
 
     const requestData = checkResult.rows[0];
     
-    // Check if user is the owner of the post
-    if (requestData.owner_id !== userID) {
-      return {
-        success: false,
-        message: "You are not authorized to resolve this request"
-      };
+    if (result === 'cancelled') {
+      if (requestData.requester_id !== userID) {
+        return {
+          success: false,
+          message: "You are not authorized to cancel this request"
+        };
+      }
+      
+      if (requestData.request_status !== 'pending') {
+        return {
+          success: false,
+          message: "This request cannot be cancelled anymore"
+        };
+      }
+    } else {
+      if (requestData.owner_id !== userID) {
+        return {
+          success: false,
+          message: "You are not authorized to resolve this request"
+        };
+      }
+      
+      if (requestData.tool_status !== 'available') {
+        return {
+          success: false,
+          message: "This tool is no longer available"
+        };
+      }
+      
+      if (requestData.request_status !== 'pending') {
+        return {
+          success: false,
+          message: "This request has already been processed"
+        };
+      }
     }
 
-    // Check if the tool is still available
-    if (requestData.tool_status !== 'available') {
-      return {
-        success: false,
-        message: "This tool is no longer available"
-      };
-    }
-
-    // If all checks pass, update the request
     const updateQuery = `
       UPDATE borrow_request
-      SET result = $1
-      WHERE id = $2
+      SET status = $1, result = $2
+      WHERE id = $3
     `;
 
-    const updateResult = await conn.query(updateQuery, [result, request_id]);
+    const newStatus = result === 'accepted' ? 'accepted' : 
+                      result === 'rejected' ? 'rejected' : 
+                      'cancelled';
+    
+    const resultBoolean = result === 'accepted' ? true : false;
+                      
+    const updateResult = await conn.query(updateQuery, [newStatus, resultBoolean, request_id]);
     if ((updateResult.rowCount || 0) <= 0) {
       return {
         success: false,
-        message: "Failed to resolve request"
+        message: "Failed to update request"
       };
     }
 
     if (result === 'accepted') {
-      // Update the post status to 'borrowed'
       const updatePostStatusQuery = `
         UPDATE post
         SET status = 'borrowed'
@@ -225,10 +260,9 @@ export async function resolveRequest(request_id: number, result: string) {
         };
       }
 
-      // Create a transaction record
       const currentDate = new Date();
       const expiresAt = new Date(currentDate);
-      expiresAt.setDate(expiresAt.getDate() + requestData.requested_length);
+      expiresAt.setDate(expiresAt.getDate() + requestData.requested_length.days);
 
       const createTransactionQuery = `
         INSERT INTO transaction (
@@ -244,7 +278,7 @@ export async function resolveRequest(request_id: number, result: string) {
       
       const transactionResult = await conn.query(createTransactionQuery, [
         requestData.post_id,
-        userID,
+        requestData.requester_id,
         expiresAt
       ]);
       
@@ -260,13 +294,191 @@ export async function resolveRequest(request_id: number, result: string) {
 
     return {
       success: true,
-      message: "Request rejected"
+      message: result === 'rejected' ? "Request rejected" : 
+               result === 'cancelled' ? "Request cancelled" : 
+               "Request processed successfully"
     };
   } catch (error) {
     console.error("[ERROR] Failed to resolve request: ", error);
     return {
       success: false,
-      message: "An error occurred while resolving the request"
+      message: "An error occurred while processing the request"
     };
   }
+}
+
+export async function getRequests(page: number = 1, limit: number = 10): Promise<PagedRequestResult> {
+    const session = await auth();
+    if (!session?.user?.email) redirect("/auth/login");
+    
+    try {
+        const conn = await getConnection();
+        const offset = (page - 1) * limit;
+
+        const userId = await getEmailID(session.user.email);
+        if (!userId) redirect("/auth/login");
+        
+        const countQuery = `
+            SELECT COUNT(*) as count 
+            FROM borrow_request br
+            JOIN post p ON br.post_id = p.id
+            WHERE br.requester_id = $1 OR p.user_id = $1
+        `;
+        
+        const countResult = await conn.query(countQuery, [userId]);
+        const totalCount = parseInt(countResult.rows[0].count);
+        
+        const requestsQuery = `
+            SELECT 
+                br.id,
+                br.post_id,
+                br.requested_at,
+                br.requested_length,
+                br.status as request_status,
+                br.result as result,
+                p.tool_name,
+                p.deposit::numeric,
+                owner.id as owner_id,
+                owner.username as owner_username,
+                owner.first_username as owner_first_username,
+                requester.id as requester_id,
+                requester.username as requester_username,
+                requester.first_username as requester_first_username
+            FROM borrow_request br
+            JOIN post p ON br.post_id = p.id
+            JOIN "user" owner ON p.user_id = owner.id
+            JOIN "user" requester ON br.requester_id = requester.id
+            WHERE br.requester_id = $1 OR p.user_id = $1
+            ORDER BY br.requested_at DESC
+            LIMIT $2 OFFSET $3
+        `;
+        
+        const requestsResult = await conn.query(requestsQuery, [userId, limit, offset]);
+        
+        const requests = requestsResult.rows.map(row => ({
+            id: row.id,
+            post_id: row.post_id,
+            tool_name: row.tool_name,
+            requested_at: new Date(row.requested_at),
+            requested_length: { days: row.requested_length.days },
+            request_status: row.request_status,
+            result: row.result,
+            deposit: row.deposit,
+            owner: {
+                id: row.owner_id,
+                username: row.owner_username,
+                first_username: row.owner_first_username
+            },
+            requester: {
+                id: row.requester_id,
+                username: row.requester_username,
+                first_username: row.requester_first_username
+            }
+        }));
+        
+        return {
+            data: requests,
+            totalCount,
+            pageCount: Math.ceil(totalCount / limit),
+            currentPage: page
+        };
+    } catch (error) {
+        console.error("[ERROR] Failed to fetch borrow requests:", error);
+        return {
+            data: [],
+            totalCount: 0,
+            pageCount: 0,
+            currentPage: page
+        };
+    }
+}
+
+export async function getTransactions(page: number = 1, limit: number = 10): Promise<PagedTransactionResult> {
+    const session = await auth();
+    if (!session?.user?.email) redirect("/auth/login");
+    
+    try {
+        const conn = await getConnection();
+        const offset = (page - 1) * limit;
+        
+        const userId = await getEmailID(session.user.email);
+        if (!userId) redirect("/auth/login");
+        
+        const countQuery = `
+            SELECT COUNT(*) as count 
+            FROM transaction t
+            JOIN post p ON t.post_id = p.id
+            JOIN borrow_request br ON br.post_id = p.id AND br.status = 'accepted'
+            WHERE p.user_id = $1 OR br.requester_id = $1
+        `;
+        
+        const countResult = await conn.query(countQuery, [userId]);
+        const totalCount = parseInt(countResult.rows[0].count);
+        
+        const transactionsQuery = `
+            SELECT 
+                t.id,
+                t.post_id,
+                t.created_at,
+                t.borrowed_at,
+                t.returned_at,
+                t.transaction_status,
+                t.expires_at,
+                t.completed_at,
+                p.tool_name,
+                owner.id as owner_id,
+                owner.username as owner_username,
+                owner.first_username as owner_first_username,
+                borrower.id as borrower_id,
+                borrower.username as borrower_username,
+                borrower.first_username as borrower_first_username
+            FROM transaction t
+            JOIN post p ON t.post_id = p.id
+            JOIN "user" owner ON p.user_id = owner.id
+            JOIN borrow_request br ON br.post_id = p.id AND br.status = 'accepted'
+            JOIN "user" borrower ON br.requester_id = borrower.id
+            WHERE p.user_id = $1 OR br.requester_id = $1
+            ORDER BY t.created_at DESC
+            LIMIT $2 OFFSET $3
+        `;
+        
+        const transactionsResult = await conn.query(transactionsQuery, [userId, limit, offset]);
+        
+        const transactions = transactionsResult.rows.map(row => ({
+            id: row.id,
+            post_id: row.post_id,
+            tool_name: row.tool_name,
+            owner: {
+                id: row.owner_id,
+                username: row.owner_username,
+                first_username: row.owner_first_username
+            },
+            borrower: {
+                id: row.borrower_id,
+                username: row.borrower_username,
+                first_username: row.borrower_first_username
+            },
+            transaction_status: row.transaction_status,
+            created_at: new Date(row.created_at),
+            borrowed_at: row.borrowed_at ? new Date(row.borrowed_at) : null,
+            returned_at: row.returned_at ? new Date(row.returned_at) : null,
+            expires_at: new Date(row.expires_at),
+            completed_at: row.completed_at ? new Date(row.completed_at) : null
+        }));
+        
+        return {
+            data: transactions,
+            totalCount,
+            pageCount: Math.ceil(totalCount / limit),
+            currentPage: page
+        };
+    } catch (error) {
+        console.error("[ERROR] Failed to fetch transactions:", error);
+        return {
+            data: [],
+            totalCount: 0,
+            pageCount: 0,
+            currentPage: page
+        };
+    }
 }
