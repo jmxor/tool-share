@@ -70,10 +70,6 @@ export default function ReportsPage() {
             <h1 className="text-3xl font-bold">My Reports</h1>
             <p className="text-muted-foreground mt-1">View and manage your submitted reports</p>
           </div>
-          <Button onClick={() => router.push('/reports/new')}>
-            <AlertCircle className="mr-2 h-4 w-4" />
-            Submit New Report
-          </Button>
         </div>
 
         <div className="rounded-md border bg-white">
