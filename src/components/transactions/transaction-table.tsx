@@ -45,7 +45,7 @@ export default function TransactionTable({ transactions, type }: { transactions:
               <TableCell className="py-4 px-4 text-gray-700">{format(new Date(transaction.expires_at), 'MMM d, yyyy')}</TableCell>
               <TableCell className="py-4 px-4">
                 <Button variant="outline" size="sm" asChild className="hover:bg-gray-100">
-                  <a href={`/transactions/view/${transaction.id}`} className="flex items-center gap-2 text-sm">
+                  <a href={`/transactions/${transaction.id}`} className="flex items-center gap-2 text-sm">
                     Transaction Page
                     <ExternalLinkIcon className="w-4 h-4" />
                   </a>
