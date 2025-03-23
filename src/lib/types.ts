@@ -29,3 +29,18 @@ export type ToolPostPreview = {
     mainImagePath: string;
     status: string;
 }
+
+export type BorrowRequest = {
+    id: number;
+    requester_id: number;
+    post_id: number;
+    requested_at: Date;
+    requested_length: number;
+    request_status: string;
+    result: string;
+    tool_name: string;
+    deposit: number;
+    owner_username: string;
+    owner_first_username: string;
+    tool_status: string;
+}
