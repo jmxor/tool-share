@@ -47,8 +47,13 @@ export default function RequestTable({ requests, type }: { requests: UserBorrowR
               <TableCell className="py-4 px-4 text-gray-700 font-medium">£{request.deposit}</TableCell>
               <TableCell className="py-4 px-4">
                 <Button variant="outline" size="sm" asChild className="hover:bg-gray-100">
-                  <a href={`/transactions/request/${request.id}`} className="flex items-center gap-2 text-sm">
-                    Request Page
+                  <a href={request.request_status === "accepted" && request.transaction_id 
+                      ? `/transactions/${request.transaction_id}` 
+                      : `/transactions/request/${request.id}`} 
+                     className="flex items-center gap-2 text-sm">
+                    {request.request_status === "accepted" && request.transaction_id 
+                      ? "Transaction Page" 
+                      : "Request Page"}
                     <ExternalLinkIcon className="w-4 h-4" />
                   </a>
                 </Button>

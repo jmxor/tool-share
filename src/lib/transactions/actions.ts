@@ -6,8 +6,6 @@ import { auth } from "@/auth";
 import { getConnection } from "@/lib/db";
 import { BorrowRequest } from "../types";
 import { 
-    UserBorrowRequest, 
-    UserTransactionView, 
     PagedRequestResult, 
     PagedTransactionResult 
 } from "./types";
@@ -22,11 +20,13 @@ export async function requestTransaction(tool_id: number, requested_length: numb
     try {
       const conn = await getConnection();
   
+      // Check if the tool exists and is available
       const checkAvailabilityQuery = `
-        SELECT 1
-        FROM post
-        WHERE id = $1 AND status = 'available'
+        SELECT p.id, p.user_id
+        FROM post p
+        WHERE p.id = $1 AND p.status = 'available'
       `;
+      
       const checkAvailabilityResult = await conn.query(checkAvailabilityQuery, [tool_id]);
       if (checkAvailabilityResult.rows.length === 0) {
         return {
@@ -34,7 +34,16 @@ export async function requestTransaction(tool_id: number, requested_length: numb
           message: "Tool is not available for borrowing"
         };
       }
+
+      const toolOwnerId = checkAvailabilityResult.rows[0].user_id;
+      if (toolOwnerId === userID) {
+        return {
+          success: false,
+          message: "You cannot borrow your own tool"
+        };
+      }
       
+      // Check for existing requests
       const checkExistingRequestQuery = `
         SELECT 1
         FROM borrow_request
@@ -42,6 +51,7 @@ export async function requestTransaction(tool_id: number, requested_length: numb
       `;
       const existingRequestResult = await conn.query(checkExistingRequestQuery, [userID, tool_id]);
       
+      // Check for existing transactions
       const checkExistingTransactionQuery = `
         SELECT 1
         FROM transaction
@@ -56,6 +66,7 @@ export async function requestTransaction(tool_id: number, requested_length: numb
         };
       }
   
+      // Create the borrow request
       const query = `
         INSERT INTO borrow_request (requester_id, post_id, requested_length, status)
         VALUES ($1, $2, $3 * INTERVAL '1 day', 'pending')
@@ -289,6 +300,24 @@ export async function resolveRequest(request_id: number, result: string) {
         };
       }
 
+      const updateRequestWithTransactionQuery = `
+        UPDATE borrow_request
+        SET transaction_id = $1
+        WHERE id = $2
+      `;
+      
+      const updateRequestResult = await conn.query(updateRequestWithTransactionQuery, [
+        transactionResult.rows[0].id,
+        request_id
+      ]);
+      
+      if ((updateRequestResult.rowCount || 0) <= 0) {
+        return {
+          success: false,
+          message: "Failed to update request with transaction ID"
+        };
+      }
+
       redirect(`/transactions/${transactionResult.rows[0].id}`);
     }
 
@@ -336,6 +365,7 @@ export async function getRequests(page: number = 1, limit: number = 10): Promise
                 br.requested_length,
                 br.status as request_status,
                 br.result as result,
+                br.transaction_id as transaction_id,
                 p.tool_name,
                 p.deposit::numeric,
                 owner.id as owner_id,
@@ -373,7 +403,8 @@ export async function getRequests(page: number = 1, limit: number = 10): Promise
                 id: row.requester_id,
                 username: row.requester_username,
                 first_username: row.requester_first_username
-            }
+            },
+            transaction_id: row.transaction_id
         }));
         
         return {

@@ -17,6 +17,7 @@ export type UserBorrowRequest = {
         first_username: string;
     };
     deposit: number;
+    transaction_id: number;
 };
 
 export type UserTransactionView = {

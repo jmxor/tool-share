@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { ExternalLinkIcon } from "lucide-react";
 
 export default function TransactionTable({ transactions, type }: { transactions: UserTransactionView[], type: "borrower" | "owner" }) {
-  
   return (
     <div className="overflow-x-auto rounded-md border">
       <Table className="min-w-full">

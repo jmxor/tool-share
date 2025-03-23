@@ -5,7 +5,6 @@ import { getTransactions } from "@/lib/transactions/actions";
 import { getEmailID } from "@/lib/auth/actions";
 
 export default async function TransactionArea() {
-
   const session = await auth();
   if (!session?.user?.email) redirect("/auth/login");
 

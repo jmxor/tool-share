@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Check, ExternalLink, X } from "lucide-react";
+import { format } from "date-fns";
+import { RequestActions } from "../components/request-actions";
 
 export default async function RequestPage({
   params,
@@ -48,24 +50,6 @@ export default async function RequestPage({
         return 'secondary';
     }
   };
-
-  async function handleReject() {
-    "use server";
-    await resolveRequest(request.id, 'rejected');
-    redirect(`/transactions/request/${request.id}`);
-  }
-
-  async function handleAccept() {
-    "use server";
-    await resolveRequest(request.id, 'accepted');
-    redirect(`/transactions/request/${request.id}`);
-  }
-
-  async function handleCancel() {
-    "use server";
-    await resolveRequest(request.id, 'cancelled');
-    redirect(`/transactions/request/${request.id}`);
-  }
 
   return (
     <div className="container py-8 max-w-3xl mx-auto">
@@ -126,7 +110,7 @@ export default async function RequestPage({
 
               <div>
                 <h4 className="text-sm font-medium text-muted-foreground">Requested On</h4>
-                <p>{new Date(request.requested_at).toLocaleDateString()}</p>
+                <p>{format(new Date(request.requested_at), 'MMM d, yyyy')}</p>
               </div>
 
               <div>
@@ -142,30 +126,12 @@ export default async function RequestPage({
               </div>
             )}
 
-            {isOwner && request.request_status === 'pending' && (
-              <div className="flex gap-4 mt-6 justify-end">
-                <form action={handleReject}>
-                  <Button variant="destructive" type="submit">
-                    <X className="mr-2 h-4 w-4" /> Reject
-                  </Button>
-                </form>
-                <form action={handleAccept}>
-                  <Button variant="default" type="submit">
-                    <Check className="mr-2 h-4 w-4" /> Accept
-                  </Button>
-                </form>
-              </div>
-            )}
-            
-            {isRequester && request.request_status === 'pending' && (
-              <div className="flex mt-6 justify-end">
-                <form action={handleCancel}>
-                  <Button variant="outline" type="submit">
-                    <X className="mr-2 h-4 w-4" /> Cancel Request
-                  </Button>
-                </form>
-              </div>
-            )}
+            <RequestActions 
+              requestId={request.id}
+              isOwner={isOwner}
+              isRequester={isRequester}
+              status={request.request_status}
+            />
           </div>
         </CardContent>
       </Card>
