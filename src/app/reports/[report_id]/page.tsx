@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { getEmailID, userIsAdmin } from "@/lib/auth/actions";
-import { getReportData } from "@/lib/reports/user-actions";
+import { getReportData } from "@/lib/reports/actions";
 import { redirect } from "next/navigation";
 import ReportMessages from "@/components/reports/report-messages";
 import AdminStatusUpdate from "@/components/reports/admin-status-update";

@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { getUserByEmail } from "@/lib/auth/actions";
 import { redirect } from "next/navigation";
-import { UserRound, Mail, Calendar, Shield, AlertTriangle, ExternalLink } from 'lucide-react';
+import { UserRound, Mail, Calendar, AlertTriangle, ExternalLink } from 'lucide-react';
 import ChangePasswordForm from "@/components/accounts/change-password-form";
 import UsernameForm from "@/components/accounts/username-form";
 import DeleteAccountForm from "@/components/accounts/delete-account-form";

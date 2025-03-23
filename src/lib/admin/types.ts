@@ -118,4 +118,14 @@ export type Suspension = {
   admin_username: string;
   reason: string;
   issued_at: Date;
-}; 
+};
+
+export type UserReport = {
+  id: number;
+  reported_username: string;
+  reported_first_username: string;
+  description: string;
+  report_status: ReportStatus;
+  created_at: Date;
+  latest_message_from_admin: boolean;
+};
