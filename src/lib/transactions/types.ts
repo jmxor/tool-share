@@ -55,3 +55,32 @@ export type PagedRequestResult = {
     pageCount: number;
     currentPage: number;
 };
+
+export type TransactionData = {
+    id: number;
+    post_id: number;
+    tool_name: string;
+    owner: {
+        id: number;
+        username: string;
+        first_username: string;
+    };
+    borrower: {
+        id: number;
+        username: string;
+        first_username: string;
+    };
+    transaction_status: string;
+    created_at: Date;
+    borrowed_at: Date | null;
+    returned_at: Date | null;
+    expires_at: Date;
+    completed_at: Date | null;
+    steps: Step[];
+};
+
+export type Step = {
+    user_id: number;
+    step_type: string;
+    completed_at: Date | null;
+};

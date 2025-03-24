@@ -7,7 +7,8 @@ import { getConnection } from "@/lib/db";
 import { BorrowRequest } from "../types";
 import { 
     PagedRequestResult, 
-    PagedTransactionResult 
+    PagedTransactionResult,
+    TransactionData
 } from "./types";
 
 export async function requestTransaction(tool_id: number, requested_length: number) {
@@ -512,4 +513,99 @@ export async function getTransactions(page: number = 1, limit: number = 10): Pro
             currentPage: page
         };
     }
+}
+
+export async function getTransactionDetails(transaction_id: number): Promise<{ success: boolean, transaction?: TransactionData, message?: string }> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/auth/login");
+
+  const userID = await getEmailID(session.user.email);
+  if (!userID) redirect("/auth/login");
+
+  try {
+    const conn = await getConnection();
+
+    const query = `
+      SELECT 
+        t.id,
+        t.post_id,
+        p.tool_name,
+        t.created_at,
+        t.borrowed_at,
+        t.returned_at,
+        t.transaction_status,
+        o.id as owner_id,
+        o.username as owner_username,
+        o.first_username as owner_first_username,
+        b.id as borrower_id,
+        b.username as borrower_username,
+        b.first_username as borrower_first_username,
+        t.expires_at,
+        t.completed_at
+      FROM transaction t
+      JOIN post p ON t.post_id = p.id
+      JOIN "user" o ON p.user_id = o.id
+      JOIN "user" b ON t.borrower_id = b.id
+      WHERE t.id = $1
+    `;
+
+    const result = await conn.query(query, [transaction_id]);
+    if ((result.rowCount || 0) <= 0) {
+      return {
+        success: false,
+        message: "Transaction not found"
+      };
+    }
+
+    const transaction = result.rows[0];
+
+    const stepsQuery = `
+      SELECT 
+        user_id,
+        step_type,
+        completed_at
+      FROM transaction_step
+      WHERE transaction_id = $1
+      ORDER BY completed_at
+    `;
+
+    const stepsResult = await conn.query(stepsQuery, [transaction_id]);
+    const steps = stepsResult.rows.map(row => ({
+      user_id: row.user_id,
+      step_type: row.step_type,
+      completed_at: row.completed_at ? new Date(row.completed_at) : null
+    }));
+
+    return {
+      success: true,
+      transaction: {
+        id: transaction.id,
+        post_id: transaction.post_id,
+        tool_name: transaction.tool_name,
+        owner: {
+          id: transaction.owner_id,
+          username: transaction.owner_username,
+          first_username: transaction.owner_first_username
+        },
+        borrower: {
+          id: transaction.borrower_id,
+          username: transaction.borrower_username,
+          first_username: transaction.borrower_first_username
+        },
+        transaction_status: transaction.transaction_status,
+        created_at: new Date(transaction.created_at),
+        borrowed_at: transaction.borrowed_at ? new Date(transaction.borrowed_at) : null,
+        returned_at: transaction.returned_at ? new Date(transaction.returned_at) : null,
+        expires_at: new Date(transaction.expires_at),
+        completed_at: transaction.completed_at ? new Date(transaction.completed_at) : null,
+        steps: steps
+      }
+    };
+  } catch (error) {
+    console.error("[ERROR] Failed to get transaction details:", error);
+    return {
+      success: false,
+      message: "An error occurred while fetching transaction details"
+    };
+  }
 }
