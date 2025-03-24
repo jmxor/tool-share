@@ -1,12 +1,13 @@
 import { AllToolPostData } from "./posts/actions";
 
 export type User = {
-  username: string;
-  first_username: string;
-  email: string;
-  created_at: Date;
-  user_privilege: string;
-  is_suspended: boolean;
+    username: string;
+    first_username: string;
+    email: string;
+    created_at: Date;
+    user_privilege: string;
+    is_suspended: boolean;
+    warnings: number;
 };
 
 export type Post = {

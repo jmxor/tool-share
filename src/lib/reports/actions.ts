@@ -5,6 +5,7 @@ import { ReportFormSchema, ReportMessageFormSchema } from "../zod";
 import { getEmailID, getFirstUsernameID } from "../auth/actions";
 import { getConnection } from "../db";
 import { redirect } from "next/navigation";
+import { PagedResult, UserReport } from "@/lib/admin/types";
 
 export type ReportFormState = {
   errors?: {
@@ -305,5 +306,78 @@ export async function sendReportMessage(
       success: false
     }
   }
-
 }
+
+export async function getUserReports(page: number = 1, limit: number = 10): Promise<PagedResult<UserReport>> {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/auth/login");
+  
+  try {
+    const conn = await getConnection();
+    const offset = (page - 1) * limit;
+    
+    const userQuery = `SELECT id FROM "user" WHERE email = $1`;
+    const userResult = await conn.query(userQuery, [session.user.email]);
+    if (!userResult.rows || userResult.rows.length === 0) redirect("/auth/login");
+    
+    const userId = userResult.rows[0].id;
+    
+    const countQuery = `
+      SELECT COUNT(*) as count 
+      FROM report 
+      WHERE accuser_id = $1
+    `;
+    
+    const countResult = await conn.query(countQuery, [userId]);
+    const totalCount = parseInt(countResult.rows[0].count);
+    
+    const reportsQuery = `
+      SELECT 
+        r.id,
+        r.report_description,
+        r.report_status,
+        r.created_at,
+        u.username as reported_username,
+        u.first_username as reported_first_username,
+        (
+          SELECT user_id != $1 as is_from_admin
+          FROM report_message
+          WHERE report_id = r.id
+          ORDER BY sent_at DESC
+          LIMIT 1
+        ) as latest_message_from_admin
+      FROM report r
+      JOIN "user" u ON r.accused_id = u.id
+      WHERE r.accuser_id = $1
+      ORDER BY r.created_at DESC
+      LIMIT $2 OFFSET $3
+    `;
+    
+    const reportsResult = await conn.query(reportsQuery, [userId, limit, offset]);
+    
+    const reports = reportsResult.rows.map(row => ({
+      id: row.id,
+      reported_username: row.reported_username,
+      reported_first_username: row.reported_first_username,
+      description: row.report_description,
+      report_status: row.report_status,
+      created_at: new Date(row.created_at),
+      latest_message_from_admin: row.latest_message_from_admin
+    }));
+    
+    return {
+      data: reports as UserReport[],
+      totalCount,
+      pageCount: Math.ceil(totalCount / limit),
+      currentPage: page
+    };
+  } catch (error) {
+    console.error("Failed to fetch user reports:", error);
+    return {
+      data: [],
+      totalCount: 0,
+      pageCount: 0,
+      currentPage: page
+    };
+  }
+} 

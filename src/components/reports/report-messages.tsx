@@ -1,6 +1,6 @@
 "use client"
 
-import { Report_Message, ReportMessageFormState, sendReportMessage } from "@/lib/reports/user-actions";
+import { Report_Message, ReportMessageFormState, sendReportMessage } from "@/lib/reports/actions";
 import { getTimeAgo } from "@/lib/utils";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
