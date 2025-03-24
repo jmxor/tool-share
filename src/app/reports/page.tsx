@@ -97,13 +97,6 @@ export default function ReportsPage() {
                     <div className="flex flex-col items-center gap-2">
                       <AlertCircle className="h-8 w-8 text-muted-foreground" />
                       <p className="text-muted-foreground">No reports found</p>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => router.push('/reports/new')}
-                      >
-                        Submit a Report
-                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>

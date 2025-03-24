@@ -1,13 +1,12 @@
 import { auth } from "@/auth";
 import { getEmailID } from "@/lib/auth/actions";
-import { getRequestData, resolveRequest } from "@/lib/transactions/actions";
+import { getRequestData } from "@/lib/transactions/actions";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Check, ExternalLink, X } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { format } from "date-fns";
-import { RequestActions } from "../components/request-actions";
+import { RequestActions } from "@/components/transactions/request-actions";
 
 export default async function RequestPage({
   params,
