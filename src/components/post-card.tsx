@@ -22,7 +22,7 @@ type PostCardProps = {
   isHighlighted: boolean;
 };
 
-export const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
+const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
   ({ post, isHighlighted }, ref) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -30,7 +30,7 @@ export const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const { toast } = useToast();
-    
+
     const handlePrevImage = () => {
       setCurrentImageIndex((prevIndex) =>
         prevIndex > 0 ? prevIndex - 1 : post.pictures.length - 1,
@@ -126,9 +126,9 @@ export const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
             {/* TODO: change button content to Edit if current user is owner */}
             <a href={`/tool/${post.id}`}>Details</a>
           </Button>
-          <Button 
-            className="w-full" 
-            size="sm" 
+          <Button
+            className="w-full"
+            size="sm"
             onClick={handleBorrowClick}
           >
             {post.status === 'available' ? 'Borrow' : 'Join Queue'}
@@ -177,8 +177,8 @@ export const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button 
-                onClick={handleRequestSubmit} 
+              <Button
+                onClick={handleRequestSubmit}
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Submitting..." : "Request to Borrow"}
