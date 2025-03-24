@@ -237,6 +237,38 @@ export async function getTools(): Promise<AllToolPostData[] | null> {
   }
 }
 
+export async function getToolById(id: number): Promise<AllToolPostData | null> {
+  try {
+    const conn = await getConnection();
+    const query = `
+        SELECT p.*,
+               array_agg(DISTINCT pp.source) AS pictures,
+               array_agg(DISTINCT c.name)    AS categories,
+               l.postcode,
+               l.longitude,
+               l.latitude
+        FROM post p
+                 LEFT JOIN post_picture pp ON p.id = pp.post_id
+                 LEFT JOIN post_category pc ON p.id = pc.post_id
+                 LEFT JOIN category c ON pc.category_id = c.id
+                 LEFT JOIN location l ON p.location_id = l.id
+        WHERE
+              p.id = $1
+        GROUP BY p.id, l.id
+        ORDER BY p.location_id
+    `;
+    const result = await conn.query(query, [id]);
+
+    if (result?.rowCount > 0) {
+      return result.rows[0];
+    }
+    return null;
+  } catch (e) {
+    console.error("[ERROR] Failed to get tools from database", e);
+    return null;
+  }
+}
+
 export type PostFormState = {
   errors?: {
     name?: string[];
