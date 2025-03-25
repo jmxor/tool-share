@@ -123,6 +123,9 @@ export default function NewToolForm({
                       <div
                         key={image_url}
                         className="mt-0 aspect-square w-full shrink-0 overflow-clip rounded-md"
+                        style={{
+                          transform: `translate(-${currentImageIndex * 100}%)`,
+                        }}
                       >
                         <Image
                           src={image_url}
@@ -133,7 +136,6 @@ export default function NewToolForm({
                             objectFit: "cover",
                             width: "100%",
                             height: "100%",
-                            transform: `translate(-${currentImageIndex * 100}%)`,
                           }}
                         />
                       </div>
