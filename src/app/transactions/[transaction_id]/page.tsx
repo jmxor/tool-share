@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CalendarIcon, UserIcon, Wrench } from "lucide-react";
+import DepositPayment from "@/components/transactions/deposit-payment";
+import { Elements } from "@stripe/react-stripe-js";
 
 export default async function TransactionPage({
   params,
@@ -222,6 +224,7 @@ export default async function TransactionPage({
               <CardTitle className="text-lg mb-6">Transaction Timeline</CardTitle>
               <TransactionTimeline steps={timelineSteps as any} />
             </div>
+            <DepositPayment ammount={5.00} transaction_id={2} />
           </CardContent>
         </Card>
       </div>
