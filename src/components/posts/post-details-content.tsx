@@ -86,7 +86,7 @@ export default function PostDetailsContent({
             <label htmlFor="" className="text-sm font-medium">
               Description
             </label>
-            <div className="flex h-9 w-full items-center rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors md:text-sm">
+            <div className="flex min-h-9 w-full items-center rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors md:text-sm">
               {post?.description}
             </div>
           </div>
