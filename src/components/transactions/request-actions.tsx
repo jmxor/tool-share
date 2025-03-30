@@ -20,7 +20,7 @@ export function RequestActions({ requestId, isOwner, isRequester, status }: Requ
     async () => {
       const result = await resolveRequest(requestId, 'rejected');
       if (result.success) {
-        router.refresh();
+        router.push("/transactions");
       }
       return result;
     },
@@ -30,8 +30,8 @@ export function RequestActions({ requestId, isOwner, isRequester, status }: Requ
   const [acceptState, acceptAction] = useActionState(
     async () => {
       const result = await resolveRequest(requestId, 'accepted');
-      if (result.success) {
-        router.refresh();
+      if (result.success && result.transaction_id) {
+        router.push(`/transactions/${result.transaction_id}`);
       }
       return result;
     },
@@ -42,7 +42,7 @@ export function RequestActions({ requestId, isOwner, isRequester, status }: Requ
     async () => {
       const result = await resolveRequest(requestId, 'cancelled');
       if (result.success) {
-        router.refresh();
+        router.push("/transactions");
       }
       return result;
     },

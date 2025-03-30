@@ -7,8 +7,10 @@ import TransactionTimeline from "@/components/transactions/timeline";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { CalendarIcon, ExternalLinkIcon, UserIcon, Wrench } from "lucide-react";
+import { ArrowLeft, CalendarIcon, ExternalLinkIcon, UserIcon, Wrench } from "lucide-react";
 import StepActionArea from "@/components/transactions/step-action-area";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export type TimelineStep = {
   isCompleted: boolean;
@@ -138,7 +140,9 @@ export default async function TransactionPage({
               .join(' ')}
           </Badge>
         </div>
-
+        <Button variant="outline" asChild>
+          <Link href="/transactions" className="mb-4"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Transactions</Link>
+        </Button>
         <Card>
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

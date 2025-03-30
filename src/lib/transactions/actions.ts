@@ -48,7 +48,7 @@ export async function requestTransaction(tool_id: number, requested_length: numb
       const checkExistingRequestQuery = `
         SELECT 1
         FROM borrow_request
-        WHERE requester_id = $1 AND post_id = $2 AND status IN ('pending', 'approved', 'active')
+        WHERE requester_id = $1 AND post_id = $2 AND status IN ('pending')
       `;
       const existingRequestResult = await conn.query(checkExistingRequestQuery, [userID, tool_id]);
       
@@ -56,14 +56,14 @@ export async function requestTransaction(tool_id: number, requested_length: numb
       const checkExistingTransactionQuery = `
         SELECT 1
         FROM transaction
-        WHERE borrower_id = $1 AND post_id = $2 AND completed_at IS NULL
+        WHERE borrower_id = $1 AND post_id = $2 AND completed_at IS NULL AND transaction_status != 'transaction_completed'
       `;
       const existingTransactionResult = await conn.query(checkExistingTransactionQuery, [userID, tool_id]);
       
       if (existingRequestResult.rows.length > 0 || existingTransactionResult.rows.length > 0) {
         return {
           success: false,
-          message: "You already have an active or pending request for this tool"
+          message: "You already have an active or pending request or transaction for this tool"
         };
       }
   
@@ -116,6 +116,7 @@ export async function getRequestData(request_id: number): Promise<BorrowRequestD
         br.requested_length,
         br.status as request_status,
         br.result,
+        br.transaction_id,
         p.tool_name,
         p.deposit::numeric,
         p.status as tool_status,
@@ -154,7 +155,8 @@ export async function getRequestData(request_id: number): Promise<BorrowRequestD
         owner_first_username: request.owner_first_username,
         requester_username: request.requester_username,
         requester_first_username: request.requester_first_username,
-        owner_id: request.owner_id
+        owner_id: request.owner_id,
+        transaction_id: request.transaction_id
       }
     };
     
@@ -319,7 +321,11 @@ export async function resolveRequest(request_id: number, result: string) {
         };
       }
 
-      redirect(`/transactions/${transactionResult.rows[0].id}`);
+      return {
+        success: true,
+        message: "Request processed successfully",
+        transaction_id: transactionResult.rows[0].id
+      }
     }
 
     return {
@@ -424,7 +430,6 @@ export async function getRequests(page: number = 1, limit: number = 10): Promise
         };
     }
 }
-
 export async function getTransactions(page: number = 1, limit: number = 10): Promise<PagedTransactionResult> {
     const session = await auth();
     if (!session?.user?.email) redirect("/auth/login");
@@ -437,18 +442,17 @@ export async function getTransactions(page: number = 1, limit: number = 10): Pro
         if (!userId) redirect("/auth/login");
         
         const countQuery = `
-            SELECT COUNT(*) as count 
+            SELECT COUNT(DISTINCT t.id) as count 
             FROM transaction t
             JOIN post p ON t.post_id = p.id
-            JOIN borrow_request br ON br.post_id = p.id AND br.status = 'accepted'
-            WHERE p.user_id = $1 OR br.requester_id = $1
+            WHERE p.user_id = $1 OR t.borrower_id = $1
         `;
         
         const countResult = await conn.query(countQuery, [userId]);
         const totalCount = parseInt(countResult.rows[0].count);
         
         const transactionsQuery = `
-            SELECT 
+            SELECT DISTINCT
                 t.id,
                 t.post_id,
                 t.created_at,
@@ -467,9 +471,8 @@ export async function getTransactions(page: number = 1, limit: number = 10): Pro
             FROM transaction t
             JOIN post p ON t.post_id = p.id
             JOIN "user" owner ON p.user_id = owner.id
-            JOIN borrow_request br ON br.post_id = p.id AND br.status = 'accepted'
-            JOIN "user" borrower ON br.requester_id = borrower.id
-            WHERE p.user_id = $1 OR br.requester_id = $1
+            JOIN "user" borrower ON t.borrower_id = borrower.id
+            WHERE p.user_id = $1 OR t.borrower_id = $1
             ORDER BY t.created_at DESC
             LIMIT $2 OFFSET $3
         `;

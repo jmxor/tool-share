@@ -4,9 +4,11 @@ import { getRequestData } from "@/lib/transactions/actions";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { RequestActions } from "@/components/transactions/request-actions";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default async function RequestPage({
   params,
@@ -52,6 +54,9 @@ export default async function RequestPage({
 
   return (
     <div className="container py-8 max-w-3xl mx-auto">
+      <Button variant="outline" asChild>
+        <Link href="/transactions" className="mb-4"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Transactions</Link>
+      </Button>
       <Card className="shadow-lg">
         <CardHeader className="border-b bg-muted/20">
           <CardTitle className="text-center text-2xl">Borrow Request</CardTitle>
@@ -118,19 +123,20 @@ export default async function RequestPage({
               </div>
             </div>
 
-            {request.result && (
-              <div>
-                <h4 className="text-sm font-medium text-muted-foreground">Result</h4>
-                <p>{request.result}</p>
-              </div>
-            )}
-
             <RequestActions 
               requestId={request.id}
               isOwner={isOwner}
               isRequester={isRequester}
               status={request.request_status}
             />
+
+            {request.transaction_id && (
+              <Button variant="outline" asChild>
+              <a href={`/transactions/${request.transaction_id}`}>
+                Transaction Page <ExternalLink className="ml-0.5 h-3 w-3" />
+                </a>
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

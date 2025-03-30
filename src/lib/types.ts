@@ -46,4 +46,5 @@ export type BorrowRequest = {
     requester_first_username: string;
     tool_status: string;
     owner_id: number;
+    transaction_id?: number;
 }

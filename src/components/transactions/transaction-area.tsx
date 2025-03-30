@@ -13,6 +13,8 @@ export default async function TransactionArea() {
 
   const transactions = await getTransactions(1, 10);
 
+  console.log(transactions);
+
   const transactionsAsBorrower = transactions.data.filter(transaction => transaction.borrower.id === userID);
   const transactionsAsOwner = transactions.data.filter(transaction => transaction.owner.id === userID);
 
