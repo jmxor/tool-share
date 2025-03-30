@@ -1,5 +1,7 @@
 import React from "react";
 import { CheckCircleIcon } from "lucide-react";
+import { TimelineStep } from "@/app/transactions/[transaction_id]/page";
+
 interface TimelineItemProps {
   isCompleted: boolean;
   isNext?: boolean;
@@ -54,13 +56,7 @@ const TimelineItem: React.FC<TimelineItemProps> = ({
 };
 
 interface TransactionTimelineProps {
-  steps: {
-    label: string;
-    isCompleted: boolean;
-    date: string;
-    pendingText: string;
-    completedText: string;
-  }[];
+  steps: TimelineStep[];
 }
 
 const TransactionTimeline: React.FC<TransactionTimelineProps> = ({

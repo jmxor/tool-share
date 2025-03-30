@@ -9,6 +9,14 @@ import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CalendarIcon, UserIcon, Wrench } from "lucide-react";
 
+export type TimelineStep = {
+  isCompleted: boolean;
+  isNext: boolean;
+  date: string;
+  pendingText: string;
+  completedText: string;
+}
+
 export default async function TransactionPage({
   params,
 }: {
@@ -20,7 +28,7 @@ export default async function TransactionPage({
   const userID = await getEmailID(session.user.email);
   if (!userID) redirect("/auth/login");
 
-  const { success, transaction, message } = await getTransactionDetails(
+  const { success, transaction } = await getTransactionDetails(
     parseInt((await params).transaction_id)
   );
 
@@ -80,69 +88,28 @@ export default async function TransactionPage({
     key => !completedSteps[key as keyof typeof completedSteps]
   ) as keyof typeof completedSteps | undefined;
 
-  const timelineSteps: {
-    isCompleted: boolean;
-    isNext: boolean;
-    date: string;
-    pendingText: string;
-    completedText: string;
-  }[] = [];
-  
-  timelineSteps.push({
-    isCompleted: true,
-    isNext: false,
-    date: format(transaction.created_at, "MMM d, yyyy"),
-    pendingText: stepTextMap["transaction_created"].pendingText,
-    completedText: stepTextMap["transaction_created"].completedText
+  const timelineSteps: TimelineStep[] = Object.keys(stepTypeMap).map(stepType => {
+    const isCompleted = completedSteps[stepType as keyof typeof completedSteps];
+    const isNext = stepType === nextStepKey;
+    
+    let date = "Pending";
+    if (stepType === "transaction_created") {
+      date = format(transaction.created_at, "MMM d, yyyy");
+    } else if (isCompleted) {
+      const step = transaction.steps.find(s => s.step_type === stepType);
+      if (step?.completed_at) {
+        date = format(step.completed_at, "MMM d, yyyy");
+      }
+    }
+
+    return {
+      isCompleted,
+      isNext,
+      date,
+      pendingText: stepTextMap[stepType as keyof typeof stepTextMap].pendingText,
+      completedText: stepTextMap[stepType as keyof typeof stepTextMap].completedText
+    };
   });
-  
-  if (completedSteps["deposit_paid"] || nextStepKey === "deposit_paid") {
-    timelineSteps.push({
-      isCompleted: completedSteps["deposit_paid"],
-      isNext: nextStepKey === "deposit_paid",
-      date: completedSteps["deposit_paid"] 
-        ? format(transaction.steps.find(s => s.step_type === "deposit_paid")?.completed_at || transaction.created_at, "MMM d, yyyy") 
-        : "Pending",
-      pendingText: stepTextMap["deposit_paid"].pendingText,
-      completedText: stepTextMap["deposit_paid"].completedText
-    });
-  }
-  
-  if (completedSteps["deposit_paid"] && (completedSteps["tool_borrowed"] || nextStepKey === "tool_borrowed")) {
-    timelineSteps.push({
-      isCompleted: completedSteps["tool_borrowed"],
-      isNext: nextStepKey === "tool_borrowed",
-      date: completedSteps["tool_borrowed"] && transaction.borrowed_at 
-        ? format(transaction.borrowed_at, "MMM d, yyyy") 
-        : "Pending",
-      pendingText: stepTextMap["tool_borrowed"].pendingText,
-      completedText: stepTextMap["tool_borrowed"].completedText
-    });
-  }
-  
-  if (completedSteps["tool_borrowed"] && (completedSteps["tool_returned"] || nextStepKey === "tool_returned")) {
-    timelineSteps.push({
-      isCompleted: completedSteps["tool_returned"],
-      isNext: nextStepKey === "tool_returned",
-      date: completedSteps["tool_returned"] && transaction.returned_at 
-        ? format(transaction.returned_at, "MMM d, yyyy") 
-        : "Pending",
-      pendingText: stepTextMap["tool_returned"].pendingText,
-      completedText: stepTextMap["tool_returned"].completedText
-    });
-  }
-  
-  if (completedSteps["tool_returned"] && (completedSteps["transaction_completed"] || nextStepKey === "transaction_completed")) {
-    timelineSteps.push({
-      isCompleted: completedSteps["transaction_completed"],
-      isNext: nextStepKey === "transaction_completed",
-      date: completedSteps["transaction_completed"] && transaction.completed_at 
-        ? format(transaction.completed_at, "MMM d, yyyy") 
-        : "Pending",
-      pendingText: stepTextMap["transaction_completed"].pendingText,
-      completedText: stepTextMap["transaction_completed"].completedText
-    });
-  }
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-gray-50 p-4 sm:p-6 lg:p-8">
@@ -220,7 +187,7 @@ export default async function TransactionPage({
 
             <div className="pt-2">
               <CardTitle className="text-lg mb-6">Transaction Timeline</CardTitle>
-              <TransactionTimeline steps={timelineSteps as any} />
+              <TransactionTimeline steps={timelineSteps} />
             </div>
           </CardContent>
         </Card>
