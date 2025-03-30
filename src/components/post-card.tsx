@@ -1,4 +1,6 @@
-import { forwardRef } from "react";
+"use client";
+
+import { forwardRef, useState } from "react";
 import { AllToolPostData } from "@/lib/posts/actions";
 import { Button } from "@/components/ui/button";
 import { requestTransaction } from "@/lib/transactions/actions";

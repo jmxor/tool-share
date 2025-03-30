@@ -4,7 +4,7 @@ import {
   getUserByEmail,
   Review,
 } from "@/lib/auth/actions";
-import { Post, PublicUser } from "@/lib/types";
+import { PublicUser } from "@/lib/types";
 import { UserRound, Flag } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import {
@@ -19,8 +19,6 @@ import { auth } from "@/auth";
 import DeleteReviewButton from "@/components/accounts/delete-review-button";
 import PostCard from "@/components/post-card";
 import { AllToolPostData } from "@/lib/posts/actions";
-import { createConversation } from "@/lib/actions";
-import { MouseEventHandler } from "react";
 import SendMessageButton from "@/components/SendMessageComponent";
 
 export default async function ProfilePage({
