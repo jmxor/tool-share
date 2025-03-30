@@ -70,10 +70,6 @@ export default function ReportsPage() {
             <h1 className="text-3xl font-bold">My Reports</h1>
             <p className="text-muted-foreground mt-1">View and manage your submitted reports</p>
           </div>
-          <Button onClick={() => router.push('/reports/new')}>
-            <AlertCircle className="mr-2 h-4 w-4" />
-            Submit New Report
-          </Button>
         </div>
 
         <div className="rounded-md border bg-white">
@@ -101,13 +97,6 @@ export default function ReportsPage() {
                     <div className="flex flex-col items-center gap-2">
                       <AlertCircle className="h-8 w-8 text-muted-foreground" />
                       <p className="text-muted-foreground">No reports found</p>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => router.push('/reports/new')}
-                      >
-                        Submit a Report
-                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>

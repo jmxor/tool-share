@@ -97,8 +97,10 @@ CREATE TABLE IF NOT EXISTS borrow_request (
     requested_length INTERVAL NOT NULL,
     status VARCHAR(64) NOT NULL,
     result BOOLEAN,
+    transaction_id INT,
     FOREIGN KEY (requester_id) REFERENCES "user" (id) ON DELETE SET NULL,
-    FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE
+    FOREIGN KEY (post_id) REFERENCES post (id) ON DELETE CASCADE,
+    FOREIGN KEY (transaction_id) REFERENCES transaction (id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS tool_request (

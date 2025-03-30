@@ -24,7 +24,7 @@ interface PostsContextType {
 
 export const PostsContext = createContext<PostsContextType>({
   selectedPostId: null,
-  setSelectedPostId: () => {},
+  setSelectedPostId: () => { },
 });
 
 export type PostFilterState = {
@@ -104,7 +104,7 @@ export default function ToolsPageContent({
                     key={post.id}
                     post={post}
                     isHighlighted={post.id == selectedPostId}
-                    ref={(element) => (postRefs.current[post.id] = element)}
+                    ref={(element) => { (postRefs.current[post.id] = element) }}
                   />
                 ))}
               </div>

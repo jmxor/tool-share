@@ -24,7 +24,7 @@ export async function getGeocodeFromPostcode(
   postcode: string,
 ): Promise<GeocodeLocation | null> {
   try {
-    const request = `https://maps.googleapis.com/maps/api/geocode/json?address=${postcode}&key=${process.env.GOOGLE_MAPS_API_KEY as string}`;
+    const request = `https://maps.googleapis.com/maps/api/geocode/json?address=${postcode}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string}`;
     const geocode_response: GeocodeResponse = await fetch(request).then((res) =>
       res.json(),
     );
@@ -347,7 +347,7 @@ export async function createTool(
       validatedFields.data.deposit,
       validatedFields.data.max_borrow_days,
       location.id,
-      "",
+      "available",
     ]);
 
     // CREATE POST CATEGORY LINKS
