@@ -1,7 +1,7 @@
 "use client"
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User, LogOut, FileUser, ShieldAlert } from 'lucide-react';
+import { User, LogOut, FileUser, ShieldAlert, AlertCircle } from 'lucide-react';
 import { signOutUser, userIsAdmin } from "@/lib/auth/actions";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -49,6 +49,13 @@ export default function AccountButton({ email }: { email: string }) {
                             </Link>
                         </DropdownMenuItem>
                     )}
+
+                    <DropdownMenuItem asChild>
+                        <Link href="/reports">
+                            <AlertCircle className="mr-2 h-4 w-4" />
+                            My Reports
+                        </Link>
+                    </DropdownMenuItem>
                     
                     <DropdownMenuItem onClick={handleLogOut}>
                         <LogOut className="mr-2 h-4 w-4" />

@@ -3,7 +3,14 @@
 import { useState, useEffect } from "react";
 import { getSuspensions } from "@/lib/admin/actions";
 import { Suspension } from "@/lib/admin/types";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/admin/pagination";
 import { useRouter } from "next/navigation";
@@ -19,7 +26,7 @@ export default function SuspensionsManagement() {
   useEffect(() => {
     fetchSuspensions(1);
   }, []);
-  
+
   async function fetchSuspensions(page: number) {
     setIsLoading(true);
     try {
@@ -33,30 +40,32 @@ export default function SuspensionsManagement() {
       setIsLoading(false);
     }
   }
-  
+
   const handlePageChange = (page: number) => {
     fetchSuspensions(page);
   };
-  
+
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('en-GB', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(date).toLocaleDateString("en-GB", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
-  
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">User Suspensions</h1>
-          <p className="text-muted-foreground mt-1">View all account suspensions</p>
+          <p className="mt-1 text-muted-foreground">
+            View all account suspensions
+          </p>
         </div>
       </div>
-      
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -71,13 +80,13 @@ export default function SuspensionsManagement() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
+                <TableCell colSpan={5} className="py-8 text-center">
                   Loading suspensions...
                 </TableCell>
               </TableRow>
             ) : suspensions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
+                <TableCell colSpan={5} className="py-8 text-center">
                   No suspensions found
                 </TableCell>
               </TableRow>
@@ -85,23 +94,29 @@ export default function SuspensionsManagement() {
               suspensions.map((suspension) => (
                 <TableRow key={suspension.id}>
                   <TableCell className="font-medium">
-                    <Link 
+                    <Link
                       href={`/user/${suspension.first_username}`}
                       className="text-blue-600 hover:underline"
                     >
                       {suspension.username}
                     </Link>
                   </TableCell>
-                  <TableCell>{suspension.admin_username || 'Unknown'}</TableCell>
+                  <TableCell>
+                    {suspension.admin_username || "Unknown"}
+                  </TableCell>
                   <TableCell className="max-w-md truncate">
                     {suspension.reason}
                   </TableCell>
                   <TableCell>{formatDate(suspension.issued_at)}</TableCell>
                   <TableCell>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
-                      onClick={() => router.push(`/admin/users?username=${suspension.username}`)}
+                      onClick={() =>
+                        router.push(
+                          `/admin/users?username=${suspension.username}`,
+                        )
+                      }
                     >
                       View User
                     </Button>
@@ -112,7 +127,7 @@ export default function SuspensionsManagement() {
           </TableBody>
         </Table>
       </div>
-      
+
       <Pagination
         currentPage={currentPage}
         pageCount={pageCount}
@@ -120,4 +135,5 @@ export default function SuspensionsManagement() {
       />
     </div>
   );
-} 
+}
+

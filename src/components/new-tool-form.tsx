@@ -30,11 +30,12 @@ import { cn } from "@/lib/utils";
 import { CreateToolFormSchema } from "@/lib/zod";
 import { UploadDropzone } from "@/utils/uploadthing";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
-import { useActionState, useRef } from "react";
+import { useActionState, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Badge } from "./ui/badge";
 
 type Category = {
   id: number;
@@ -71,6 +72,20 @@ export default function NewToolForm({
 
   const formRef = useRef<HTMLFormElement>(null);
 
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const handlePrevImage = () => {
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex > 0 ? prevIndex - 1 : form.getValues("image_urls").length,
+    );
+  };
+
+  const handleNextImage = () => {
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex < form.getValues("image_urls").length ? prevIndex + 1 : 0,
+    );
+  };
+
   return (
     <>
       <Form {...form}>
@@ -84,113 +99,80 @@ export default function NewToolForm({
             Share a new Tool
           </h2>
           <div className="space-y-2">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem className="min-h-[84px]">
-                  <FormLabel>Name*</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage>{state.errors?.name}</FormMessage>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem className="min-h-[108px]">
-                  <FormLabel>Description*</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} />
-                  </FormControl>
-                  <FormMessage>{state.errors?.description}</FormMessage>
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="deposit"
-                render={({ field }) => (
-                  <FormItem className="min-h-[84px]">
-                    <FormLabel>Deposit*</FormLabel>
-                    <FormControl>
-                      <Input {...field} type="number" step="0.01" />
-                    </FormControl>
-                    <FormMessage>{state.errors?.deposit}</FormMessage>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="max_borrow_days"
-                render={({ field }) => (
-                  <FormItem className="min-h-[84px]">
-                    <FormLabel>Max Borrow Period*</FormLabel>
-                    <FormControl>
-                      <Input {...field} type="number" />
-                    </FormControl>
-                    <FormMessage>{state.errors?.max_borrow_days}</FormMessage>
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem className="min-h-[84px]">
-                  <FormLabel>Postcode*</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage>{state.errors?.location}</FormMessage>
-                </FormItem>
-              )}
-            />
-
             {/*TODO: add multi image support, add dropzone support*/}
             <FormField
               control={form.control}
               name="image_urls"
               render={({ field }) => (
-                <FormItem className="min-h-[84px]">
+                <FormItem className="min-h-[84px] w-full">
                   <FormLabel>Images*</FormLabel>
                   <FormControl>
                     <Input {...field} type="hidden" />
                   </FormControl>
-                  <UploadDropzone
-                    className="ut-button:bg-primary ut-button:hover:cursor-pointer"
-                    endpoint="imageUploader"
-                    onClientUploadComplete={(res) => {
-                      // Do something with the response
-                      form.setValue("image_urls", [
-                        ...field.value,
-                        ...res.map((image) => image.url),
-                      ]);
-                      form.clearErrors("image_urls");
-                    }}
-                    onUploadError={(error: Error) => {
-                      // Do something with the error.
-                      alert(`ERROR! ${error.message}`);
-                    }}
-                  />
-                  {form.watch("image_urls").map((image_url) => (
-                    <Image
-                      key={image_url}
-                      src={image_url}
-                      alt={""}
-                      width={100}
-                      height={100}
-                    />
-                  ))}
+                  <div className="relative flex w-full overflow-clip">
+                    {form.getValues("image_urls").length > 1 && (
+                      <button
+                        onClick={handlePrevImage}
+                        className="absolute left-2 top-1/2 z-50 -translate-y-1/2 transform rounded-full bg-gray-200 p-1 opacity-75 hover:opacity-100"
+                      >
+                        <ChevronLeft />
+                      </button>
+                    )}
+
+                    {form.watch("image_urls").map((image_url) => (
+                      <div
+                        key={image_url}
+                        className="mt-0 aspect-square w-full shrink-0 overflow-clip rounded-md"
+                        style={{
+                          transform: `translate(-${currentImageIndex * 100}%)`,
+                        }}
+                      >
+                        <Image
+                          src={image_url}
+                          alt={"Tool Image"}
+                          width={100}
+                          height={100}
+                          style={{
+                            objectFit: "cover",
+                            width: "100%",
+                            height: "100%",
+                          }}
+                        />
+                      </div>
+                    ))}
+                    <div
+                      className="aspect-square w-full shrink-0"
+                      style={{
+                        transform: `translate(-${currentImageIndex * 100}%)`,
+                      }}
+                    >
+                      <UploadDropzone
+                        className="aspect-square w-full ut-button:bg-primary ut-button:hover:cursor-pointer"
+                        endpoint="imageUploader"
+                        onClientUploadComplete={(res) => {
+                          form.setValue("image_urls", [
+                            ...field.value,
+                            ...res.map((image) => image.url),
+                          ]);
+                          form.clearErrors("image_urls");
+                        }}
+                        onUploadError={(error: Error) => {
+                          // Do something with the error.
+                          alert(`ERROR! ${error.message}`);
+                        }}
+                      />
+                    </div>
+
+                    {form.getValues("image_urls").length > 1 && (
+                      <button
+                        onClick={handleNextImage}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 transform rounded-full bg-gray-200 p-1 opacity-75 hover:opacity-100"
+                      >
+                        <ChevronRight />
+                      </button>
+                    )}
+                  </div>
+
                   <FormMessage>{state.errors?.images}</FormMessage>
                 </FormItem>
               )}
@@ -210,21 +192,23 @@ export default function NewToolForm({
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "w-full justify-between",
+                            "relative flex h-auto w-full flex-wrap justify-start pr-8",
                             !field.value && "text-muted-foreground",
                           )}
                         >
                           {field.value.length > 0
-                            ? field.value
-                                .map(
-                                  (c1) =>
+                            ? field.value.map((c1) => (
+                                <Badge key={c1}>
+                                  {
                                     categories.find(
                                       (c2) => c1 == c2.id.toString(),
-                                    )?.name,
-                                )
-                                .join(", ")
-                            : "Select categories"}
-                          <ChevronDown className="opacity-50" />
+                                    )?.name
+                                  }
+                                </Badge>
+                              ))
+                            : // .join(", ")
+                              "Select categories"}
+                          <ChevronDown className="absolute right-2 top-2.5 opacity-50" />
                           <Input {...field} type="hidden" />
                         </Button>
                       </FormControl>
@@ -275,6 +259,97 @@ export default function NewToolForm({
                     </PopoverContent>
                   </Popover>
                   <FormMessage>{state.errors?.categories}</FormMessage>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem className="min-h-[84px]">
+                  <FormLabel>Name*</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage>{state.errors?.name}</FormMessage>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem className="min-h-[108px]">
+                  <FormLabel>Description*</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} />
+                  </FormControl>
+                  <FormMessage>{state.errors?.description}</FormMessage>
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="deposit"
+                render={({ field }) => (
+                  <FormItem className="min-h-[84px]">
+                    <FormLabel>Deposit*</FormLabel>
+                    <FormControl>
+                      <div className="flex">
+                        <div className="flex h-9 shrink-0 items-center justify-center rounded-md rounded-r-none border border-r-0 border-input px-3 shadow-sm">
+                          £
+                        </div>
+                        <Input
+                          {...field}
+                          type="number"
+                          step="0.01"
+                          className="rounded-l-none"
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage>{state.errors?.deposit}</FormMessage>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="max_borrow_days"
+                render={({ field }) => (
+                  <FormItem className="min-h-[84px]">
+                    <FormLabel>Max Borrow Period*</FormLabel>
+                    <FormControl>
+                      <div className="flex">
+                        <Input
+                          {...field}
+                          type="number"
+                          className="rounded-r-none"
+                        />
+                        <div className="flex h-9 shrink-0 items-center justify-center rounded-md rounded-l-none border border-l-0 border-input px-3 shadow-sm">
+                          days
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormMessage>{state.errors?.max_borrow_days}</FormMessage>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem className="min-h-[84px]">
+                  <FormLabel>Postcode*</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage>{state.errors?.location}</FormMessage>
                 </FormItem>
               )}
             />

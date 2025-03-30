@@ -1,3 +1,5 @@
+import { AllToolPostData } from "./posts/actions";
+
 export type User = {
     username: string;
     first_username: string;
@@ -5,26 +7,27 @@ export type User = {
     created_at: Date;
     user_privilege: string;
     is_suspended: boolean;
+    warnings: number;
 };
 
 export type Post = {
-    id: number,
-    tool_name: string,
-    description: string,
-    sources: string[]
-}
+  id: number;
+  tool_name: string;
+  description: string;
+  sources: string[];
+};
 
 export type PublicUser = {
-    username: string;
-    created_at: Date,
-    is_suspended: boolean,
-    suspensionCount: number
-    posts: Post[]
+  username: string;
+  created_at: Date;
+  is_suspended: boolean;
+  suspensionCount: number;
+  posts: AllToolPostData[];
 };
 
 export type ToolPostPreview = {
-    toolName: string;
-    deposit: number;
-    mainImagePath: string;
-    status: string;
-}
+  toolName: string;
+  deposit: number;
+  mainImagePath: string;
+  status: string;
+};
