@@ -39,7 +39,10 @@ export default function RequestTable({ requests, type }: { requests: UserBorrowR
                 className={`px-2.5 py-0.5 text-xs font-medium ${request.request_status === "pending" ? "bg-yellow-500" :
                   request.request_status === "accepted" ? "bg-green-500" :
                   "bg-red-500"}`}>
-                  {request.request_status}
+                  {request.request_status
+                    .split('_')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(' ')}
                 </Badge>
               </TableCell>
               <TableCell className="py-4 px-4 text-gray-700">{formatDistanceToNow(new Date(request.requested_at), { addSuffix: true })}</TableCell>

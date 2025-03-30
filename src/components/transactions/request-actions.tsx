@@ -2,8 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 import { resolveRequest } from "@/lib/transactions/actions";
+import { useRouter } from "next/navigation";
 
 interface RequestActionsProps {
   requestId: number;
@@ -13,18 +14,38 @@ interface RequestActionsProps {
 }
 
 export function RequestActions({ requestId, isOwner, isRequester, status }: RequestActionsProps) {
-  const [rejectState, rejectAction] = useFormState(
-    async () => await resolveRequest(requestId, 'rejected'),
+  const router = useRouter();
+
+  const [rejectState, rejectAction] = useActionState(
+    async () => {
+      const result = await resolveRequest(requestId, 'rejected');
+      if (result.success) {
+        router.refresh();
+      }
+      return result;
+    },
     { success: true, message: "" }
   );
 
-  const [acceptState, acceptAction] = useFormState(
-    async () => await resolveRequest(requestId, 'accepted'),
+  const [acceptState, acceptAction] = useActionState(
+    async () => {
+      const result = await resolveRequest(requestId, 'accepted');
+      if (result.success) {
+        router.refresh();
+      }
+      return result;
+    },
     { success: true, message: "" }
   );
 
-  const [cancelState, cancelAction] = useFormState(
-    async () => await resolveRequest(requestId, 'cancelled'),
+  const [cancelState, cancelAction] = useActionState(
+    async () => {
+      const result = await resolveRequest(requestId, 'cancelled');
+      if (result.success) {
+        router.refresh();
+      }
+      return result;
+    },
     { success: true, message: "" }
   );
 

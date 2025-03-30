@@ -20,28 +20,28 @@ export default async function TransactionArea() {
     <div className="space-y-8">
       <div className="space-y-4">
         <div className="border-b pb-2">
-          <h2 className="text-xl font-semibold text-gray-800">Tools You're Borrowing</h2>
-          <p className="text-sm text-gray-500">Tools you've borrowed from others</p>
+          <h2 className="text-xl font-semibold text-gray-800">Tools You&apos;re Borrowing</h2>
+          <p className="text-sm text-gray-500">Tools you&apos;ve borrowed from others</p>
         </div>
         {transactionsAsBorrower.length > 0 ? (
           <TransactionTable transactions={transactionsAsBorrower} type="borrower" />
         ) : (
           <div className="bg-gray-50 rounded-md p-6 text-center">
-            <p className="text-gray-600">You aren't borrowing any tools right now.</p>
+            <p className="text-gray-600">You aren&apos;t borrowing any tools right now.</p>
           </div>
         )}
       </div>
       
       <div className="space-y-4">
         <div className="border-b pb-2">
-          <h2 className="text-xl font-semibold text-gray-800">Tools You're Lending</h2>
+          <h2 className="text-xl font-semibold text-gray-800">Tools You&apos;re Lending</h2>
           <p className="text-sm text-gray-500">Your tools that others are borrowing</p>
         </div>
         {transactionsAsOwner.length > 0 ? (
           <TransactionTable transactions={transactionsAsOwner} type="owner" />
         ) : (
           <div className="bg-gray-50 rounded-md p-6 text-center">
-            <p className="text-gray-600">You aren't lending any tools right now.</p>
+            <p className="text-gray-600">You aren&apos;t lending any tools right now.</p>
           </div>
         )}
       </div>

@@ -284,7 +284,7 @@ export async function resolveRequest(request_id: number, result: string) {
           transaction_status, 
           expires_at
         )
-        VALUES ($1, CURRENT_TIMESTAMP, $2, 'started', $3)
+        VALUES ($1, CURRENT_TIMESTAMP, $2, 'transaction_created', $3)
         RETURNING id
       `;
       
@@ -606,6 +606,163 @@ export async function getTransactionDetails(transaction_id: number): Promise<{ s
     return {
       success: false,
       message: "An error occurred while fetching transaction details"
+    };
+  }
+}
+
+export async function completeStep(step_type: string, transaction: TransactionData) {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/auth/login");
+
+  const userID = await getEmailID(session.user.email);
+  if (!userID) redirect("/auth/login");
+
+  try {
+    const conn = await getConnection();
+
+    const query = `
+      INSERT INTO transaction_step (user_id, transaction_id, step_type, completed_at)
+      VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+    `;
+
+    const result = await conn.query(query, [userID, transaction.id, step_type]);
+    if ((result.rowCount || 0) <= 0) {
+      return {
+        success: false,
+        message: "Failed to complete step"
+      };
+    }
+
+    const updateTransactionQuery = `
+      UPDATE transaction
+      SET transaction_status = $1
+      WHERE id = $2
+    `;
+
+    await conn.query(updateTransactionQuery, [step_type, transaction.id]);
+
+    if(step_type === "transaction_completed") {
+      const updatePostStatusQuery = `
+        UPDATE post
+        SET status = 'available'
+        WHERE id = $1
+      `;
+      await conn.query(updatePostStatusQuery, [transaction.post_id]);
+    }
+
+    return {
+      success: true,
+      message: "Step completed successfully"
+    };
+
+  } catch (error) {
+    console.error("[ERROR] Failed to complete step:", error);
+  }
+}
+
+async function generateCode(transaction_id: number, step_number: number) {
+  const code = Math.floor(100000 + Math.random() * 900000);
+  const expiresAt = new Date();
+  expiresAt.setHours(expiresAt.getHours() + 24);
+  try {
+    const conn = await getConnection();
+    const query = `
+      INSERT INTO transaction_code (transaction_id, active, code, expires_at, step_number)
+      VALUES ($1, true, $2, $3, $4)
+    `;
+    await conn.query(query, [transaction_id, code, expiresAt, step_number]);
+    return {
+      code,
+      expiresAt,
+      step_number
+    };
+  } catch (error) {
+    console.error("[ERROR] Failed to generate codes:", error);
+  }
+}
+
+export async function getCode(transaction_id: number, step_number: number) {
+  try {
+    const conn = await getConnection();
+    const query = `
+      SELECT code, expires_at
+      FROM transaction_code
+      WHERE transaction_id = $1 AND step_number = $2 AND active = true AND expires_at > CURRENT_TIMESTAMP
+    `;
+    
+    const result = await conn.query(query, [transaction_id, step_number]);
+    
+    if (result.rows.length > 0) {
+      return {
+        code: result.rows[0].code,
+        expiresAt: result.rows[0].expires_at,
+        step_number
+      };
+    } else {
+      return await generateCode(transaction_id, step_number);
+    }
+  } catch (error) {
+    console.error("[ERROR] Failed to get code:", error);
+    return null;
+  }
+}
+
+export async function checkCode(transaction: TransactionData, step_number: number, code: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.email) redirect("/auth/login");
+
+    const userID = await getEmailID(session.user.email);
+    if (!userID) redirect("/auth/login");
+
+    const conn = await getConnection();
+    const query = `
+      SELECT code, expires_at
+      FROM transaction_code
+      WHERE transaction_id = $1 AND step_number = $2 AND code = $3 AND active = true AND expires_at > CURRENT_TIMESTAMP
+    `;
+    
+    const result = await conn.query(query, [transaction.id, step_number, code]);
+    if (result.rows.length > 0) {
+      const updateQuery = `
+        UPDATE transaction_code
+        SET active = false
+        WHERE transaction_id = $1 AND step_number = $2 AND code = $3
+      `;
+      await completeStep(step_number === 1 ? "tool_borrowed" : "tool_returned", transaction);
+      await conn.query(updateQuery, [transaction.id, step_number, code]);
+
+      if (step_number === 1) {
+        const transactionUpdateQuery = `
+          UPDATE transaction
+          SET borrowed_at = CURRENT_TIMESTAMP
+          WHERE id = $1
+        `;
+        await conn.query(transactionUpdateQuery, [transaction.id]);
+      } else if (step_number === 2) {
+        const transactionUpdateQuery = `
+          UPDATE transaction
+          SET returned_at = CURRENT_TIMESTAMP
+          WHERE id = $1
+        `;
+        await conn.query(transactionUpdateQuery, [transaction.id]);
+      }
+
+      return {
+        success: true,
+        message: "Code is valid"
+      };
+    } else {
+      return {
+        success: false,
+        message: "Invalid code"
+      };
+    }
+  } catch (error) {
+    console.error("[ERROR] Failed to check code:", error);
+    return {
+      success: false,
+      message: "An error occurred while checking the code"
     };
   }
 }

@@ -7,7 +7,8 @@ import TransactionTimeline from "@/components/transactions/timeline";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { CalendarIcon, UserIcon, Wrench } from "lucide-react";
+import { CalendarIcon, ExternalLinkIcon, UserIcon, Wrench } from "lucide-react";
+import StepActionArea from "@/components/transactions/step-action-area";
 
 export type TimelineStep = {
   isCompleted: boolean;
@@ -40,7 +41,7 @@ export default async function TransactionPage({
   
 
   const stepTypeMap = {
-    "transaction_created": "Transaction Started",
+    "transaction_created": "Request Accepted",
     "deposit_paid": "Deposit Paid",
     "tool_borrowed": "Tool Borrowed",
     "tool_returned": "Tool Returned",
@@ -50,7 +51,7 @@ export default async function TransactionPage({
   const stepTextMap = {
     "transaction_created": {
       pendingText: "Waiting for transaction to start",
-      completedText: "Transaction Started"
+      completedText: "Request Accepted"
     },
     "deposit_paid": {
       pendingText: "Waiting for deposit to be paid",
@@ -130,9 +131,11 @@ export default async function TransactionPage({
               transaction.transaction_status === "overdue" ? "destructive" :
               "secondary"
             }
-            className="px-3 py-1 text-sm font-medium"
-          >
-            {transaction.transaction_status}
+            className={`px-3 py-1 text-sm font-medium ${transaction.transaction_status === "transaction_completed" ? "bg-green-500 text-white" : ""}`}>
+            {transaction.transaction_status
+              .split('_')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ')}
           </Badge>
         </div>
 
@@ -151,11 +154,17 @@ export default async function TransactionPage({
                     <UserIcon className="h-4 w-4 text-gray-500" />
                     <span className="font-medium">Owner:</span> 
                     <span className="text-gray-700">{transaction.owner.username}</span>
+                    <a href={`/user/${transaction.owner.first_username}`}>
+                      <ExternalLinkIcon className="h-4 w-4 text-gray-500" />
+                    </a>
                   </div>
                   <div className="flex items-center gap-2">
                     <UserIcon className="h-4 w-4 text-gray-500" />
                     <span className="font-medium">Borrower:</span> 
                     <span className="text-gray-700">{transaction.borrower.username}</span>
+                    <a href={`/user/${transaction.borrower.first_username}`}>
+                      <ExternalLinkIcon className="h-4 w-4 text-gray-500" />
+                    </a>
                   </div>
                 </div>
               </div>
@@ -189,6 +198,9 @@ export default async function TransactionPage({
               <CardTitle className="text-lg mb-6">Transaction Timeline</CardTitle>
               <TransactionTimeline steps={timelineSteps} />
             </div>
+
+            <Separator className="my-6" />
+            <StepActionArea isBorrower={transaction.borrower.id === userID} nextStep={nextStepKey ?? ""} transaction={transaction} />
           </CardContent>
         </Card>
       </div>

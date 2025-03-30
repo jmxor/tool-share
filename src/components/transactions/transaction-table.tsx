@@ -36,8 +36,11 @@ export default function TransactionTable({ transactions, type }: { transactions:
                   transaction.transaction_status === "overdue" ? "destructive" :
                   "secondary"
                 }
-                className="px-2.5 py-0.5 text-xs font-medium">
-                  {transaction.transaction_status}
+                className={`px-2.5 py-0.5 text-xs font-medium ${transaction.transaction_status === "transaction_completed" ? "bg-green-500 text-white" : ""}`}>
+                  {transaction.transaction_status
+                    .split('_')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(' ')}
                 </Badge>
               </TableCell>
               <TableCell className="py-4 px-4 text-gray-700">{formatDistanceToNow(new Date(transaction.created_at), { addSuffix: true })}</TableCell>
