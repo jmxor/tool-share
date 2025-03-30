@@ -299,7 +299,17 @@ export default function NewToolForm({
                   <FormItem className="min-h-[84px]">
                     <FormLabel>Deposit*</FormLabel>
                     <FormControl>
-                      <Input {...field} type="number" step="0.01" />
+                      <div className="flex">
+                        <div className="flex h-9 shrink-0 items-center justify-center rounded-md rounded-r-none border border-r-0 border-input px-3 shadow-sm">
+                          £
+                        </div>
+                        <Input
+                          {...field}
+                          type="number"
+                          step="0.01"
+                          className="rounded-l-none"
+                        />
+                      </div>
                     </FormControl>
                     <FormMessage>{state.errors?.deposit}</FormMessage>
                   </FormItem>
@@ -313,7 +323,16 @@ export default function NewToolForm({
                   <FormItem className="min-h-[84px]">
                     <FormLabel>Max Borrow Period*</FormLabel>
                     <FormControl>
-                      <Input {...field} type="number" />
+                      <div className="flex">
+                        <Input
+                          {...field}
+                          type="number"
+                          className="rounded-r-none"
+                        />
+                        <div className="flex h-9 shrink-0 items-center justify-center rounded-md rounded-l-none border border-l-0 border-input px-3 shadow-sm">
+                          days
+                        </div>
+                      </div>
                     </FormControl>
                     <FormMessage>{state.errors?.max_borrow_days}</FormMessage>
                   </FormItem>

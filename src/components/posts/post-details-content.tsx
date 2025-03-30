@@ -112,8 +112,14 @@ export default function PostDetailsContent({
               <label htmlFor="" className="text-sm font-medium">
                 Deposit
               </label>
-              <div className="flex min-h-9 w-full items-center rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors md:text-sm">
-                {post?.deposit}
+
+              <div className="flex">
+                <div className="flex h-9 shrink-0 items-center justify-center rounded-md rounded-r-none border border-r-0 border-input px-3 shadow-sm">
+                  £
+                </div>
+                <div className="flex min-h-9 w-full items-center rounded-md rounded-l-none border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors md:text-sm">
+                  {post?.deposit}
+                </div>
               </div>
             </div>
 
@@ -121,8 +127,13 @@ export default function PostDetailsContent({
               <label htmlFor="" className="text-sm font-medium">
                 Max Borrow Period
               </label>
-              <div className="flex min-h-9 w-full items-center rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors md:text-sm">
-                {post?.max_borrow_days}
+              <div className="flex">
+                <div className="flex min-h-9 w-full items-center rounded-md rounded-r-none border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors md:text-sm">
+                  {post?.max_borrow_days}
+                </div>
+                <div className="flex h-9 shrink-0 items-center justify-center rounded-md rounded-l-none border border-l-0 border-input px-3 shadow-sm">
+                  days
+                </div>
               </div>
             </div>
           </div>
