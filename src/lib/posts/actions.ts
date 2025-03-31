@@ -21,12 +21,12 @@ export type GeocodeResponse = {
 };
 
 export async function getGeocodeFromPostcode(
-  postcode: string,
+  postcode: string
 ): Promise<GeocodeLocation | null> {
   try {
     const request = `https://maps.googleapis.com/maps/api/geocode/json?address=${postcode}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string}`;
     const geocode_response: GeocodeResponse = await fetch(request).then((res) =>
-      res.json(),
+      res.json()
     );
     if (geocode_response.results.length != 0) {
       return geocode_response.results[0];
@@ -47,7 +47,7 @@ export type PostImage = {
 
 export async function createPostImage(
   post_id: number,
-  image_url: string,
+  image_url: string
 ): Promise<Pick<PostImage, "id"> | null> {
   try {
     const conn = await getConnection();
@@ -68,7 +68,7 @@ export async function createPostImage(
 
 // TODO: maybe not necessary
 export async function getPostImagesFromPostId(
-  post_id: string,
+  post_id: string
 ): Promise<PostImage[] | null> {
   try {
     const conn = await getConnection();
@@ -93,7 +93,7 @@ export type PostCategory = {
 
 export async function createPostCategory(
   post_id: number,
-  category_id: number,
+  category_id: number
 ): Promise<Pick<PostCategory, "id"> | null> {
   try {
     const conn = await getConnection();
@@ -141,7 +141,7 @@ export type PostLocation = {
 };
 
 export async function getLocationIdFromPostcode(
-  postcode: string,
+  postcode: string
 ): Promise<Pick<PostLocation, "id"> | null> {
   try {
     const conn = await getConnection();
@@ -162,7 +162,7 @@ export async function getLocationIdFromPostcode(
 }
 
 export async function createLocationFromPostcode(
-  postcode: string,
+  postcode: string
 ): Promise<Pick<PostLocation, "id"> | null> {
   let geocodedPostcode;
   try {
@@ -215,6 +215,7 @@ export async function getTools(): Promise<AllToolPostData[] | null> {
     const conn = await getConnection();
     const query = `
         SELECT p.*,
+               p.deposit::numeric,
                array_agg(DISTINCT pp.source) AS pictures,
                array_agg(DISTINCT c.name)    AS categories,
                l.postcode,
@@ -242,6 +243,7 @@ export async function getToolById(id: number): Promise<AllToolPostData | null> {
     const conn = await getConnection();
     const query = `
         SELECT p.*,
+               p.deposit::numeric,
                array_agg(DISTINCT pp.source) AS pictures,
                array_agg(DISTINCT c.name)    AS categories,
                l.postcode,
@@ -285,7 +287,7 @@ export type PostFormState = {
 
 export async function createTool(
   prevState: PostFormState,
-  formData: FormData,
+  formData: FormData
 ): Promise<PostFormState> {
   const data = {
     ...Object.fromEntries(formData),
@@ -319,11 +321,11 @@ export async function createTool(
     }
     const current_user = user_row.rows[0];
     let location = await getLocationIdFromPostcode(
-      validatedFields.data.location,
+      validatedFields.data.location
     );
     if (!location) {
       location = await createLocationFromPostcode(
-        validatedFields.data.location,
+        validatedFields.data.location
       );
 
       if (!location) {

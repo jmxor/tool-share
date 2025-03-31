@@ -48,7 +48,7 @@ export type DeleteReviewState = {
 };
 
 export async function deleteReview(
-  first_username: string,
+  first_username: string
 ): Promise<DeleteReviewState> {
   if (!first_username) {
     return {
@@ -112,7 +112,7 @@ export type Review = {
 };
 
 export async function getReviews(
-  first_username: string,
+  first_username: string
 ): Promise<Review[] | null> {
   try {
     const targetID = await getFirstUsernameID(first_username);
@@ -154,7 +154,7 @@ export async function getReviews(
     });
 
     const reviewArray: Review[] = (await Promise.all(reviewPromises)).filter(
-      (review) => review !== null,
+      (review) => review !== null
     ) as Review[];
     return reviewArray;
   } catch (error) {
@@ -175,7 +175,7 @@ export type ReviewFormState = {
 
 export async function submitReview(
   prevState: ReviewFormState,
-  formData: FormData,
+  formData: FormData
 ): Promise<ReviewFormState> {
   const data = {
     ...Object.fromEntries(formData),
@@ -192,7 +192,7 @@ export async function submitReview(
     validatedFields = ReviewFormSchema.safeParse(parsedData);
   } catch {
     console.error(
-      "[ERROR] Non integer value submitted as star rating in review form",
+      "[ERROR] Non integer value submitted as star rating in review form"
     );
   }
 
@@ -260,7 +260,7 @@ export async function submitReview(
 }
 
 export async function getPublicUserData(
-  first_username: string,
+  first_username: string
 ): Promise<PublicUser | null> {
   try {
     const conn = await getConnection();
@@ -293,6 +293,7 @@ export async function getPublicUserData(
 
     const postsQuery = `
             SELECT p.*,
+               p.deposit::numeric,
                array_agg(DISTINCT pp.source) AS pictures,
                array_agg(DISTINCT c.name)    AS categories,
                l.postcode,
@@ -343,7 +344,7 @@ export type RegistrationFormState = {
 
 export async function registerUser(
   _: RegistrationFormState,
-  formData: FormData,
+  formData: FormData
 ): Promise<RegistrationFormState> {
   const data = {
     ...Object.fromEntries(formData),
@@ -515,7 +516,7 @@ export type LoginFormState = {
 
 export async function loginUser(
   _: LoginFormState,
-  formData: FormData,
+  formData: FormData
 ): Promise<LoginFormState> {
   const data = {
     ...Object.fromEntries(formData),
@@ -544,7 +545,7 @@ export async function loginUser(
   } catch (error) {
     console.error(
       "[ERROR: loginUser action] Unexpected error during user log in: ",
-      error,
+      error
     );
     return {
       message: "Failed to login user. Try again later.",
@@ -607,8 +608,8 @@ export async function deleteAccount() {
 }
 
 export async function getUserByEmail(email: string) {
-    try {
-        const query = `
+  try {
+    const query = `
             SELECT u.username, u.first_username, u.email, u.created_at, u.user_privilege, u.is_suspended,
                    COUNT(w.id) AS warnings
             FROM "user" u

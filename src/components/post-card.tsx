@@ -32,13 +32,13 @@ const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
 
     const handlePrevImage = () => {
       setCurrentImageIndex((prevIndex) =>
-        prevIndex > 0 ? prevIndex - 1 : post.pictures.length - 1,
+        prevIndex > 0 ? prevIndex - 1 : post.pictures.length - 1
       );
     };
 
     const handleNextImage = () => {
       setCurrentImageIndex((prevIndex) =>
-        prevIndex < post.pictures.length - 1 ? prevIndex + 1 : 0,
+        prevIndex < post.pictures.length - 1 ? prevIndex + 1 : 0
       );
     };
 
@@ -88,7 +88,7 @@ const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
           </h3>
           <div className="flex justify-between">
             <span className="text-sm">{post.postcode}</span>
-            <span className="text-sm">{post.deposit} deposit</span>
+            <span className="text-sm">£{post.deposit} deposit</span>
             {/* <span className="text-sm">{post.max_borrow_days}</span> */}
           </div>
 
@@ -101,12 +101,8 @@ const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
             {/* TODO: change button content to Edit if current user is owner */}
             <a href={`/tools/${post.id}`}>Details</a>
           </Button>
-          <Button
-            className="w-full"
-            size="sm"
-            onClick={handleBorrowClick}
-          >
-            {post.status === 'available' ? 'Borrow' : 'Join Queue'}
+          <Button className="w-full" size="sm" onClick={handleBorrowClick}>
+            {post.status === "available" ? "Borrow" : "Join Queue"}
           </Button>
         </div>
 
@@ -152,10 +148,7 @@ const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button
-                onClick={handleRequestSubmit}
-                disabled={isSubmitting}
-              >
+              <Button onClick={handleRequestSubmit} disabled={isSubmitting}>
                 {isSubmitting ? "Submitting..." : "Request to Borrow"}
               </Button>
             </DialogFooter>
@@ -163,7 +156,7 @@ const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
         </Dialog>
       </div>
     );
-  },
+  }
 );
 
 PostCard.displayName = "PostCard";
