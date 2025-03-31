@@ -7,7 +7,7 @@
     "dev:socket": "NODE_OPTIONS='--loader ts-node/esm --trace-warnings --no-warnings' NODE_ENV=development ts-node server.mts",
     "build": "next build",
     "start": "next start",
-    "start:socket": "pnpm build --no-lint && NODE_OPTIONS='--loader ts-node/esm --trace-warnings --no-warnings' NODE_ENV=production ts-node server.mts",
+    "start:socket": "NODE_OPTIONS='--loader ts-node/esm --trace-warnings --no-warnings' NODE_ENV=production ts-node server.mts",
     "lint": "next lint"
   },
   "dependencies": {
