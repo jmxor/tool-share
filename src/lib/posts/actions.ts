@@ -259,7 +259,7 @@ export async function getToolById(id: number): Promise<AllToolPostData | null> {
     `;
     const result = await conn.query(query, [id]);
 
-    if (result?.rowCount > 0) {
+    if (result.rowCount && result.rowCount > 0) {
       return result.rows[0];
     }
     return null;
