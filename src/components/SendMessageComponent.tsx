@@ -20,14 +20,13 @@ export default function SendMessageButton({
 
     try {
         const conversationId = await createConversation(email, first_username);
-        console.log(conversationId);
         if (conversationId) {
             router.push(`/chat`);
         } else {
-            console.log("Failed to create conversation.");
+            console.error("[ERROR] Failed to create conversation.");
         }
     } catch (error) {
-        console.error("Error creating conversation:", error);
+        console.error("[ERROR] Error creating conversation:", error);
     } finally {
         setIsNavigating(false);
     }

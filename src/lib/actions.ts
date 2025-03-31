@@ -156,7 +156,6 @@ export async function createConversation(user1_email : string, user2_first_usern
             VALUES ($1, $2)
             RETURNING id;
         `
-        console.log(checkResult.rows.length)
 
         if (checkResult.rows.length < 1){
             const insertResult = await conn.query(insertQuery, [user1_id, user2_id])

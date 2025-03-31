@@ -137,12 +137,6 @@ export default function UsersManagement() {
   const openPrivilegeDialog = (user: AdminUser) => {
     setPrivilegeUser(user);
     setNewPrivilege(user.user_privilege);
-    console.log(
-      "Setting privilege user:",
-      user.id,
-      "with privilege:",
-      user.user_privilege,
-    );
   };
 
   const handleIssueWarning = async () => {
@@ -203,13 +197,6 @@ export default function UsersManagement() {
       console.error("No user selected for privilege update");
       return;
     }
-
-    console.log(
-      "Updating privilege for user:",
-      privilegeUser.id,
-      "to:",
-      newPrivilege,
-    );
 
     try {
       const success = await updateUserPrivilege(privilegeUser.id, newPrivilege);

@@ -360,7 +360,7 @@ export async function createTool(
       await createPostImage(result.rows[0].id, image_url);
     }
   } catch (error) {
-    console.log(error);
+    console.error("[ERROR] Failed to create Tool:", error);
     return {
       message: "Database Error: Failed to create Tool.",
       fields: validatedFields.data,
