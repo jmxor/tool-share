@@ -48,7 +48,7 @@ export async function requestTransaction(tool_id: number, requested_length: numb
       const checkExistingRequestQuery = `
         SELECT 1
         FROM borrow_request
-        WHERE requester_id = $1 AND post_id = $2 AND status IN ('pending', 'approved', 'active')
+        WHERE requester_id = $1 AND post_id = $2 AND status IN ('pending')
       `;
       const existingRequestResult = await conn.query(checkExistingRequestQuery, [userID, tool_id]);
       
@@ -56,14 +56,14 @@ export async function requestTransaction(tool_id: number, requested_length: numb
       const checkExistingTransactionQuery = `
         SELECT 1
         FROM transaction
-        WHERE borrower_id = $1 AND post_id = $2 AND completed_at IS NULL
+        WHERE borrower_id = $1 AND post_id = $2 AND completed_at IS NULL AND transaction_status != 'transaction_completed'
       `;
       const existingTransactionResult = await conn.query(checkExistingTransactionQuery, [userID, tool_id]);
       
       if (existingRequestResult.rows.length > 0 || existingTransactionResult.rows.length > 0) {
         return {
           success: false,
-          message: "You already have an active or pending request for this tool"
+          message: "You already have an active or pending request or transaction for this tool"
         };
       }
   
@@ -116,6 +116,7 @@ export async function getRequestData(request_id: number): Promise<BorrowRequestD
         br.requested_length,
         br.status as request_status,
         br.result,
+        br.transaction_id,
         p.tool_name,
         p.deposit::numeric,
         p.status as tool_status,
@@ -154,7 +155,8 @@ export async function getRequestData(request_id: number): Promise<BorrowRequestD
         owner_first_username: request.owner_first_username,
         requester_username: request.requester_username,
         requester_first_username: request.requester_first_username,
-        owner_id: request.owner_id
+        owner_id: request.owner_id,
+        transaction_id: request.transaction_id
       }
     };
     
@@ -284,7 +286,7 @@ export async function resolveRequest(request_id: number, result: string) {
           transaction_status, 
           expires_at
         )
-        VALUES ($1, CURRENT_TIMESTAMP, $2, 'started', $3)
+        VALUES ($1, CURRENT_TIMESTAMP, $2, 'transaction_created', $3)
         RETURNING id
       `;
       
@@ -319,7 +321,11 @@ export async function resolveRequest(request_id: number, result: string) {
         };
       }
 
-      redirect(`/transactions/${transactionResult.rows[0].id}`);
+      return {
+        success: true,
+        message: "Request processed successfully",
+        transaction_id: transactionResult.rows[0].id
+      }
     }
 
     return {
@@ -424,7 +430,6 @@ export async function getRequests(page: number = 1, limit: number = 10): Promise
         };
     }
 }
-
 export async function getTransactions(page: number = 1, limit: number = 10): Promise<PagedTransactionResult> {
     const session = await auth();
     if (!session?.user?.email) redirect("/auth/login");
@@ -437,18 +442,17 @@ export async function getTransactions(page: number = 1, limit: number = 10): Pro
         if (!userId) redirect("/auth/login");
         
         const countQuery = `
-            SELECT COUNT(*) as count 
+            SELECT COUNT(DISTINCT t.id) as count 
             FROM transaction t
             JOIN post p ON t.post_id = p.id
-            JOIN borrow_request br ON br.post_id = p.id AND br.status = 'accepted'
-            WHERE p.user_id = $1 OR br.requester_id = $1
+            WHERE p.user_id = $1 OR t.borrower_id = $1
         `;
         
         const countResult = await conn.query(countQuery, [userId]);
         const totalCount = parseInt(countResult.rows[0].count);
         
         const transactionsQuery = `
-            SELECT 
+            SELECT DISTINCT
                 t.id,
                 t.post_id,
                 t.created_at,
@@ -467,9 +471,8 @@ export async function getTransactions(page: number = 1, limit: number = 10): Pro
             FROM transaction t
             JOIN post p ON t.post_id = p.id
             JOIN "user" owner ON p.user_id = owner.id
-            JOIN borrow_request br ON br.post_id = p.id AND br.status = 'accepted'
-            JOIN "user" borrower ON br.requester_id = borrower.id
-            WHERE p.user_id = $1 OR br.requester_id = $1
+            JOIN "user" borrower ON t.borrower_id = borrower.id
+            WHERE p.user_id = $1 OR t.borrower_id = $1
             ORDER BY t.created_at DESC
             LIMIT $2 OFFSET $3
         `;
@@ -606,6 +609,163 @@ export async function getTransactionDetails(transaction_id: number): Promise<{ s
     return {
       success: false,
       message: "An error occurred while fetching transaction details"
+    };
+  }
+}
+
+export async function completeStep(step_type: string, transaction: TransactionData) {
+  const session = await auth();
+  if (!session?.user?.email) redirect("/auth/login");
+
+  const userID = await getEmailID(session.user.email);
+  if (!userID) redirect("/auth/login");
+
+  try {
+    const conn = await getConnection();
+
+    const query = `
+      INSERT INTO transaction_step (user_id, transaction_id, step_type, completed_at)
+      VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+    `;
+
+    const result = await conn.query(query, [userID, transaction.id, step_type]);
+    if ((result.rowCount || 0) <= 0) {
+      return {
+        success: false,
+        message: "Failed to complete step"
+      };
+    }
+
+    const updateTransactionQuery = `
+      UPDATE transaction
+      SET transaction_status = $1
+      WHERE id = $2
+    `;
+
+    await conn.query(updateTransactionQuery, [step_type, transaction.id]);
+
+    if(step_type === "transaction_completed") {
+      const updatePostStatusQuery = `
+        UPDATE post
+        SET status = 'available'
+        WHERE id = $1
+      `;
+      await conn.query(updatePostStatusQuery, [transaction.post_id]);
+    }
+
+    return {
+      success: true,
+      message: "Step completed successfully"
+    };
+
+  } catch (error) {
+    console.error("[ERROR] Failed to complete step:", error);
+  }
+}
+
+async function generateCode(transaction_id: number, step_number: number) {
+  const code = Math.floor(100000 + Math.random() * 900000);
+  const expiresAt = new Date();
+  expiresAt.setHours(expiresAt.getHours() + 24);
+  try {
+    const conn = await getConnection();
+    const query = `
+      INSERT INTO transaction_code (transaction_id, active, code, expires_at, step_number)
+      VALUES ($1, true, $2, $3, $4)
+    `;
+    await conn.query(query, [transaction_id, code, expiresAt, step_number]);
+    return {
+      code,
+      expiresAt,
+      step_number
+    };
+  } catch (error) {
+    console.error("[ERROR] Failed to generate codes:", error);
+  }
+}
+
+export async function getCode(transaction_id: number, step_number: number) {
+  try {
+    const conn = await getConnection();
+    const query = `
+      SELECT code, expires_at
+      FROM transaction_code
+      WHERE transaction_id = $1 AND step_number = $2 AND active = true AND expires_at > CURRENT_TIMESTAMP
+    `;
+    
+    const result = await conn.query(query, [transaction_id, step_number]);
+    
+    if (result.rows.length > 0) {
+      return {
+        code: result.rows[0].code,
+        expiresAt: result.rows[0].expires_at,
+        step_number
+      };
+    } else {
+      return await generateCode(transaction_id, step_number);
+    }
+  } catch (error) {
+    console.error("[ERROR] Failed to get code:", error);
+    return null;
+  }
+}
+
+export async function checkCode(transaction: TransactionData, step_number: number, code: string) {
+  try {
+    const session = await auth();
+    if (!session?.user?.email) redirect("/auth/login");
+
+    const userID = await getEmailID(session.user.email);
+    if (!userID) redirect("/auth/login");
+
+    const conn = await getConnection();
+    const query = `
+      SELECT code, expires_at
+      FROM transaction_code
+      WHERE transaction_id = $1 AND step_number = $2 AND code = $3 AND active = true AND expires_at > CURRENT_TIMESTAMP
+    `;
+    
+    const result = await conn.query(query, [transaction.id, step_number, code]);
+    if (result.rows.length > 0) {
+      const updateQuery = `
+        UPDATE transaction_code
+        SET active = false
+        WHERE transaction_id = $1 AND step_number = $2 AND code = $3
+      `;
+      await completeStep(step_number === 1 ? "tool_borrowed" : "tool_returned", transaction);
+      await conn.query(updateQuery, [transaction.id, step_number, code]);
+
+      if (step_number === 1) {
+        const transactionUpdateQuery = `
+          UPDATE transaction
+          SET borrowed_at = CURRENT_TIMESTAMP
+          WHERE id = $1
+        `;
+        await conn.query(transactionUpdateQuery, [transaction.id]);
+      } else if (step_number === 2) {
+        const transactionUpdateQuery = `
+          UPDATE transaction
+          SET returned_at = CURRENT_TIMESTAMP
+          WHERE id = $1
+        `;
+        await conn.query(transactionUpdateQuery, [transaction.id]);
+      }
+
+      return {
+        success: true,
+        message: "Code is valid"
+      };
+    } else {
+      return {
+        success: false,
+        message: "Invalid code"
+      };
+    }
+  } catch (error) {
+    console.error("[ERROR] Failed to check code:", error);
+    return {
+      success: false,
+      message: "An error occurred while checking the code"
     };
   }
 }

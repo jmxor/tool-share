@@ -1,77 +1,92 @@
+<<<<<<< HEAD
 import { getPublicUserData, getReviews, getUserByEmail, Review } from "@/lib/auth/actions";
 import { Post, PublicUser } from "@/lib/types";
+=======
+import {
+  getPublicUserData,
+  getReviews,
+  getUserByEmail,
+  Review,
+} from "@/lib/auth/actions";
+import { PublicUser } from "@/lib/types";
+>>>>>>> development
 import { UserRound, Flag } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import {
-	Dialog,
-	DialogContent,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog"
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import ReviewForm from "@/components/accounts/review-form";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import DeleteReviewButton from "@/components/accounts/delete-review-button";
+<<<<<<< HEAD
 import PostCard from "@/components/accounts/post-card";
+=======
+import PostCard from "@/components/post-card";
+import { AllToolPostData } from "@/lib/posts/actions";
+>>>>>>> development
 import SendMessageButton from "@/components/SendMessageComponent";
 
 export default async function ProfilePage({
-	params,
+  params,
 }: {
-	params: Promise<{ first_username: string }>
+  params: Promise<{ first_username: string }>;
 }) {
-	const session = await auth();
-	let loggedIn = false;
-	let loggedInFirstUsername: string | null = null;
+  const session = await auth();
+  let loggedIn = false;
+  let loggedInFirstUsername: string | null = null;
 
-	if (session?.user?.email) {
-		loggedIn = true;
-		const userData = await getUserByEmail(session.user.email);
-		if (userData) {
-			loggedInFirstUsername = userData?.first_username;
-		}
-	}
+  if (session?.user?.email) {
+    loggedIn = true;
+    const userData = await getUserByEmail(session.user.email);
+    if (userData) {
+      loggedInFirstUsername = userData?.first_username;
+    }
+  }
 
-	const first_username = (await params).first_username;
-	const publicUserData: PublicUser | null = await getPublicUserData(first_username);
+  const first_username = (await params).first_username;
+  const publicUserData: PublicUser | null =
+    await getPublicUserData(first_username);
 
-	if (!publicUserData) {
-		notFound();
-	}
+  if (!publicUserData) {
+    notFound();
+  }
 
-	const reviews: Review[] | null = await getReviews(first_username);
+  const reviews: Review[] | null = await getReviews(first_username);
 
-	// Move the logged-in user's review to the front
-	if (reviews && loggedInFirstUsername) {
-		const loggedInUserReviewIndex = reviews.findIndex(
-			(review) => review.reviewer_first_usename === loggedInFirstUsername
-		);
+  // Move the logged-in user's review to the front
+  if (reviews && loggedInFirstUsername) {
+    const loggedInUserReviewIndex = reviews.findIndex(
+      (review) => review.reviewer_first_usename === loggedInFirstUsername,
+    );
 
-		if (loggedInUserReviewIndex > -1) {
-			const loggedInUserReview = reviews.splice(loggedInUserReviewIndex, 1)[0];
-			reviews.unshift(loggedInUserReview);
-		}
-	}
-	const reviewed: boolean | undefined = reviews?.some(
-		(review) =>
-			review.reviewer_first_usename &&
-			loggedInFirstUsername &&
-			review.reviewer_first_usename === loggedInFirstUsername
-	);
+    if (loggedInUserReviewIndex > -1) {
+      const loggedInUserReview = reviews.splice(loggedInUserReviewIndex, 1)[0];
+      reviews.unshift(loggedInUserReview);
+    }
+  }
+  const reviewed: boolean | undefined = reviews?.some(
+    (review) =>
+      review.reviewer_first_usename &&
+      loggedInFirstUsername &&
+      review.reviewer_first_usename === loggedInFirstUsername,
+  );
 
-	let starCount: { [key: number]: number };
-	if (reviews && reviews.length > 0) {
-		starCount = reviews?.reduce((acc: { [key: number]: number }, review) => {
-			const stars = review.stars;
-			acc[stars] = (acc[stars] || 0) + 1;
-			return acc;
-		}, {});
-	} else {
-		starCount = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
-	}
+  let starCount: { [key: number]: number };
+  if (reviews && reviews.length > 0) {
+    starCount = reviews?.reduce((acc: { [key: number]: number }, review) => {
+      const stars = review.stars;
+      acc[stars] = (acc[stars] || 0) + 1;
+      return acc;
+    }, {});
+  } else {
+    starCount = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+  }
 
-	return (
-
+  return (
 		<div
 			className="flex flex-col lg:flex-row gap-4 md:gap-6 lg:gap-0 items-center md:items-center lg:items-stretch mt-10 mr-0 lg:mr-24"
 		>
@@ -191,16 +206,16 @@ export default async function ProfilePage({
 					<h2 className="text-xl">Tools Listed</h2>
 					<hr />
 					{publicUserData.posts.length > 0 ? (
-						<div className="flex flex-col items-center lg:flex-row overflow-x-auto gap-2 py-8">
-							{publicUserData.posts.map((post: Post) => (
-								<PostCard key={post.id} post={post} />
-							))}
-						</div>
-					) : (
-						<div className="flex items-center justify-center text-xl text-gray-400 py-10">
-							No Listings
-						</div>
-					)}
+            <div className="grid grid-cols-1 gap-2 overflow-x-auto py-8 lg:grid-cols-4 lg:grid-rows-1">
+              {publicUserData.posts.map((post: AllToolPostData) => (
+                <PostCard key={post.id} post={post} isHighlighted={false} loggedIn={loggedIn} />
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center py-10 text-xl text-gray-400">
+              No Listings
+            </div>
+          )}
 				</div>
 			</div>
 		</div>

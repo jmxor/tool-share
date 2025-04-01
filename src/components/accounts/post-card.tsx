@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { Post } from "@/lib/types";
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLinkIcon } from 'lucide-react';
 
 export default function PostCard({ post }: { post: Post }) {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -21,7 +21,7 @@ export default function PostCard({ post }: { post: Post }) {
     };
 
     return (
-        <div className="flex flex-col items-center p-4 border rounded-lg shadow-md min-w-56 w-full">
+        <div className="flex flex-col items-center p-4 border rounded-lg shadow-md min-w-56">
             <div className="relative w-full h-48">
                 {post.sources.length > 1 && (
                     <button
@@ -52,9 +52,9 @@ export default function PostCard({ post }: { post: Post }) {
             <p className="text-gray-600 text-sm overflow-auto h-10">{post.description}</p>
             <a
                 href={`/tool/${post.id}`}
-                className="mt-2 text-blue-500 hover:text-blue-700 transition-colors duration-200"
+                className="mt-2 text-blue-500 hover:text-blue-700 transition-colors duration-200 hover:underline"
             >
-                View Listing &rarr;
+                Go to Listing <ExternalLinkIcon className="w-4 h-4 inline-block" />
             </a>
         </div>
     );
