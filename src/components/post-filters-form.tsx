@@ -95,18 +95,24 @@ export default function PostFiltersForm({
                 <FormItem className="min-h-[84px]">
                   <FormLabel>Max Deposit (£)</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      type="number"
-                      step={0.01}
-                      value={postFiltersState.max_deposit}
-                      onChange={(e) =>
-                        setPostFiltersState((state) => ({
-                          ...state,
-                          max_deposit: parseFloat(e.target.value),
-                        }))
-                      }
-                    />
+                    <div className="flex">
+                      <div className="flex h-9 shrink-0 items-center justify-center rounded-md rounded-r-none border border-r-0 border-input px-3 shadow-sm">
+                        £
+                      </div>
+                      <Input
+                        {...field}
+                        type="number"
+                        step={0.01}
+                        className="rounded-l-none"
+                        value={postFiltersState.max_deposit}
+                        onChange={(e) =>
+                          setPostFiltersState((state) => ({
+                            ...state,
+                            max_deposit: parseFloat(e.target.value),
+                          }))
+                        }
+                      />
+                    </div>
                   </FormControl>
                   {/* <FormMessage>{state.errors?.name}</FormMessage> */}
                 </FormItem>
@@ -120,17 +126,24 @@ export default function PostFiltersForm({
                 <FormItem className="min-h-[84px]">
                   <FormLabel>Minimum Borrow Time (Days)</FormLabel>
                   <FormControl>
-                    <Input
-                      {...field}
-                      type="number"
-                      value={postFiltersState.min_borrow_days}
-                      onChange={(e) =>
-                        setPostFiltersState((state) => ({
-                          ...state,
-                          min_borrow_days: parseFloat(e.target.value),
-                        }))
-                      }
-                    />
+                    <div className="flex">
+                      <Input
+                        {...field}
+                        type="number"
+                        value={postFiltersState.min_borrow_days}
+                        className="rounded-r-none"
+                        onChange={(e) =>
+                          setPostFiltersState((state) => ({
+                            ...state,
+                            min_borrow_days: parseFloat(e.target.value),
+                          }))
+                        }
+                      />
+
+                      <div className="flex h-9 shrink-0 items-center justify-center rounded-md rounded-l-none border border-l-0 border-input px-3 shadow-sm">
+                        days
+                      </div>
+                    </div>
                   </FormControl>
                   {/* <FormMessage>{state.errors?.name}</FormMessage> */}
                 </FormItem>
