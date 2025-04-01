@@ -199,7 +199,7 @@ export default async function ProfilePage({
 					{publicUserData.posts.length > 0 ? (
             <div className="grid grid-cols-1 gap-2 overflow-x-auto py-8 lg:grid-cols-4 lg:grid-rows-1">
               {publicUserData.posts.map((post: AllToolPostData) => (
-                <PostCard key={post.id} post={post} isHighlighted={false} />
+                <PostCard key={post.id} post={post} isHighlighted={false} loggedIn={loggedIn} />
               ))}
             </div>
           ) : (
