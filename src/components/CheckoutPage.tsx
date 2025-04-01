@@ -8,7 +8,7 @@ import {
 } from "@stripe/react-stripe-js";
 import convertToSubcurrency from "@/lib/convertToSubcurrency";
 
-const CheckoutPage = ({ amount }: { amount: number }) => {
+const CheckoutPage = ({ amount, transaction_id }: { amount: number, transaction_id: number }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [errorMessage, setErrorMessage] = useState<string>();
@@ -47,7 +47,7 @@ const CheckoutPage = ({ amount }: { amount: number }) => {
       elements,
       clientSecret,
       confirmParams: {
-        return_url: `http://www.localhost:3000/payment/payment-success?amount=${amount}`,
+        return_url: `http://www.localhost:3000/payment/payment-success/?amount=${amount}&transaction_id=${transaction_id}`,
       },
     });
 

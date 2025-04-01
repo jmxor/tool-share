@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { getEmailID } from "@/lib/auth/actions";
-import { getTransactionDetails } from "@/lib/transactions/actions";
+import { completeStep, getTransactionDetails } from "@/lib/transactions/actions";
 import { redirect } from "next/navigation";
 import { format } from "date-fns";
 import TransactionTimeline from "@/components/transactions/timeline";
@@ -31,8 +31,9 @@ export default async function TransactionPage({
   const userID = await getEmailID(session.user.email);
   if (!userID) redirect("/auth/login");
 
+  const paramValues = await params;
   const { success, transaction } = await getTransactionDetails(
-    parseInt((await params).transaction_id)
+    parseInt(paramValues.transaction_id)
   );
 
   if (!success || !transaction) redirect("/transactions");
