@@ -93,7 +93,7 @@ export default function PostFiltersForm({
               name="max_deposit"
               render={({ field }) => (
                 <FormItem className="min-h-[84px]">
-                  <FormLabel>Max Deposit (£)</FormLabel>
+                  <FormLabel>Max Deposit</FormLabel>
                   <FormControl>
                     <div className="flex">
                       <div className="flex h-9 shrink-0 items-center justify-center rounded-md rounded-r-none border border-r-0 border-input px-3 shadow-sm">
@@ -124,7 +124,7 @@ export default function PostFiltersForm({
               name="min_borrow_days"
               render={({ field }) => (
                 <FormItem className="min-h-[84px]">
-                  <FormLabel>Minimum Borrow Time (Days)</FormLabel>
+                  <FormLabel>Minimum Borrow Time</FormLabel>
                   <FormControl>
                     <div className="flex">
                       <Input
