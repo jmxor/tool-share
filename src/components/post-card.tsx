@@ -15,14 +15,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import PostImageCarousel from "./posts/post-image-carousel";
+import Link from "next/link";
 
 type PostCardProps = {
   post: AllToolPostData;
   isHighlighted: boolean;
+  loggedIn: boolean;
 };
 
 const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
-  ({ post, isHighlighted }, ref) => {
+  ({ post, isHighlighted, loggedIn }, ref) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [requestedDays, setRequestedDays] = useState(1);
@@ -101,9 +103,14 @@ const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
             {/* TODO: change button content to Edit if current user is owner */}
             <a href={`/tools/${post.id}`}>Details</a>
           </Button>
-          <Button className="w-full" size="sm" onClick={handleBorrowClick}>
-            {post.status === "available" ? "Borrow" : "Join Queue"}
-          </Button>
+          { loggedIn ? 
+            <Button className="w-full" size="sm" onClick={handleBorrowClick}>
+              { post.status === "available" ? "Borrow" : "Join Queue"}
+            </Button> :
+            <Button asChild size="sm" className="w-full bg-blue-600">
+              <Link href="/auth/login">Login to Borrow</Link>
+            </Button>
+          }
         </div>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
