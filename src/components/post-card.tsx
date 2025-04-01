@@ -22,10 +22,11 @@ type PostCardProps = {
   post: AllToolPostData;
   isHighlighted: boolean;
   loggedIn: boolean;
+  currentUserId: null | number;
 };
 
 const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
-  ({ post, isHighlighted, loggedIn }, ref) => {
+  ({ post, isHighlighted, loggedIn, currentUserId }, ref) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [requestedDays, setRequestedDays] = useState(1);
@@ -77,7 +78,6 @@ const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
         });
       }
     };
-
     return (
       <div
         className={`col-span-1 flex flex-col rounded-lg border shadow-md ${isHighlighted ? "border-black" : "hover:border-black"}`}
@@ -112,10 +112,18 @@ const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
           </p>
         </div>
         <div className="flex gap-2 px-2 pb-2">
-          <Button className="w-full" size="sm" asChild>
-            {/* TODO: change button content to Edit if current user is owner */}
-            <a href={`/tools/${post.id}`}>Details</a>
-          </Button>
+          {currentUserId && currentUserId == post.user_id ? (
+            <Button className="w-full bg-amber-400" size="sm" asChild>
+              {/* TODO: change button content to Edit if current user is owner */}
+              <a href={`/tools/${post.id}/edit`}>Edit</a>
+            </Button>
+          ) : (
+            <Button className="w-full" size="sm" asChild>
+              {/* TODO: change button content to Edit if current user is owner */}
+              <a href={`/tools/${post.id}`}>Details</a>
+            </Button>
+          )}
+
           {loggedIn ? (
             <Button className="w-full" size="sm" onClick={handleBorrowClick}>
               {post.status === "available" ? "Borrow" : "Join Queue"}

@@ -36,8 +36,12 @@ export type PostFilterState = {
 
 export default function ToolsPageContent({
   tools,
+  loggedIn,
+  currentUserId,
 }: {
   tools: AllToolPostData[];
+  loggedIn: boolean;
+  currentUserId: number | null;
 }) {
   const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string;
 
@@ -104,6 +108,8 @@ export default function ToolsPageContent({
                     key={post.id}
                     post={post}
                     isHighlighted={post.id == selectedPostId}
+                    loggedIn={loggedIn}
+                    currentUserId={currentUserId}
                     ref={(element) => {
                       postRefs.current[post.id] = element;
                     }}
