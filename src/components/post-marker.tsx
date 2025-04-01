@@ -28,7 +28,7 @@ export default function PostMarker(props: PostMarkerProps) {
   const ref = useCallback(
     (marker: google.maps.marker.AdvancedMarkerElement) =>
       setMarkerRef(marker, post.id),
-    [setMarkerRef, post.id],
+    [setMarkerRef, post.id]
   );
 
   return (
@@ -42,7 +42,7 @@ export default function PostMarker(props: PostMarkerProps) {
       title={post.tool_name}
       zIndex={isHovered ? 50 : 0}
     >
-      <div className="group flex size-12 items-center overflow-clip rounded-full border-2 border-black bg-white hover:h-16 hover:w-auto hover:p-2 hover:pl-0">
+      <div className="group flex size-12 items-center overflow-clip rounded-full border-2 border-black bg-white hover:h-20 hover:w-auto hover:p-2">
         <div className="size-12 overflow-clip rounded-full group-hover:size-16">
           <Image
             src={post.pictures[0]}
@@ -56,7 +56,7 @@ export default function PostMarker(props: PostMarkerProps) {
           <h3 className="truncate text-lg font-semibold capitalize">
             {post.tool_name}
           </h3>
-          <span className="text-sm">{post.deposit} deposit</span>
+          <span className="text-sm">£{post.deposit} deposit</span>
         </div>
       </div>
     </AdvancedMarker>
