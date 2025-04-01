@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-import { getPublicUserData, getReviews, getUserByEmail, Review } from "@/lib/auth/actions";
-import { Post, PublicUser } from "@/lib/types";
-=======
 import {
   getPublicUserData,
   getReviews,
@@ -9,7 +5,6 @@ import {
   Review,
 } from "@/lib/auth/actions";
 import { PublicUser } from "@/lib/types";
->>>>>>> development
 import { UserRound, Flag } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import {
@@ -22,12 +17,8 @@ import ReviewForm from "@/components/accounts/review-form";
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import DeleteReviewButton from "@/components/accounts/delete-review-button";
-<<<<<<< HEAD
-import PostCard from "@/components/accounts/post-card";
-=======
 import PostCard from "@/components/post-card";
 import { AllToolPostData } from "@/lib/posts/actions";
->>>>>>> development
 import SendMessageButton from "@/components/SendMessageComponent";
 
 export default async function ProfilePage({
