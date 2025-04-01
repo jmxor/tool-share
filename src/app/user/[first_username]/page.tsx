@@ -1,4 +1,5 @@
 import {
+  getEmailID,
   getPublicUserData,
   getReviews,
   getUserByEmail,
@@ -29,9 +30,12 @@ export default async function ProfilePage({
   const session = await auth();
   let loggedIn = false;
   let loggedInFirstUsername: string | null = null;
+  let currentUserId: number | null = null;
 
   if (session?.user?.email) {
     loggedIn = true;
+    currentUserId = await getEmailID(session.user.email);
+
     const userData = await getUserByEmail(session.user.email);
     if (userData) {
       loggedInFirstUsername = userData?.first_username;
@@ -51,7 +55,7 @@ export default async function ProfilePage({
   // Move the logged-in user's review to the front
   if (reviews && loggedInFirstUsername) {
     const loggedInUserReviewIndex = reviews.findIndex(
-      (review) => review.reviewer_first_usename === loggedInFirstUsername,
+      (review) => review.reviewer_first_usename === loggedInFirstUsername
     );
 
     if (loggedInUserReviewIndex > -1) {
@@ -63,7 +67,7 @@ export default async function ProfilePage({
     (review) =>
       review.reviewer_first_usename &&
       loggedInFirstUsername &&
-      review.reviewer_first_usename === loggedInFirstUsername,
+      review.reviewer_first_usename === loggedInFirstUsername
   );
 
   let starCount: { [key: number]: number };
@@ -78,128 +82,142 @@ export default async function ProfilePage({
   }
 
   return (
-		<div
-			className="flex flex-col lg:flex-row gap-4 md:gap-6 lg:gap-0 items-center md:items-center lg:items-stretch mt-10 mr-0 lg:mr-24"
-		>
-			<div
-				className="flex flex-col gap-4 min-w-64 w-1/5 items-center"
-			>
-				<UserRound width="6rem" height="6rem" color="#333333" className="p-4 border-4 rounded-full border-neutral-200" />
-				<p className="font-semibold text-lg">{first_username === loggedInFirstUsername ? `YOU (${publicUserData.username})` : publicUserData.username}</p>
-				<div className="flex flex-col gap-2">
-					<p className="text-sm">
-						Joined <span>{formatDate(publicUserData.created_at)}</span>
-					</p>
-					<p className="text-sm"><span className="font-bold">5</span> transactions</p>
-				</div>
-				<div className="flex flex-col gap-1 items-center">
-					{first_username !== loggedInFirstUsername ? <>
-						<SendMessageButton email={session?.user!.email as string} first_username={first_username} />
-						<a
-							href={`/reports/new/${first_username}`}
-							className="px-4 py-1 font-semibold text-red-400 hover:cursor-pointer hover:underline flex items-center gap-1 bg-transparent rounded-none shadow-none hover:bg-transparent"
-						>
-							Report<Flag className="w-4 h-4" />
-						</a>
-					</>
-						: ''}
-				</div>
-			</div>
-			<div
-				className="flex flex-col bg-white flex-grow shadow-lg overflow-hidden w-4/5"
-			>
-				<div
-					className="flex flex-col md:flex-row items-center"
-				>
-					<div
-						className="flex flex-col gap-2 py-6 px-16 min-w-60 items-center"
-					>
-						<p className="text-neutral-700 text-lg mb-2"><span className="">{reviews?.length || 0}</span> user reviews</p>
-						<div
-							className="flex flex-col"
-						>
-							{[5, 4, 3, 2, 1].map((numStars) => (
-								<p
-									key={numStars}
-									className="text-neutral-600 text-sm"
-								>
-									<span className="font-semibold">
-										{(reviews?.length || 0) > 0
-											? Math.round((starCount[numStars] || 0) / (reviews?.length || 0) * 100)
-											: 0}
-										%
-									</span>
-									{" "}
-									{"☆".repeat(numStars)}
-								</p>
-							))}
-						</div>
-						{loggedIn ? (
-							reviewed ? (
-								<DeleteReviewButton first_username={first_username} />
-							) : (
-								<Dialog>
-									<DialogTrigger
-										disabled={first_username === loggedInFirstUsername}
-										className="disabled:bg-neutral-50 disabled:text-gray-400 mt-2 text-xs bg-gray-50 shadow-md font-semibold text-gray-700 hover:bg-gray-100 px-4 py-2 rounded-none"
-									>
-										Write review
-									</DialogTrigger>
-									<DialogContent>
-										<DialogTitle>Write a review</DialogTitle>
-										<ReviewForm first_username={first_username} />
-									</DialogContent>
-								</Dialog>
-							)
-						) : (
-							<a
-								className="mt-2 text-xs bg-gray-50 shadow-md font-semibold text-gray-700 px-4 py-2 hover:bg-gray-100 rounded-none"
-								href="/auth/login"
-							>
-								Login to Review
-							</a>
-						)}
-					</div>
-					<div className="max-h-64 overflow-auto">
-						<div
-							className="flex flex-col md:flex-row gap-2 items-center min-w-64 my-2"
-						>
-							{reviews?.map((review) => (
-								<div
-									key={review.id}
-									className="w-64 md:w-80 h-52 p-4 overflow-hidden min-w-64 border-neutral-50 border-2 rounded-lg"
-								>
-									<a
-										href={`/user/${review.reviewer_first_usename}`}
-										className="font-semibold text-sm truncate hover:underline"
-									>
-										{review.reviewer_username === loggedInFirstUsername ? (
-											<span className="text-blue-500">YOU</span>
-										) : (
-											review.reviewer_username
-										)}
-									</a>
-									<p className="text-sm font-bold">
-										<span className="text-yellow-500">{'☆'.repeat(review.stars)}</span>
-										<span className="text-gray-300">{'☆'.repeat(5 - review.stars)}</span>
-									</p>
-									<div
-										className="overflow-auto break-words h-4/5 mt-2"
-									>
-										{review.text}
-									</div>
-								</div>
-							))}
-						</div>
-					</div>
-				</div>
-				<div className="px-14 mt-8">
-					<h2 className="text-xl">Tools Listed</h2>
-					<hr />
-					{publicUserData.posts.length > 0 ? (
-            <div className="grid grid-cols-1 gap-2 overflow-x-auto py-8 lg:grid-cols-4 lg:grid-rows-1">
+    <div className="mr-0 mt-10 flex flex-col items-center gap-4 md:items-center md:gap-6 lg:mr-24 lg:flex-row lg:items-stretch lg:gap-0">
+      <div className="flex w-1/5 min-w-64 flex-col items-center gap-4">
+        <UserRound
+          width="6rem"
+          height="6rem"
+          color="#333333"
+          className="rounded-full border-4 border-neutral-200 p-4"
+        />
+        <p className="text-lg font-semibold">
+          {first_username === loggedInFirstUsername
+            ? `YOU (${publicUserData.username})`
+            : publicUserData.username}
+        </p>
+        <div className="flex flex-col gap-2">
+          <p className="text-sm">
+            Joined <span>{formatDate(publicUserData.created_at)}</span>
+          </p>
+          <p className="text-sm">
+            <span className="font-bold">5</span> transactions
+          </p>
+        </div>
+        <div className="flex flex-col items-center gap-1">
+          {first_username !== loggedInFirstUsername ? (
+            <>
+              <SendMessageButton
+                email={session?.user!.email as string}
+                first_username={first_username}
+              />
+              <a
+                href={`/reports/new/${first_username}`}
+                className="flex items-center gap-1 rounded-none bg-transparent px-4 py-1 font-semibold text-red-400 shadow-none hover:cursor-pointer hover:bg-transparent hover:underline"
+              >
+                Report
+                <Flag className="h-4 w-4" />
+              </a>
+            </>
+          ) : (
+            ""
+          )}
+        </div>
+      </div>
+      <div className="flex w-4/5 flex-grow flex-col overflow-hidden bg-white shadow-lg">
+        <div className="flex flex-col items-center md:flex-row">
+          <div className="flex min-w-60 flex-col items-center gap-2 px-16 py-6">
+            <p className="mb-2 text-lg text-neutral-700">
+              <span className="">{reviews?.length || 0}</span> user reviews
+            </p>
+            <div className="flex flex-col">
+              {[5, 4, 3, 2, 1].map((numStars) => (
+                <p key={numStars} className="text-sm text-neutral-600">
+                  <span className="font-semibold">
+                    {(reviews?.length || 0) > 0
+                      ? Math.round(
+                          ((starCount[numStars] || 0) /
+                            (reviews?.length || 0)) *
+                            100
+                        )
+                      : 0}
+                    %
+                  </span>{" "}
+                  {"☆".repeat(numStars)}
+                </p>
+              ))}
+            </div>
+            {loggedIn ? (
+              reviewed ? (
+                <DeleteReviewButton first_username={first_username} />
+              ) : (
+                <Dialog>
+                  <DialogTrigger
+                    disabled={first_username === loggedInFirstUsername}
+                    className="mt-2 rounded-none bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-700 shadow-md hover:bg-gray-100 disabled:bg-neutral-50 disabled:text-gray-400"
+                  >
+                    Write review
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogTitle>Write a review</DialogTitle>
+                    <ReviewForm first_username={first_username} />
+                  </DialogContent>
+                </Dialog>
+              )
+            ) : (
+              <a
+                className="mt-2 rounded-none bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-700 shadow-md hover:bg-gray-100"
+                href="/auth/login"
+              >
+                Login to Review
+              </a>
+            )}
+          </div>
+          <div className="max-h-64 overflow-auto">
+            <div className="my-2 flex min-w-64 flex-col items-center gap-2 md:flex-row">
+              {reviews?.map((review) => (
+                <div
+                  key={review.id}
+                  className="h-52 w-64 min-w-64 overflow-hidden rounded-lg border-2 border-neutral-50 p-4 md:w-80"
+                >
+                  <a
+                    href={`/user/${review.reviewer_first_usename}`}
+                    className="truncate text-sm font-semibold hover:underline"
+                  >
+                    {review.reviewer_username === loggedInFirstUsername ? (
+                      <span className="text-blue-500">YOU</span>
+                    ) : (
+                      review.reviewer_username
+                    )}
+                  </a>
+                  <p className="text-sm font-bold">
+                    <span className="text-yellow-500">
+                      {"☆".repeat(review.stars)}
+                    </span>
+                    <span className="text-gray-300">
+                      {"☆".repeat(5 - review.stars)}
+                    </span>
+                  </p>
+                  <div className="mt-2 h-4/5 overflow-auto break-words">
+                    {review.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="mt-8 px-2 lg:px-14">
+          <h2 className="text-xl">Tools Listed</h2>
+          <hr />
+          {publicUserData.posts.length > 0 ? (
+            <div className="grid grid-cols-1 gap-2 overflow-x-auto py-8 lg:grid-cols-3 lg:grid-rows-1">
               {publicUserData.posts.map((post: AllToolPostData) => (
-                <PostCard key={post.id} post={post} isHighlighted={false} loggedIn={loggedIn} />
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  isHighlighted={false}
+                  loggedIn={loggedIn}
+                  currentUserId={currentUserId}
+                />
               ))}
             </div>
           ) : (
@@ -207,8 +225,8 @@ export default async function ProfilePage({
               No Listings
             </div>
           )}
-				</div>
-			</div>
-		</div>
-	);
+        </div>
+      </div>
+    </div>
+  );
 }

@@ -1,8 +1,20 @@
+import { auth } from "@/auth";
 import ToolsPageContent from "@/components/tools-page-content";
+import { getEmailID } from "@/lib/auth/actions";
 import { getTools } from "@/lib/posts/actions";
 
 export default async function ToolsPage() {
+  const session = await auth();
+  let loggedIn = false;
+  let currentUserId: number | null = null;
+
+  if (session?.user?.email) {
+    loggedIn = true;
+    currentUserId = await getEmailID(session.user.email);
+  }
+
   let tools = await getTools();
+
   if (!tools) {
     tools = [];
   }
@@ -31,5 +43,11 @@ export default async function ToolsPage() {
     prevLocationId = tool.location_id;
   }
 
-  return <ToolsPageContent tools={tools} />;
+  return (
+    <ToolsPageContent
+      tools={tools}
+      loggedIn={loggedIn}
+      currentUserId={currentUserId}
+    />
+  );
 }

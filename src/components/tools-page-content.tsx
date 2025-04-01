@@ -24,7 +24,7 @@ interface PostsContextType {
 
 export const PostsContext = createContext<PostsContextType>({
   selectedPostId: null,
-  setSelectedPostId: () => { },
+  setSelectedPostId: () => {},
 });
 
 export type PostFilterState = {
@@ -36,8 +36,12 @@ export type PostFilterState = {
 
 export default function ToolsPageContent({
   tools,
+  loggedIn,
+  currentUserId,
 }: {
   tools: AllToolPostData[];
+  loggedIn: boolean;
+  currentUserId: number | null;
 }) {
   const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string;
 
@@ -64,8 +68,8 @@ export default function ToolsPageContent({
             parseFloat(post.deposit) <= postFiltersState.max_deposit) &&
           post.postcode
             .toLowerCase()
-            .includes(postFiltersState.location.toLowerCase()),
-      ),
+            .includes(postFiltersState.location.toLowerCase())
+      )
     );
   }, [tools, postFiltersState]);
 
@@ -98,13 +102,17 @@ export default function ToolsPageContent({
             </div>
 
             <ScrollArea className="col-span-2 lg:col-span-1 lg:max-h-[calc(100vh-124px)]">
-              <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
                 {filteredPosts.map((post) => (
                   <PostCard
                     key={post.id}
                     post={post}
                     isHighlighted={post.id == selectedPostId}
-                    ref={(element) => { (postRefs.current[post.id] = element) }}
+                    loggedIn={loggedIn}
+                    currentUserId={currentUserId}
+                    ref={(element) => {
+                      postRefs.current[post.id] = element;
+                    }}
                   />
                 ))}
               </div>
