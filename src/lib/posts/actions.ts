@@ -198,7 +198,7 @@ export type ToolPost = {
   user_id: number;
   tool_name: string;
   description: string;
-  deposit: string;
+  deposit: number;
   max_borrow_days: number;
   location_id: number;
   status: string;

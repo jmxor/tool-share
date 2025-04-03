@@ -1,4 +1,5 @@
-import { getToolById } from "@/lib/posts/actions";
+import EditPostForm from "@/components/posts/edit-post-form";
+import { getCategories, getToolById } from "@/lib/posts/actions";
 import { notFound } from "next/navigation";
 
 export default async function PostEditPage({
@@ -11,5 +12,14 @@ export default async function PostEditPage({
     notFound();
   }
 
-  return <h1>{post.tool_name}</h1>;
+  let categories = await getCategories();
+  if (!categories) {
+    categories = [];
+  }
+
+  return (
+    <div className="mb-auto flex w-full flex-1 justify-center bg-gray-50 px-4">
+      <EditPostForm post={post} categories={categories} />
+    </div>
+  );
 }
