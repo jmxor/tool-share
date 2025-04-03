@@ -101,9 +101,11 @@ const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
             <span className="text-sm">{post.postcode}</span>
             <span className="text-sm">£{post.deposit} deposit</span>
             {post.status == "available" ? (
-              <Badge className="bg-green-500">Available</Badge>
+              <Badge className="bg-green-500 hover:bg-green-400">
+                Available
+              </Badge>
             ) : (
-              <Badge className="bg-amber-400">On Loan</Badge>
+              <Badge className="bg-amber-400 hover:bg-amber-300">On Loan</Badge>
             )}
           </div>
 
@@ -113,7 +115,11 @@ const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
         </div>
         <div className="flex gap-2 px-2 pb-2">
           {currentUserId && currentUserId == post.user_id ? (
-            <Button className="w-full bg-amber-400" size="sm" asChild>
+            <Button
+              className="w-full bg-amber-400 hover:bg-amber-300"
+              size="sm"
+              asChild
+            >
               {/* TODO: change button content to Edit if current user is owner */}
               <a href={`/tools/${post.id}/edit`}>Edit</a>
             </Button>
@@ -129,7 +135,11 @@ const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
               {post.status === "available" ? "Borrow" : "Join Queue"}
             </Button>
           ) : (
-            <Button asChild size="sm" className="w-full bg-blue-600">
+            <Button
+              asChild
+              size="sm"
+              className="w-full bg-blue-600 hover:bg-blue-500"
+            >
               <Link href="/auth/login">Login to Borrow</Link>
             </Button>
           )}
