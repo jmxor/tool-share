@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils";
 import { CreateToolFormSchema } from "@/lib/zod";
 import { UploadDropzone } from "@/utils/uploadthing";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, X } from "lucide-react";
 import Image from "next/image";
 import { useActionState, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -53,7 +53,7 @@ export default function NewToolForm({
   };
   const [state, formAction, isPending] = useActionState(
     createTool,
-    initialState,
+    initialState
   );
   const form = useForm<z.output<typeof CreateToolFormSchema>>({
     resolver: zodResolver(CreateToolFormSchema),
@@ -76,13 +76,13 @@ export default function NewToolForm({
 
   const handlePrevImage = () => {
     setCurrentImageIndex((prevIndex) =>
-      prevIndex > 0 ? prevIndex - 1 : form.getValues("image_urls").length,
+      prevIndex > 0 ? prevIndex - 1 : form.getValues("image_urls").length
     );
   };
 
   const handleNextImage = () => {
     setCurrentImageIndex((prevIndex) =>
-      prevIndex < form.getValues("image_urls").length ? prevIndex + 1 : 0,
+      prevIndex < form.getValues("image_urls").length ? prevIndex + 1 : 0
     );
   };
 
@@ -122,11 +122,24 @@ export default function NewToolForm({
                     {form.watch("image_urls").map((image_url) => (
                       <div
                         key={image_url}
-                        className="mt-0 aspect-square w-full shrink-0 overflow-clip rounded-md"
+                        className="relative mt-0 aspect-square w-full shrink-0 overflow-clip rounded-md"
                         style={{
                           transform: `translate(-${currentImageIndex * 100}%)`,
                         }}
                       >
+                        <button
+                          onClick={() =>
+                            form.setValue(
+                              "image_urls",
+                              form
+                                .getValues("image_urls")
+                                .filter((url) => url != image_url)
+                            )
+                          }
+                          className="absolute right-2 top-2 z-50 transform rounded-full bg-gray-200 p-1 opacity-75 hover:opacity-100"
+                        >
+                          <X />
+                        </button>
                         <Image
                           src={image_url}
                           alt={"Tool Image"}
@@ -193,7 +206,7 @@ export default function NewToolForm({
                           role="combobox"
                           className={cn(
                             "relative flex h-auto w-full flex-wrap justify-start pr-8",
-                            !field.value && "text-muted-foreground",
+                            !field.value && "text-muted-foreground"
                           )}
                         >
                           {field.value.length > 0
@@ -201,7 +214,7 @@ export default function NewToolForm({
                                 <Badge key={c1}>
                                   {
                                     categories.find(
-                                      (c2) => c1 == c2.id.toString(),
+                                      (c2) => c1 == c2.id.toString()
                                     )?.name
                                   }
                                 </Badge>
@@ -229,7 +242,7 @@ export default function NewToolForm({
                               >
                                 <Checkbox
                                   checked={field.value.includes(
-                                    category.id.toString(),
+                                    category.id.toString()
                                   )}
                                   onCheckedChange={(checked) => {
                                     if (checked) {
@@ -244,8 +257,8 @@ export default function NewToolForm({
                                         "categories",
                                         field.value.filter(
                                           (cat) =>
-                                            cat !== category.id.toString(),
-                                        ),
+                                            cat !== category.id.toString()
+                                        )
                                       );
                                     }
                                   }}
