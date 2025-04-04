@@ -135,6 +135,7 @@ export default function EditPostForm({
                   <div className="relative flex w-full overflow-clip">
                     {form.getValues("image_urls").length > 1 && (
                       <button
+                        type="button"
                         onClick={handlePrevImage}
                         className="absolute left-2 top-1/2 z-50 -translate-y-1/2 transform rounded-full bg-gray-200 p-1 opacity-75 hover:opacity-100"
                       >
@@ -201,6 +202,7 @@ export default function EditPostForm({
 
                     {form.getValues("image_urls").length > 1 && (
                       <button
+                        type="button"
                         onClick={handleNextImage}
                         className="absolute right-2 top-1/2 -translate-y-1/2 transform rounded-full bg-gray-200 p-1 opacity-75 hover:opacity-100"
                       >

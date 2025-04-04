@@ -66,6 +66,17 @@ export async function createPostImage(
   }
 }
 
+export async function deletePostImage(post_id: number, image_url: string) {
+  try {
+    const conn = await getConnection();
+    const query = `DELETE FROM post_picture WHERE source = $1 AND post_id = $2`;
+    await conn.query(query, [image_url, post_id]);
+  } catch (e) {
+    console.error("[ERROR] Failed to delete post image", e);
+    return null;
+  }
+}
+
 // TODO: maybe not necessary
 export async function getPostImagesFromPostId(
   post_id: string
@@ -108,6 +119,17 @@ export async function createPostCategory(
     }
   } catch (e) {
     console.error("[ERROR] Failed to create post category", e);
+    return null;
+  }
+}
+
+export async function deletePostCategory(post_id: number, category_id: number) {
+  try {
+    const conn = await getConnection();
+    const query = `DELETE FROM post_category WHERE category_id = $1 AND  post_id = $2`;
+    await conn.query(query, [category_id, post_id]);
+  } catch (e) {
+    console.error("[ERROR] Failed to delete post category", e);
     return null;
   }
 }
@@ -394,6 +416,12 @@ export async function updateTool(
   // GET CURRENT USER
   try {
     const original_post = await getToolById(validatedFields.data.tool_id);
+    if (!original_post) {
+      return {
+        message: "Failed to fetch original tool data",
+        fields: validatedFields.data,
+      };
+    }
 
     let location = await getLocationIdFromPostcode(
       validatedFields.data.location
@@ -411,12 +439,20 @@ export async function updateTool(
       }
     }
 
+    const categories = await getCategories();
+    if (!categories) {
+      return {
+        message: "Failed to create get categories from database",
+        fields: validatedFields.data,
+      };
+    }
+
     // CREATE POST TABLE ENTRY
     const conn = await getConnection();
     const insertPostQuery = `
         UPDATE post SET tool_name = $1, description = $2, deposit = $3, max_borrow_days = $4, location_id = $5 WHERE id = $6
     `;
-    const result = await conn.query(insertPostQuery, [
+    await conn.query(insertPostQuery, [
       validatedFields.data.name,
       validatedFields.data.description,
       validatedFields.data.deposit,
@@ -425,17 +461,44 @@ export async function updateTool(
       original_post?.id,
     ]);
 
-    // const categories_to_remove = original_post?.categories.filter(c => !validatedFields.data.categories.includes(c))
+    // calculate any changed categories
+    const original_categories = original_post.categories.map(
+      (c1) => categories.find((c2) => c2.name == c1)?.id.toString() as string
+    );
+    const categories_to_remove = original_categories.filter(
+      (c) => !validatedFields.data.categories.includes(c)
+    );
+    const categories_to_add = validatedFields.data.categories.filter(
+      (c) => !original_categories.includes(c)
+    );
 
-    // // CREATE POST CATEGORY LINKS
-    // for (const category_id of validatedFields.data.categories) {
-    //   await createPostCategory(result.rows[0].id, parseInt(category_id));
-    // }
+    // DELETE OLD POST CATEGORY LINKS
+    for (const category_id of categories_to_remove) {
+      await deletePostCategory(original_post.id, parseInt(category_id));
+    }
 
-    // // CREATE POST IMAGE LINKS
-    // for (const image_url of validatedFields.data.image_urls) {
-    //   await createPostImage(result.rows[0].id, image_url);
-    // }
+    // CREATE POST CATEGORY LINKS
+    for (const category_id of categories_to_add) {
+      await createPostCategory(original_post.id, parseInt(category_id));
+    }
+
+    // calculate changed images
+    const images_to_remove = original_post.pictures.filter(
+      (c) => !validatedFields.data.image_urls.includes(c)
+    );
+    const images_to_add = validatedFields.data.image_urls.filter(
+      (c) => !original_post.pictures.includes(c)
+    );
+
+    // CREATE POST IMAGE LINKS
+    for (const image_url of images_to_remove) {
+      await deletePostImage(original_post.id, image_url);
+    }
+
+    // CREATE POST IMAGE LINKS
+    for (const image_url of images_to_add) {
+      await createPostImage(original_post.id, image_url);
+    }
   } catch (error) {
     console.error("[ERROR] Failed to create Tool:", error);
     return {
