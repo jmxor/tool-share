@@ -3,7 +3,7 @@
 import { auth } from "@/auth";
 import { getUserRowFromEmail } from "@/lib/auth/actions";
 import { getConnection } from "@/lib/db";
-import { CreateToolFormSchema } from "@/lib/zod";
+import { CreateToolFormSchema, UpdateToolFormSchema } from "@/lib/zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -361,6 +361,81 @@ export async function createTool(
     for (const image_url of validatedFields.data.image_urls) {
       await createPostImage(result.rows[0].id, image_url);
     }
+  } catch (error) {
+    console.error("[ERROR] Failed to create Tool:", error);
+    return {
+      message: "Database Error: Failed to create Tool.",
+      fields: validatedFields.data,
+    };
+  }
+
+  revalidatePath("/tools");
+  redirect("/tools");
+}
+
+export async function updateTool(
+  prevState: PostFormState,
+  formData: FormData
+): Promise<PostFormState> {
+  const data = {
+    ...Object.fromEntries(formData),
+    images: formData.getAll("images"),
+  };
+  // VALIDATE FORM DATA
+  const validatedFields = UpdateToolFormSchema.safeParse(data);
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error?.flatten().fieldErrors,
+      message: "Missing fields, failed to create Tool.",
+      fields: validatedFields.data,
+    };
+  }
+
+  // GET CURRENT USER
+  try {
+    const original_post = await getToolById(validatedFields.data.tool_id);
+
+    let location = await getLocationIdFromPostcode(
+      validatedFields.data.location
+    );
+    if (!location) {
+      location = await createLocationFromPostcode(
+        validatedFields.data.location
+      );
+
+      if (!location) {
+        return {
+          message: "Failed to create location from Postcode",
+          fields: validatedFields.data,
+        };
+      }
+    }
+
+    // CREATE POST TABLE ENTRY
+    const conn = await getConnection();
+    const insertPostQuery = `
+        UPDATE post SET tool_name = $1, description = $2, deposit = $3, max_borrow_days = $4, location_id = $5 WHERE id = $6
+    `;
+    const result = await conn.query(insertPostQuery, [
+      validatedFields.data.name,
+      validatedFields.data.description,
+      validatedFields.data.deposit,
+      validatedFields.data.max_borrow_days,
+      location.id,
+      original_post?.id,
+    ]);
+
+    // const categories_to_remove = original_post?.categories.filter(c => !validatedFields.data.categories.includes(c))
+
+    // // CREATE POST CATEGORY LINKS
+    // for (const category_id of validatedFields.data.categories) {
+    //   await createPostCategory(result.rows[0].id, parseInt(category_id));
+    // }
+
+    // // CREATE POST IMAGE LINKS
+    // for (const image_url of validatedFields.data.image_urls) {
+    //   await createPostImage(result.rows[0].id, image_url);
+    // }
   } catch (error) {
     console.error("[ERROR] Failed to create Tool:", error);
     return {

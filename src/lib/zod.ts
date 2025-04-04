@@ -8,7 +8,7 @@ export const RegistrationFormSchema = z
       .max(32, "Username cannot be longer than 32 characters")
       .regex(
         /^[a-zA-Z0-9]+$/,
-        "Username can only contain letters and numbers.",
+        "Username can only contain letters and numbers."
       ),
     email: z.string().email("Please enter a valid email."),
     password: z.string().min(8, "Password must be at least 8 characters long."),
@@ -51,7 +51,46 @@ export const CreateToolFormSchema = z.object({
     .min(1, "Location is required.")
     .regex(
       new RegExp("^([A-Z]{1,2}\\d[A-Z\\d]? \\d[A-Z]{2}|GIR 0A{2})$"),
-      "Please enter a valid postcode with spaces",
+      "Please enter a valid postcode with spaces"
+    ),
+  image_urls: z.union([
+    z.string().array().min(1, "At least 1 Image is required."),
+    z
+      .string()
+      .min(1, "At least 1 Image is required.")
+      .transform((str) => str.split(",")),
+  ]),
+  categories: z.union([
+    z.string().array().min(1, "At least 1 category is required."),
+    z
+      .string()
+      .min(1, "At least 1 category is required.")
+      .transform((str) => str.split(",")),
+  ]),
+});
+
+export const UpdateToolFormSchema = z.object({
+  tool_id: z.number({ coerce: true }).positive().int(),
+  name: z.string().min(1, "Name is required."),
+  description: z.string().min(1, "Description is required."),
+  deposit: z
+    .number({ required_error: "Deposit is required.", coerce: true })
+    .positive("Must be greater than 0.")
+    .multipleOf(0.01, "Max 2 decimal places."),
+  max_borrow_days: z
+    .number({
+      required_error: "Borrow limit is required",
+      coerce: true,
+    })
+    .positive("Must be greater than 0.")
+    .int("Must be a whole number"),
+  location: z
+    .string()
+    .toUpperCase()
+    .min(1, "Location is required.")
+    .regex(
+      new RegExp("^([A-Z]{1,2}\\d[A-Z\\d]? \\d[A-Z]{2}|GIR 0A{2})$"),
+      "Please enter a valid postcode with spaces"
     ),
   image_urls: z.union([
     z.string().array().min(1, "At least 1 Image is required."),
@@ -70,10 +109,9 @@ export const CreateToolFormSchema = z.object({
 });
 
 export const ReviewFormSchema = z.object({
-  target: z
-    .string({
-      required_error: "No target. Refresh page and try again."
-    }),
+  target: z.string({
+    required_error: "No target. Refresh page and try again.",
+  }),
   stars: z
     .number({
       required_error: "Please select a star rating.",
@@ -109,13 +147,23 @@ export const PostFiltersFormSchema = z.object({
 });
 
 export const ReportFormSchema = z.object({
-  profileURL: z.string({ required_error: "Please insert the link to the profile of the user who you are reporting." }),
-  reportDescription: z.string({ required_error: "Please describe the report reason and all details of the situation." })
+  profileURL: z.string({
+    required_error:
+      "Please insert the link to the profile of the user who you are reporting.",
+  }),
+  reportDescription: z.string({
+    required_error:
+      "Please describe the report reason and all details of the situation.",
+  }),
 });
 
 export const ReportMessageFormSchema = z.object({
-  reportID: z.number({ required_error: "Report ID hasn't been set, try restarting the page." }),
+  reportID: z.number({
+    required_error: "Report ID hasn't been set, try restarting the page.",
+  }),
   reportMessageText: z
-    .string({ required_error: "Please type the message you would like to send. " })
+    .string({
+      required_error: "Please type the message you would like to send. ",
+    })
     .min(1, { message: "Message cannot be empty." }),
-})
+});

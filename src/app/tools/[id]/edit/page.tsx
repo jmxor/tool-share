@@ -1,4 +1,6 @@
+import { auth } from "@/auth";
 import EditPostForm from "@/components/posts/edit-post-form";
+import { getEmailID } from "@/lib/auth/actions";
 import { getCategories, getToolById } from "@/lib/posts/actions";
 import { notFound } from "next/navigation";
 
@@ -7,9 +9,22 @@ export default async function PostEditPage({
 }: {
   params: Promise<{ id: number }>;
 }) {
-  const post = await getToolById((await params).id);
+  const id = (await params).id;
+
+  const post = await getToolById(id);
   if (!post) {
     notFound();
+  }
+
+  const session = await auth();
+  let currentUserId: number | null = null;
+
+  if (session?.user?.email) {
+    currentUserId = await getEmailID(session.user.email);
+  }
+
+  if (currentUserId != post.user_id) {
+    return notFound();
   }
 
   let categories = await getCategories();

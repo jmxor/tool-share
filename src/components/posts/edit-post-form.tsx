@@ -28,11 +28,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import {
   AllToolPostData,
-  createTool,
+  updateTool,
   PostFormState,
 } from "@/lib/posts/actions";
 import { cn } from "@/lib/utils";
-import { CreateToolFormSchema } from "@/lib/zod";
+import { UpdateToolFormSchema } from "@/lib/zod";
 import { UploadDropzone } from "@/utils/uploadthing";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, ChevronLeft, ChevronRight, X } from "lucide-react";
@@ -59,12 +59,13 @@ export default function EditPostForm({
     errors: {},
   };
   const [state, formAction, isPending] = useActionState(
-    createTool,
+    updateTool,
     initialState
   );
-  const form = useForm<z.output<typeof CreateToolFormSchema>>({
-    resolver: zodResolver(CreateToolFormSchema),
+  const form = useForm<z.output<typeof UpdateToolFormSchema>>({
+    resolver: zodResolver(UpdateToolFormSchema),
     defaultValues: {
+      tool_id: post.id,
       name: post.tool_name,
       description: post.description,
       deposit: post.deposit,
@@ -100,15 +101,28 @@ export default function EditPostForm({
       <Form {...form}>
         <form
           ref={formRef}
-          // onSubmit={form.handleSubmit(() => formRef.current?.submit())}
-          // action={formAction}
+          onSubmit={form.handleSubmit(() => formRef.current?.submit())}
+          action={formAction}
           className="my-4 h-fit w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-md"
         >
           <h2 className="mt-0 text-center text-3xl font-bold text-gray-800">
             Edit Tool
           </h2>
+          {state.message}
+          {state.errors.tool_id}
           <div className="space-y-2">
-            {/*TODO: add multi image support, add dropzone support*/}
+            <FormField
+              control={form.control}
+              name="tool_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input {...field} type="hidden" value={post.id} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="image_urls"
