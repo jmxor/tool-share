@@ -472,6 +472,22 @@ export async function getUserRowFromEmail(email: string) {
   }
 }
 
+export async function getUserRowFromId(id: number) {
+  try {
+    const conn = await getConnection();
+    const query = `
+        SELECT id, username, email, password_hash, created_at, user_privilege, is_suspended 
+        FROM "user"
+        WHERE id = $1
+        `;
+    const result = await conn.query(query, [id]);
+
+    return result.rows[0];
+  } catch {
+    return null;
+  }
+}
+
 export async function getFirstUsernameID(first_username: string) {
   try {
     const conn = await getConnection();
