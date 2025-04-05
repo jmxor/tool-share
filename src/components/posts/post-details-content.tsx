@@ -5,24 +5,77 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { Badge } from "../ui/badge";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { requestTransaction } from "@/lib/transactions/actions";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { Label } from "@radix-ui/react-dropdown-menu";
 
 export default function PostDetailsContent({
   post,
+  loggedIn,
 }: {
   post: AllToolPostData;
+  loggedIn: boolean;
 }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [requestedDays, setRequestedDays] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handlePrevImage = () => {
     setCurrentImageIndex((prevIndex) =>
-      prevIndex > 0 ? prevIndex - 1 : post.pictures.length - 1,
+      prevIndex > 0 ? prevIndex - 1 : post.pictures.length - 1
     );
   };
 
   const handleNextImage = () => {
     setCurrentImageIndex((prevIndex) =>
-      prevIndex < post.pictures.length - 1 ? prevIndex + 1 : 0,
+      prevIndex < post.pictures.length - 1 ? prevIndex + 1 : 0
     );
+  };
+
+  const handleBorrowClick = () => {
+    setIsDialogOpen(true);
+    setErrorMessage(null);
+  };
+
+  const handleRequestSubmit = async () => {
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    try {
+      const result = await requestTransaction(post.id, requestedDays);
+      if (result.success) {
+        window.location.href = `/transactions/request/${result.transaction_id}`;
+      } else {
+        setIsSubmitting(false);
+        setErrorMessage(result.message || "Failed to request transaction");
+        toast({
+          title: "Request Failed",
+          description: result.message || "Failed to request transaction",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to request transaction:", error);
+      setIsSubmitting(false);
+      setErrorMessage("An unexpected error occurred. Please try again.");
+      toast({
+        title: "Request Failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -146,8 +199,75 @@ export default function PostDetailsContent({
               {post?.postcode}
             </div>
           </div>
+
+          {loggedIn ? (
+            <Button
+              className="mt-0.5 w-full"
+              size="sm"
+              onClick={handleBorrowClick}
+            >
+              {post.status === "available" ? "Borrow" : "Join Queue"}
+            </Button>
+          ) : (
+            <Button
+              asChild
+              size="sm"
+              className="mt-0.5 w-full bg-blue-600 hover:bg-blue-500"
+            >
+              <Link href="/auth/login">Login to Borrow</Link>
+            </Button>
+          )}
         </div>
       </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Borrow {post.tool_name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {errorMessage && (
+              <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+                {errorMessage}
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="days">How many days do you need it?</Label>
+              <Input
+                id="days"
+                type="number"
+                min={1}
+                max={post.max_borrow_days}
+                value={requestedDays}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
+                  if (value > post.max_borrow_days) {
+                    setRequestedDays(post.max_borrow_days);
+                  } else if (value < 1) {
+                    setRequestedDays(1);
+                  } else {
+                    setRequestedDays(value);
+                  }
+                }}
+              />
+              <p className="text-xs text-gray-500">
+                Maximum borrow period: {post.max_borrow_days} days
+              </p>
+            </div>
+            <div>
+              <p className="text-sm">Deposit required: {post.deposit}</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleRequestSubmit} disabled={isSubmitting}>
+              {isSubmitting ? "Submitting..." : "Request to Borrow"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
