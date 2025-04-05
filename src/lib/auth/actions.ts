@@ -476,7 +476,7 @@ export async function getUserRowFromId(id: number) {
   try {
     const conn = await getConnection();
     const query = `
-        SELECT id, username, email, password_hash, created_at, user_privilege, is_suspended 
+        SELECT id, username, first_username, email, password_hash, created_at, user_privilege, is_suspended 
         FROM "user"
         WHERE id = $1
         `;

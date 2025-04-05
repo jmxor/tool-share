@@ -39,7 +39,7 @@ const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
     useEffect(() => {
       async function fetchOwnerUsername() {
         const ownerUserRow = await getUserRowFromId(post.user_id);
-        setOwnerUsername(ownerUserRow.username);
+        setOwnerUsername(ownerUserRow.first_username);
       }
       fetchOwnerUsername();
     });
