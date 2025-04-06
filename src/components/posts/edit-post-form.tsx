@@ -11,6 +11,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { DialogHeader, DialogFooter } from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -35,12 +36,19 @@ import { cn } from "@/lib/utils";
 import { UpdateToolFormSchema } from "@/lib/zod";
 import { UploadDropzone } from "@/utils/uploadthing";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { ChevronDown, ChevronLeft, ChevronRight, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useActionState, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { redirect } from "next/navigation";
 
 type Category = {
   id: number;
@@ -50,9 +58,11 @@ type Category = {
 export default function EditPostForm({
   post,
   categories,
+  hasOpenTransactions,
 }: {
   post: AllToolPostData;
   categories: Category[];
+  hasOpenTransactions: boolean;
 }) {
   const initialState: PostFormState = {
     message: null,
@@ -95,6 +105,11 @@ export default function EditPostForm({
       prevIndex < form.getValues("image_urls").length ? prevIndex + 1 : 0
     );
   };
+
+  const [isConfirmDeleteDialogOpen, setConfirmDeleteDialogOpen] =
+    useState(false);
+  const [isHasOpenTransationsDialogOpen, setHasOpenTransactionsDialogOpen] =
+    useState(false);
 
   return (
     <>
@@ -407,9 +422,77 @@ export default function EditPostForm({
             >
               <Link href="/tools">Cancel</Link>
             </Button>
+            <Button
+              type="button"
+              disabled={isPending}
+              className="w-full bg-red-500 hover:bg-red-400"
+              onClick={() => {
+                if (hasOpenTransactions) {
+                  setHasOpenTransactionsDialogOpen(true);
+                } else {
+                  setConfirmDeleteDialogOpen(true);
+                }
+              }}
+            >
+              Delete
+            </Button>
           </div>
         </form>
       </Form>
+
+      <Dialog
+        open={isConfirmDeleteDialogOpen}
+        onOpenChange={setConfirmDeleteDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+          </DialogHeader>
+          <DialogDescription>
+            Are you sure you want to delete this post? This action cannot be
+            undone
+          </DialogDescription>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setConfirmDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                redirect("/tools");
+              }}
+              className="bg-red-500 hover:bg-red-400"
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={isHasOpenTransationsDialogOpen}
+        onOpenChange={setHasOpenTransactionsDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cannot Delete</DialogTitle>
+          </DialogHeader>
+          <DialogDescription>
+            This post cannot be deleted as it still has incomplete transactions.
+            Complete all transactions before attempting to delete.
+          </DialogDescription>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setHasOpenTransactionsDialogOpen(false)}
+            >
+              OK
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
