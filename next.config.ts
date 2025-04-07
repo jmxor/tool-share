@@ -19,6 +19,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  allowedDevOrigins: ["www.localhost"],
 };
 
 export default nextConfig;
