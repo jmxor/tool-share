@@ -31,6 +31,7 @@ import {
   AllToolPostData,
   updateTool,
   PostFormState,
+  deleteTool,
 } from "@/lib/posts/actions";
 import { cn } from "@/lib/utils";
 import { UpdateToolFormSchema } from "@/lib/zod";
@@ -124,7 +125,6 @@ export default function EditPostForm({
             Edit Tool
           </h2>
           {state.message}
-          {state.errors.tool_id}
           <div className="space-y-2">
             <FormField
               control={form.control}
@@ -461,6 +461,7 @@ export default function EditPostForm({
             </Button>
             <Button
               onClick={() => {
+                deleteTool(post.id);
                 redirect("/tools");
               }}
               className="bg-red-500 hover:bg-red-400"
