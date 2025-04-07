@@ -34,8 +34,8 @@ export default async function PostEditPage({
   }
 
   let hasOpenTransactions = false;
-  let openTransactions = await getOpenTransactionsForPostId(post.id);
-  if (openTransactions == null || openTransactions?.rowCount > 0) {
+  const openTransactions = await getOpenTransactionsForPostId(post.id);
+  if (openTransactions == null || openTransactions.rows.length > 0) {
     hasOpenTransactions = true;
   }
 

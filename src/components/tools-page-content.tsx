@@ -65,7 +65,7 @@ export default function ToolsPageContent({
             .includes(postFiltersState.name.toLowerCase()) &&
           post.max_borrow_days > postFiltersState.min_borrow_days &&
           (postFiltersState.max_deposit <= 0 ||
-            parseFloat(post.deposit) <= postFiltersState.max_deposit) &&
+            post.deposit <= postFiltersState.max_deposit) &&
           post.postcode
             .toLowerCase()
             .includes(postFiltersState.location.toLowerCase())
