@@ -9,7 +9,7 @@ import { checkCode, completeStep, getCode } from "@/lib/transactions/actions";
 import { useRouter } from "next/navigation";
 import { createRef, useState } from "react";
 import { useEffect } from "react";
-
+import PaymentForm from "@/components/payment/payment-form";
 
 const StepActionArea = ({ isBorrower, nextStep, transaction }: { isBorrower: boolean, nextStep: string, transaction: TransactionData }) => {
   return (
@@ -27,7 +27,7 @@ const StepActionArea = ({ isBorrower, nextStep, transaction }: { isBorrower: boo
 const DepositStep = ({ isBorrower, transaction }: { isBorrower: boolean, transaction: TransactionData }) => {
   const router = useRouter();
   const handleClick = async () => {
-    const result = await completeStep("deposit_paid", transaction);
+    const result = await completeStep("deposit_paid", transaction.id);
     if (result && result.success) {
       router.refresh();
     }
@@ -45,6 +45,7 @@ const DepositStep = ({ isBorrower, transaction }: { isBorrower: boolean, transac
             To proceed with borrowing {transaction.tool_name}, you need to pay a deposit.
           </p>
           <Button className="w-full" onClick={handleClick}>Pay Deposit Now</Button>
+          <PaymentForm amount={59.99} transaction_id={transaction.id}/>
         </div>
       ) : (
         <div className="space-y-4">
@@ -106,7 +107,7 @@ const FirstExchangeStep = ({ isBorrower, transaction }: { isBorrower: boolean, t
     
     const result = await checkCode(transaction, stepNumber, fullCode);
     if (result && result.success) {
-      await completeStep("tool_borrowed", transaction);
+      await completeStep("tool_borrowed", transaction.id);
       router.refresh();
     } else if(result && !result.success) {
       setError("Invalid code");
@@ -219,7 +220,7 @@ const SecondExchangeStep = ({ isBorrower, transaction }: { isBorrower: boolean, 
     
     const result = await checkCode(transaction, stepNumber, fullCode);
     if (result && result.success) {
-      await completeStep("tool_returned", transaction);
+      await completeStep("tool_returned", transaction.id);
       router.refresh();
     } else if(result && !result.success) {
       setError("Invalid code");
@@ -288,7 +289,7 @@ const SecondExchangeStep = ({ isBorrower, transaction }: { isBorrower: boolean, 
 const CompletedStep = ({ isBorrower, transaction }: { isBorrower: boolean, transaction: TransactionData }) => {
   const router = useRouter();
   const handleFinalize = async () => {
-    const result = await completeStep("transaction_completed", transaction);
+    const result = await completeStep("transaction_completed", transaction.id);
     if (result && result.success) {
       router.refresh();
     }

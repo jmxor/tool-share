@@ -613,7 +613,7 @@ export async function getTransactionDetails(transaction_id: number): Promise<{ s
   }
 }
 
-export async function completeStep(step_type: string, transaction: TransactionData) {
+export async function completeStep(step_type: string, transaction_id: number) {
   const session = await auth();
   if (!session?.user?.email) redirect("/auth/login");
 
@@ -628,7 +628,7 @@ export async function completeStep(step_type: string, transaction: TransactionDa
       VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
     `;
 
-    const result = await conn.query(query, [userID, transaction.id, step_type]);
+    const result = await conn.query(query, [userID, transaction_id, step_type]);
     if ((result.rowCount || 0) <= 0) {
       return {
         success: false,
@@ -642,7 +642,7 @@ export async function completeStep(step_type: string, transaction: TransactionDa
       WHERE id = $2
     `;
 
-    await conn.query(updateTransactionQuery, [step_type, transaction.id]);
+    await conn.query(updateTransactionQuery, [step_type, transaction_id]);
 
     if(step_type === "transaction_completed") {
       const updatePostStatusQuery = `
@@ -650,7 +650,8 @@ export async function completeStep(step_type: string, transaction: TransactionDa
         SET status = 'available'
         WHERE id = $1
       `;
-      await conn.query(updatePostStatusQuery, [transaction.post_id]);
+      const postId = await getTransactionPostId(transaction_id);
+      await conn.query(updatePostStatusQuery, [postId]);
     }
 
     return {
@@ -660,6 +661,26 @@ export async function completeStep(step_type: string, transaction: TransactionDa
 
   } catch (error) {
     console.error("[ERROR] Failed to complete step:", error);
+  }
+}
+
+async function getTransactionPostId(transaction_id: number) {
+  try {
+    const conn = await getConnection();
+
+    const query = `
+      SELECT post_id
+      FROM borrow_request
+      WHERE transaction_id = $1
+    `
+
+    const result = await conn.query(query, [transaction_id]);
+    console.log(result.rows)
+    if ((result.rowCount || 0) >= 0) {
+      return result.rows[0].post_id
+    }
+  } catch (err) {
+    console.error("[ERROR] Failed to get post id from transaction id:", err);
   }
 }
 
@@ -732,7 +753,7 @@ export async function checkCode(transaction: TransactionData, step_number: numbe
         SET active = false
         WHERE transaction_id = $1 AND step_number = $2 AND code = $3
       `;
-      await completeStep(step_number === 1 ? "tool_borrowed" : "tool_returned", transaction);
+      await completeStep(step_number === 1 ? "tool_borrowed" : "tool_returned", transaction.id);
       await conn.query(updateQuery, [transaction.id, step_number, code]);
 
       if (step_number === 1) {

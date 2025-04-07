@@ -4,7 +4,6 @@ import ChatComponent from "@/components/ChatComponent";
 import { getUserRowFromEmail } from "@/lib/auth/actions";
 import { getAllConversations, getConversation, getMessagesByUserId } from "@/lib/actions";
 
-
 // Function to map conversation messages into a desired format.
 // [ sender: string; recipient: number; message: string ]
 function mapMessages(messages: any[]): { sender: string; recipient: number; message: string }[] {
