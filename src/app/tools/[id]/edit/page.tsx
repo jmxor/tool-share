@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import EditPostForm from "@/components/posts/edit-post-form";
 import { getEmailID } from "@/lib/auth/actions";
 import { getCategories, getToolById } from "@/lib/posts/actions";
+import { getOpenTransactionsForPostId } from "@/lib/transactions/actions";
 import { notFound } from "next/navigation";
 
 export default async function PostEditPage({
@@ -32,9 +33,19 @@ export default async function PostEditPage({
     categories = [];
   }
 
+  let hasOpenTransactions = false;
+  const openTransactions = await getOpenTransactionsForPostId(post.id);
+  if (openTransactions == null || openTransactions.rows.length > 0) {
+    hasOpenTransactions = true;
+  }
+
   return (
     <div className="mb-auto flex w-full flex-1 justify-center bg-gray-50 px-4">
-      <EditPostForm post={post} categories={categories} />
+      <EditPostForm
+        post={post}
+        categories={categories}
+        hasOpenTransactions={hasOpenTransactions}
+      />
     </div>
   );
 }
