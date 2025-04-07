@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import { AllToolPostData } from "@/lib/posts/actions";
 import { Button } from "@/components/ui/button";
 import { requestTransaction } from "@/lib/transactions/actions";
@@ -17,6 +17,8 @@ import { useToast } from "@/hooks/use-toast";
 import PostImageCarousel from "./posts/post-image-carousel";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import { CircleUser, MapPin } from "lucide-react";
+import { getUserRowFromId } from "@/lib/auth/actions";
 
 type PostCardProps = {
   post: AllToolPostData;
@@ -27,24 +29,20 @@ type PostCardProps = {
 
 const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
   ({ post, isHighlighted, loggedIn, currentUserId }, ref) => {
-    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [ownerUsername, setOwnerUsername] = useState("");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [requestedDays, setRequestedDays] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const { toast } = useToast();
 
-    const handlePrevImage = () => {
-      setCurrentImageIndex((prevIndex) =>
-        prevIndex > 0 ? prevIndex - 1 : post.pictures.length - 1
-      );
-    };
-
-    const handleNextImage = () => {
-      setCurrentImageIndex((prevIndex) =>
-        prevIndex < post.pictures.length - 1 ? prevIndex + 1 : 0
-      );
-    };
+    useEffect(() => {
+      async function fetchOwnerUsername() {
+        const ownerUserRow = await getUserRowFromId(post.user_id);
+        setOwnerUsername(ownerUserRow.first_username);
+      }
+      fetchOwnerUsername();
+    });
 
     const handleBorrowClick = () => {
       setIsDialogOpen(true);
@@ -94,17 +92,36 @@ const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
         </div>
 
         <div className="p-2 lg:px-4">
-          <h3 className="truncate text-lg font-semibold capitalize">
-            {post.tool_name}
-          </h3>
           <div className="flex justify-between">
-            <span className="text-sm">{post.postcode}</span>
+            <h3 className="truncate text-lg font-semibold capitalize">
+              {post.tool_name}
+            </h3>
+            <span>
+              {post.status == "available" ? (
+                <Badge className="bg-green-500 hover:bg-green-400">
+                  Available
+                </Badge>
+              ) : (
+                <Badge className="bg-amber-400 hover:bg-amber-300">
+                  On Loan
+                </Badge>
+              )}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="flex items-center text-sm">
+              <MapPin size={13} /> {post.postcode}
+            </span>
             <span className="text-sm">£{post.deposit} deposit</span>
-            {post.status == "available" ? (
-              <Badge className="bg-green-500">Available</Badge>
-            ) : (
-              <Badge className="bg-amber-400">On Loan</Badge>
-            )}
+            <span className="flex items-center text-sm">
+              <Link
+                href={`/user/${ownerUsername}`}
+                className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+              >
+                <CircleUser size={13} />
+                {ownerUsername}
+              </Link>
+            </span>
           </div>
 
           <p className="line-clamp-2 h-10 text-sm text-gray-600">
@@ -113,7 +130,11 @@ const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
         </div>
         <div className="flex gap-2 px-2 pb-2">
           {currentUserId && currentUserId == post.user_id ? (
-            <Button className="w-full bg-amber-400" size="sm" asChild>
+            <Button
+              className="w-full bg-amber-400 hover:bg-amber-300"
+              size="sm"
+              asChild
+            >
               {/* TODO: change button content to Edit if current user is owner */}
               <a href={`/tools/${post.id}/edit`}>Edit</a>
             </Button>
@@ -129,7 +150,11 @@ const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
               {post.status === "available" ? "Borrow" : "Join Queue"}
             </Button>
           ) : (
-            <Button asChild size="sm" className="w-full bg-blue-600">
+            <Button
+              asChild
+              size="sm"
+              className="w-full bg-blue-600 hover:bg-blue-500"
+            >
               <Link href="/auth/login">Login to Borrow</Link>
             </Button>
           )}

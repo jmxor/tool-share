@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -25,26 +26,32 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { createTool, PostFormState } from "@/lib/posts/actions";
+import {
+  AllToolPostData,
+  updateTool,
+  PostFormState,
+} from "@/lib/posts/actions";
 import { cn } from "@/lib/utils";
-import { CreateToolFormSchema } from "@/lib/zod";
+import { UpdateToolFormSchema } from "@/lib/zod";
 import { UploadDropzone } from "@/utils/uploadthing";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown, ChevronLeft, ChevronRight, X } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useActionState, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Badge } from "./ui/badge";
 
 type Category = {
   id: number;
   name: string;
 };
 
-export default function NewToolForm({
+export default function EditPostForm({
+  post,
   categories,
 }: {
+  post: AllToolPostData;
   categories: Category[];
 }) {
   const initialState: PostFormState = {
@@ -52,19 +59,22 @@ export default function NewToolForm({
     errors: {},
   };
   const [state, formAction, isPending] = useActionState(
-    createTool,
+    updateTool,
     initialState
   );
-  const form = useForm<z.output<typeof CreateToolFormSchema>>({
-    resolver: zodResolver(CreateToolFormSchema),
+  const form = useForm<z.output<typeof UpdateToolFormSchema>>({
+    resolver: zodResolver(UpdateToolFormSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      deposit: 1.0,
-      max_borrow_days: 1,
-      location: "",
-      image_urls: [],
-      categories: [],
+      tool_id: post.id,
+      name: post.tool_name,
+      description: post.description,
+      deposit: post.deposit,
+      max_borrow_days: post.max_borrow_days,
+      location: post.postcode,
+      image_urls: post.pictures,
+      categories: post.categories.map((cat) =>
+        categories.find((c) => c.name == cat)?.id.toString()
+      ),
       ...(state?.fields ?? {}),
     },
     mode: "onTouched",
@@ -96,10 +106,23 @@ export default function NewToolForm({
           className="my-4 h-fit w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-md"
         >
           <h2 className="mt-0 text-center text-3xl font-bold text-gray-800">
-            Share a new Tool
+            Edit Tool
           </h2>
+          {state.message}
+          {state.errors.tool_id}
           <div className="space-y-2">
-            {/*TODO: add multi image support, add dropzone support*/}
+            <FormField
+              control={form.control}
+              name="tool_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input {...field} type="hidden" value={post.id} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="image_urls"
@@ -221,8 +244,7 @@ export default function NewToolForm({
                                   }
                                 </Badge>
                               ))
-                            : // .join(", ")
-                              "Select categories"}
+                            : "Select categories"}
                           <ChevronDown className="absolute right-2 top-2.5 opacity-50" />
                           <Input {...field} type="hidden" />
                         </Button>
@@ -243,6 +265,9 @@ export default function NewToolForm({
                                 key={category.id}
                               >
                                 <Checkbox
+                                  defaultChecked={post.categories.includes(
+                                    category.name
+                                  )}
                                   checked={field.value.includes(
                                     category.id.toString()
                                   )}
@@ -370,9 +395,19 @@ export default function NewToolForm({
             />
           </div>
 
-          <Button type="submit" disabled={isPending} className="w-full">
-            Share
-          </Button>
+          <div className="flex gap-2">
+            <Button type="submit" disabled={isPending} className="w-full">
+              Save
+            </Button>
+            <Button
+              type="button"
+              disabled={isPending}
+              className="w-full"
+              asChild
+            >
+              <Link href="/tools">Cancel</Link>
+            </Button>
+          </div>
         </form>
       </Form>
     </>
