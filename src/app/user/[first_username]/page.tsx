@@ -21,6 +21,7 @@ import DeleteReviewButton from "@/components/accounts/delete-review-button";
 import PostCard from "@/components/post-card";
 import { AllToolPostData } from "@/lib/posts/actions";
 import SendMessageButton from "@/components/SendMessageComponent";
+import { Badge } from "@/components/ui/badge";
 
 export default async function ProfilePage({
   params,
@@ -96,6 +97,11 @@ export default async function ProfilePage({
             : publicUserData.username}
         </p>
         <div className="flex flex-col gap-2">
+          {publicUserData.is_suspended && (
+            <Badge variant="destructive" className="flex items-center gap-1">
+              This user is currently suspended
+            </Badge>
+          )}
           <p className="text-sm">
             Joined <span>{formatDate(publicUserData.created_at)}</span>
           </p>
