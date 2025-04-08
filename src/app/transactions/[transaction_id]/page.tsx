@@ -41,7 +41,6 @@ export default async function TransactionPage({
   if (transaction.borrower.id !== userID && transaction.owner.id !== userID) {
     redirect("/transactions");
   }
-  
 
   const stepTypeMap = {
     "transaction_created": "Request Accepted",
@@ -205,7 +204,8 @@ export default async function TransactionPage({
             </div>
 
             <Separator className="my-6" />
-            <StepActionArea isBorrower={transaction.borrower.id === userID} nextStep={nextStepKey ?? ""} transaction={transaction} />
+
+            <StepActionArea isBorrower={transaction.borrower.id === userID} nextStep={nextStepKey ?? ""} transaction={transaction} loggedInEmail={session.user.email} first_username={transaction.borrower.first_username}/>
           </CardContent>
         </Card>
       </div>
