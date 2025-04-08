@@ -7,17 +7,31 @@ import ChatMessage from "@/components/ChatMessage";
 import { useEffect, useState, useRef } from "react";
 import { getMessagesByUserId, insertDirectMessage } from "@/lib/actions";
 import { useRouter } from 'next/navigation';
+import { User } from "lucide-react";
+
+// Define types for messages and conversations
+interface Message {
+  sender_username: string;
+  message: string;
+  conversation_id?: number;
+}
+
+interface Conversation {
+  id: number;
+  recipient_user_id: string;
+  recipient_username: string;
+}
 
 interface ChatComponentProps {
   initialMessages: { sender: string; message: string }[];
   userName: string;
   initialConversationID: number;
   initialRecipient: string;
-  allConversations: any[];
+  allConversations: Conversation[];
   currentUserId: string;
 }
 
-function mapMessages(messages: any[]): { sender: string; message: string }[] {
+function mapMessages(messages: Message[]): { sender: string; message: string }[] {
   return messages.map((msg) => ({
     sender: msg.sender_username,
     message: msg.message,
@@ -36,6 +50,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   const [messages, setMessages] = useState(initialMessages);
   const [recipient, setRecipient] = useState(initialRecipient);
   const [conversationID, setConversationId] = useState(initialConversationID);
+  const [showConversations, setShowConversations] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -88,24 +103,38 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     setMessages(formattedMessages);
     setRecipient(recipient_username);
     socket.emit("join-room", { room: newConversationId, username: userName });
+    setShowConversations(false); // Hide conversations list on mobile after selection
 
     // Update the URL with the new conversation ID, navigating to /chat
     router.push(`/chat?conversationId=${newConversationId}`);
   };
 
   return (
-    <div className="grid grid-cols-4">
-      <div className="col-start-1 col-end-2 ml-4 bg-white border-r border-gray-200">
-        <h2 className="text-lg font-semibold p-4">Conversations</h2>
+    <div className="grid grid-cols-1 md:grid-cols-4 relative">
+      {/* Mobile toggle button */}
+      <div className="md:hidden flex justify-between items-center p-4 bg-white border-b border-gray-200">
+        <h2 className="text-lg font-semibold flex items-center"><User className="w-4 h-4 mr-2" /> {recipient}</h2>
+        <Button 
+          onClick={() => setShowConversations(!showConversations)}
+          className="px-3 py-1"
+        >
+          {showConversations ? 'Hide Contacts' : 'Show Contacts'}
+        </Button>
+      </div>
+
+      {/* Conversations sidebar - hidden on mobile unless toggled */}
+      <div className={`${showConversations ? 'block' : 'hidden'} md:block md:col-start-1 md:col-end-2 bg-white border-r border-gray-200 h-[calc(100vh-8rem)] md:h-auto overflow-y-auto absolute md:relative z-10 w-full md:w-auto`}>
+        <h2 className="text-lg font-semibold p-4 hidden md:block">Conversations</h2>
         <ul className="divide-y divide-gray-200">
           {allConversations.length > 0 ? (
             allConversations.map((conversation) => {
               const otherUserId = conversation.recipient_user_id;
               const otherUsername = conversation.recipient_username;
+              const isSelected = otherUsername === recipient;
               return (
                 <li
                   key={conversation.id}
-                  className="p-4 bg-gradient-to-l from-white to-gray-100-100 hover:bg-gray-200 cursor-pointer"
+                  className={`p-4 hover:bg-gray-200 cursor-pointer ${isSelected ? 'bg-gray-200 border-l-4 border-blue-500' : 'bg-gradient-to-l from-white to-gray-100-100'}`}
                   onClick={() =>
                     onSelectConversation(otherUserId, otherUsername)
                   }
@@ -115,14 +144,14 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
               );
             })
           ) : (
-            <span>No conversations</span>
+            <span className="p-4 block">No conversations</span>
           )}
         </ul>
       </div>
 
       {allConversations.length > 0 ? (
-        <div className="col-start-2 col-end-5 mr-4">
-          <div className="flex-col-reverse justify-end h-[750px] overflow-y-auto p-4 mt-4 mb-4 bg-gradient-to-t from-white to-gray-100 border-2 rounded-lg">
+        <div className="md:col-start-2 md:col-end-5 p-4">
+          <div className="flex-col-reverse justify-end h-[50vh] md:h-[750px] overflow-y-auto p-4 mt-4 mb-4 bg-gradient-to-t from-white to-gray-100 border-2 rounded-lg">
             {messages.map((msg, index) => (
               <ChatMessage
                 key={index}
@@ -151,7 +180,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
           </form>
         </div>
       ) : (
-        <span>No conversations</span>
+        <div className="col-span-full p-4 text-center">No conversations</div>
       )}
     </div>
   );
