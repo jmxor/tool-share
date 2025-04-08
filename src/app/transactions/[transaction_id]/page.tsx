@@ -205,7 +205,7 @@ export default async function TransactionPage({
 
             <Separator className="my-6" />
 
-            <StepActionArea isBorrower={transaction.borrower.id === userID} nextStep={nextStepKey ?? ""} transaction={transaction} loggedInEmail={session.user.email} first_username={transaction.borrower.first_username}/>
+            <StepActionArea isBorrower={transaction.borrower.id === userID} nextStep={nextStepKey ?? ""} transaction={transaction} loggedInEmail={session.user.email} first_username={userID == transaction.borrower.id ? transaction.owner.first_username : transaction.borrower.first_username}/>
           </CardContent>
         </Card>
       </div>
