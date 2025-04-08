@@ -4,6 +4,7 @@ import ChatComponent from "@/components/ChatComponent";
 import { getUserRowFromEmail } from "@/lib/auth/actions";
 import { getAllConversations, getConversation, getMessagesByUserId } from "@/lib/actions";
 
+
 // Function to map conversation messages into a desired format.
 // [ sender: string; recipient: number; message: string ]
 function mapMessages(messages: any[]): { sender: string; recipient: number; message: string }[] {
@@ -14,8 +15,9 @@ function mapMessages(messages: any[]): { sender: string; recipient: number; mess
   }));
 }
 
-export default async function Chat() {
+export default async function Chat({ searchParams,}: { searchParams: { first_username?: string }; }) {
 
+  const first_username = searchParams.first_username;
   let currentUserId = ""
 
   // Verify user is logged in
@@ -53,7 +55,8 @@ export default async function Chat() {
     <div>
       <div className="">
         <title>Chat page</title>
-        <ChatComponent 
+        <ChatComponent
+          first_username={first_username}
           initialMessages={formattedMessages} 
           userName={userInfo.rows[0].username} 
           initialConversationID={conversationInfo?.id} 
