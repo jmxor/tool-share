@@ -62,7 +62,9 @@ export default function LoginPage() {
                                         <Input {...field} placeholder="Enter your email" className="w-full" />
                                     </FormControl>
                                     <FormMessage>
-                                        {state?.errors?.email}
+                                        {state?.errors?.email && state.errors.email.map((error, i) => (
+                                            <span key={i}>{error}</span>
+                                        ))}
                                     </FormMessage>
                                 </FormItem>
                             )}
@@ -75,7 +77,11 @@ export default function LoginPage() {
                                     <FormControl>
                                         <Input {...field} type="password" placeholder="Enter your password" className="w-full" />
                                     </FormControl>
-                                    <FormMessage>{state.errors?.password}</FormMessage>
+                                    <FormMessage>
+                                        {state?.errors?.password && state.errors.password.map((error, i) => (
+                                            <span key={i}>{error}</span>
+                                        ))}
+                                    </FormMessage>
                                 </FormItem>
                             )}
                         />
