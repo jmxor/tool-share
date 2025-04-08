@@ -215,7 +215,7 @@ export default async function ProfilePage({
           <h2 className="text-xl">Tools Listed</h2>
           <hr />
           {publicUserData.posts.length > 0 ? (
-            <div className="grid grid-cols-1 gap-2 overflow-x-auto py-8 lg:grid-cols-3 lg:grid-rows-1">
+            <div className="grid grid-cols-1 gap-2 overflow-x-auto py-8 sm:grid-cols-2 lg:grid-rows-1 xl:grid-cols-3">
               {publicUserData.posts.map((post: AllToolPostData) => (
                 <PostCard
                   key={post.id}
