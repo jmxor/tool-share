@@ -6,6 +6,7 @@ import { signOutUser, userIsAdmin } from "@/lib/auth/actions";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import UserWarnings from "./user-warnings";
+import UserNotifications from "./user-notifications";
 
 export default function AccountButton({ email }: { email: string }) {
     const [isAdmin, setIsAdmin] = useState(false);
@@ -25,6 +26,7 @@ export default function AccountButton({ email }: { email: string }) {
 
     return (
         <div className="flex items-center gap-2">
+            <UserNotifications />
             <UserWarnings />
             <DropdownMenu>
                 <DropdownMenuTrigger className="text-sm flex justify-center gap-2 p-2 rounded-md hover:bg-neutral-100">

@@ -208,7 +208,6 @@ export default function UsersManagement() {
               : user,
           ),
         );
-        console.log("Privilege updated successfully");
         setPrivilegeUser(null);
         setIsPrivilegeDialogOpen(false);
         router.refresh();

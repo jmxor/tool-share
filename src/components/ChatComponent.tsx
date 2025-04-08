@@ -49,7 +49,6 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   allConversations,
   currentUserId,
 }) => {
-  console.log("GOT PARAMS:", first_username);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState(initialMessages);
   const [recipient, setRecipient] = useState(initialRecipient);
@@ -116,9 +115,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
 
   useEffect(() => {
     const changeTheFocusedChat = async () => {
-      console.log(first_username)
       if (first_username) {
-        console.log("GONNA AWAIT:");
         const otherUserID = await getFirstUsernameID(first_username)
         onSelectConversation(otherUserID, first_username);
       }

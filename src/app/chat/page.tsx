@@ -15,9 +15,9 @@ function mapMessages(messages: any[]): { sender: string; recipient: number; mess
   }));
 }
 
-export default async function Chat({ searchParams,}: { searchParams: { first_username?: string }; }) {
+export default async function Chat({ searchParams,}: { searchParams: Promise<{ first_username?: string }> }) {
 
-  const first_username = searchParams.first_username;
+  const first_username = (await searchParams).first_username;
   let currentUserId = ""
 
   // Verify user is logged in
@@ -56,7 +56,7 @@ export default async function Chat({ searchParams,}: { searchParams: { first_use
       <div className="">
         <title>Chat page</title>
         <ChatComponent
-          first_username={first_username}
+          first_username={first_username || ""}
           initialMessages={formattedMessages} 
           userName={userInfo.rows[0].username} 
           initialConversationID={conversationInfo?.id} 

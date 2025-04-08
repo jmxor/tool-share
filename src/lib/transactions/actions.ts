@@ -731,7 +731,6 @@ async function getTransactionPostId(transaction_id: number) {
     `
 
     const result = await conn.query(query, [transaction_id]);
-    console.log(result.rows)
     if ((result.rowCount || 0) >= 0) {
       return result.rows[0].post_id
     }
@@ -869,5 +868,37 @@ export async function getOpenTransactionsForPostId(post_id: number) {
   } catch (error) {
     console.error("[ERROR] Failed to fetch transactions:", error);
     return null;
+  }
+}
+
+export async function getUserActionNotifications() {
+  const session = await auth();
+  if (!session?.user?.email) return [];
+  
+  const userID = await getEmailID(session.user.email);
+  if (!userID) return [];
+  
+  try {
+    const conn = await getConnection();
+    const query = `
+      SELECT ts.id, ts.step_type, ts.completed_at, t.id as transaction_id
+      FROM transaction_step ts
+      JOIN transaction t ON ts.transaction_id = t.id
+      JOIN post p ON t.post_id = p.id
+      WHERE (t.borrower_id = $1 OR p.user_id = $1) AND ts.completed_at > CURRENT_TIMESTAMP - INTERVAL '1 day'
+      ORDER BY ts.completed_at DESC
+    `;
+
+    const result = await conn.query(query, [userID]);
+    
+    return result.rows.map(row => ({
+      id: row.id,
+      type: row.step_type,
+      time: new Date(row.completed_at),
+      transaction_id: row.transaction_id
+    }));
+  } catch (error) {
+    console.error("[ERROR] Failed to get user action notifications:", error);
+    return [];
   }
 }
