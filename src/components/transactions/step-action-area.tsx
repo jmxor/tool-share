@@ -1,7 +1,7 @@
 "use client";
 
 import { TransactionData } from "@/lib/transactions/types";
-import { ExternalLinkIcon } from "lucide-react";
+import { ExternalLinkIcon, RefreshCwIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
@@ -14,7 +14,10 @@ import PaymentForm from "@/components/payment/payment-form";
 const StepActionArea = ({ isBorrower, nextStep, transaction }: { isBorrower: boolean, nextStep: string, transaction: TransactionData }) => {
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">Next Action</h2>
+      <div className="flex items-center gap-4">
+        <h2 className="text-xl font-semibold">Next Action</h2>
+        <Button asChild><Link href={`/transactions/${transaction.id}`}>Refresh<RefreshCwIcon className="ml-2 h-4 w-4"/></Link></Button>
+      </div>
       {nextStep === "deposit_paid" && <DepositStep isBorrower={isBorrower} transaction={transaction} />}
       {nextStep === "tool_borrowed" && <FirstExchangeStep isBorrower={isBorrower} transaction={transaction} />}
       {nextStep === "tool_returned" && <SecondExchangeStep isBorrower={isBorrower} transaction={transaction} />}
@@ -45,7 +48,7 @@ const DepositStep = ({ isBorrower, transaction }: { isBorrower: boolean, transac
             To proceed with borrowing {transaction.tool_name}, you need to pay a deposit.
           </p>
           <Button className="w-full" onClick={handleClick}>Pay Deposit Now</Button>
-          <PaymentForm amount={59.99} transaction_id={transaction.id}/>
+          <PaymentForm amount={transaction.deposit} transaction_id={transaction.id}/>
         </div>
       ) : (
         <div className="space-y-4">

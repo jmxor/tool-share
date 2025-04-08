@@ -70,6 +70,7 @@ export type TransactionData = {
         username: string;
         first_username: string;
     };
+    deposit: number;
     transaction_status: string;
     created_at: Date;
     borrowed_at: Date | null;

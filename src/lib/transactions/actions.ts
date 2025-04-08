@@ -581,6 +581,7 @@ export async function getTransactionDetails(transaction_id: number): Promise<{
         t.id,
         t.post_id,
         p.tool_name,
+        p.deposit::numeric,
         t.created_at,
         t.borrowed_at,
         t.returned_at,
@@ -633,6 +634,7 @@ export async function getTransactionDetails(transaction_id: number): Promise<{
         id: transaction.id,
         post_id: transaction.post_id,
         tool_name: transaction.tool_name,
+        deposit: transaction.deposit,
         owner: {
           id: transaction.owner_id,
           username: transaction.owner_username,

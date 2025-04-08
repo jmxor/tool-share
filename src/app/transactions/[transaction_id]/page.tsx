@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { getEmailID } from "@/lib/auth/actions";
-import { completeStep, getTransactionDetails } from "@/lib/transactions/actions";
+import { getTransactionDetails } from "@/lib/transactions/actions";
 import { redirect } from "next/navigation";
 import { format } from "date-fns";
 import TransactionTimeline from "@/components/transactions/timeline";
