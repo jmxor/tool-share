@@ -7,6 +7,7 @@ import ChatMessage from "@/components/ChatMessage";
 import { useEffect, useState, useRef } from "react";
 import { getMessagesByUserId, insertDirectMessage } from "@/lib/actions";
 import { useRouter } from 'next/navigation';
+import { getFirstUsernameID } from "@/lib/auth/actions";
 import { User } from "lucide-react";
 
 // Define types for messages and conversations
@@ -23,6 +24,7 @@ interface Conversation {
 }
 
 interface ChatComponentProps {
+  first_username: string,
   initialMessages: { sender: string; message: string }[];
   userName: string;
   initialConversationID: number;
@@ -39,6 +41,7 @@ function mapMessages(messages: Message[]): { sender: string; message: string }[]
 }
 
 const ChatComponent: React.FC<ChatComponentProps> = ({
+  first_username,
   initialMessages,
   userName,
   initialConversationID,
@@ -46,6 +49,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   allConversations,
   currentUserId,
 }) => {
+  console.log("GOT PARAMS:", first_username);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState(initialMessages);
   const [recipient, setRecipient] = useState(initialRecipient);
@@ -53,46 +57,46 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   const [showConversations, setShowConversations] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
+  
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
+  
   useEffect(() => {
     socket.on("message", (data) => {
       if (data.sender !== userName) {
         setMessages((prev) => [...prev, data]);
       }
     });
-
+    
     return () => {
       socket.off("user_joined");
       socket.off("message");
     };
   }, [userName]);
-
+  
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim() === "") return;
-
+    
     const data = { room: conversationID, message, sender: userName };
     setMessages((prev) => [...prev, { sender: userName, message }]);
     socket.emit("message", data);
     await insertDirectMessage(userName, recipient, message);
     setMessage("");
   };
-
+  
   const onSelectConversation = async (
     userId: string,
     recipient_username: string,
   ) => {
     let messagesInfo = await getMessagesByUserId(currentUserId, userId);
     let newConversationId = initialConversationID;
-
+    
     if (messagesInfo && messagesInfo.length > 0) {
       newConversationId = messagesInfo[0].conversation_id;
     } else {
@@ -108,6 +112,19 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     // Update the URL with the new conversation ID, navigating to /chat
     router.push(`/chat?conversationId=${newConversationId}`);
   };
+  
+
+  useEffect(() => {
+    const changeTheFocusedChat = async () => {
+      console.log(first_username)
+      if (first_username) {
+        console.log("GONNA AWAIT:");
+        const otherUserID = await getFirstUsernameID(first_username)
+        onSelectConversation(otherUserID, first_username);
+      }
+    }
+    changeTheFocusedChat();
+  }, [])
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 relative">
