@@ -35,7 +35,7 @@ export default function SendMessageButton({
     return (
         <Button
             onClick={handleClick}
-            className="rounded-none font-semibold bg-blue-500 items-center text-white px-4 py-1 shadow-md hover:cursor-pointer hover:bg-blue-600 flex gap-1"
+            className="font-semibold bg-blue-500 items-center text-white px-4 py-1 shadow-md hover:cursor-pointer hover:bg-blue-600 flex gap-1"
             disabled={isNavigating} // Disable button while navigating
         >
             Message

@@ -14,6 +14,61 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+export async function isEmailBanned(email: string): Promise<boolean> {
+  try {
+    const conn = await getConnection();
+    const query = `
+            SELECT is_suspended
+            FROM "user"
+            WHERE email = $1
+        `;
+
+    const result = await conn.query(query, [email]);
+
+    if ((result.rowCount || 0) <= 0) {
+      return false;
+    }
+
+    const user = result.rows[0];
+    if (user.is_suspended) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error("[ERROR] Failed to check whether email is banned: ", error);
+    return false;
+  }
+}
+
+export async function isUserBanned(userId: number): Promise<boolean> {
+  try {
+    const conn = await getConnection();
+
+    const query = `
+            SELECT is_suspended
+            FROM "user"
+            WHERE id = $1
+        `;
+
+    const result = await conn.query(query, [userId]);
+
+    if ((result.rowCount || 0) <= 0) {
+      return false;
+    }
+
+    const user = result.rows[0];
+    if (user.is_suspended) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error("[ERROR] Failed to check whether user is banned: ", error);
+    return false;
+  }
+}
+
 export async function userIsAdmin(email: string): Promise<boolean> {
   try {
     const conn = await getConnection();
@@ -320,8 +375,6 @@ export async function getPublicUserData(
       posts: postsResult.rows,
     };
 
-    //console.dir(publicUserData, { depth: null });
-
     return publicUserData;
   } catch (error) {
     console.error("[ERROR] Failed to fetch public user data: ", error);
@@ -559,12 +612,15 @@ export async function loginUser(
       throw new Error("Failed to signIn");
     }
   } catch (error) {
-    console.error(
-      "[ERROR: loginUser action] Unexpected error during user log in: ",
-      error
-    );
+    if (error instanceof Error && error.message === "banned") {
+      return {
+        message: "This account has been banned.",
+        success: false,
+      };
+    }
+    console.log(error);
     return {
-      message: "Failed to login user. Try again later.",
+      message: "The account is banned or the email or password is incorrect.",
       success: false,
     };
   }

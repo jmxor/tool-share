@@ -1,7 +1,7 @@
 "use client";
 
 import { TransactionData } from "@/lib/transactions/types";
-import { ExternalLinkIcon } from "lucide-react";
+import { ExternalLinkIcon, RefreshCwIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
@@ -10,11 +10,16 @@ import { useRouter } from "next/navigation";
 import { createRef, useState } from "react";
 import { useEffect } from "react";
 import PaymentForm from "@/components/payment/payment-form";
+import SendMessageButton from "../SendMessageComponent";
 
-const StepActionArea = ({ isBorrower, nextStep, transaction }: { isBorrower: boolean, nextStep: string, transaction: TransactionData }) => {
+const StepActionArea = ({ isBorrower, nextStep, transaction, loggedInEmail, first_username }: { isBorrower: boolean, nextStep: string, transaction: TransactionData, loggedInEmail: string, first_username: string }) => {
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">Next Action</h2>
+      <div className="flex items-center gap-4">
+        <h2 className="text-xl font-semibold">Next Action</h2>
+        <SendMessageButton email={loggedInEmail} first_username={first_username} />
+        <Button asChild><Link href={`/transactions/${transaction.id}`}>Refresh<RefreshCwIcon className="ml-2 h-4 w-4"/></Link></Button>
+      </div>
       {nextStep === "deposit_paid" && <DepositStep isBorrower={isBorrower} transaction={transaction} />}
       {nextStep === "tool_borrowed" && <FirstExchangeStep isBorrower={isBorrower} transaction={transaction} />}
       {nextStep === "tool_returned" && <SecondExchangeStep isBorrower={isBorrower} transaction={transaction} />}
@@ -25,14 +30,6 @@ const StepActionArea = ({ isBorrower, nextStep, transaction }: { isBorrower: boo
 };
 
 const DepositStep = ({ isBorrower, transaction }: { isBorrower: boolean, transaction: TransactionData }) => {
-  const router = useRouter();
-  const handleClick = async () => {
-    const result = await completeStep("deposit_paid", transaction.id);
-    if (result && result.success) {
-      router.refresh();
-    }
-  }
-
   return (
     <div className="space-y-4 p-6 border rounded-lg bg-background shadow-sm">
       {isBorrower ? (
@@ -44,8 +41,7 @@ const DepositStep = ({ isBorrower, transaction }: { isBorrower: boolean, transac
           <p className="text-muted-foreground">
             To proceed with borrowing {transaction.tool_name}, you need to pay a deposit.
           </p>
-          <Button className="w-full" onClick={handleClick}>Pay Deposit Now</Button>
-          <PaymentForm amount={59.99} transaction_id={transaction.id}/>
+          <PaymentForm amount={transaction.deposit} transaction_id={transaction.id}/>
         </div>
       ) : (
         <div className="space-y-4">
@@ -122,6 +118,9 @@ const FirstExchangeStep = ({ isBorrower, transaction }: { isBorrower: boolean, t
           <p className="text-muted-foreground">
             Only share this code with the owner in person when you pick up the tool.
           </p>
+          <p className="text-sm text-blue-600">
+            Use the chat feature to coordinate a meeting time and location with the owner.
+          </p>
           {displayCode ? (
             <div className="space-y-3">
               <div className="flex justify-center gap-2">
@@ -150,6 +149,9 @@ const FirstExchangeStep = ({ isBorrower, transaction }: { isBorrower: boolean, t
           <h3 className="text-lg font-semibold">Enter Pickup Code</h3>
           <p className="text-muted-foreground">
             Ask the borrower for their pickup code when in person to confirm the handover.
+          </p>
+          <p className="text-sm text-blue-600">
+            Use the chat feature to coordinate a meeting time and location with the borrower.
           </p>
           <div className="flex justify-center gap-2 my-4">
             {Array(6).fill(0).map((_, index) => (
@@ -235,6 +237,9 @@ const SecondExchangeStep = ({ isBorrower, transaction }: { isBorrower: boolean, 
           <p className="text-muted-foreground">
             Only share this code with the borrower in person when they return the tool.
           </p>
+          <p className="text-sm text-blue-600">
+            Use the chat feature to coordinate a meeting time and location for the tool return.
+          </p>
           {displayCode ? (
             <div className="space-y-3">
               <div className="flex justify-center gap-2">
@@ -263,6 +268,9 @@ const SecondExchangeStep = ({ isBorrower, transaction }: { isBorrower: boolean, 
           <h3 className="text-lg font-semibold">Enter Return Code</h3>
           <p className="text-muted-foreground">
             Ask the owner for their return code to confirm the handover.
+          </p>
+          <p className="text-sm text-blue-600">
+            Use the chat feature to coordinate a meeting time and location for returning the tool.
           </p>
           <div className="flex justify-center gap-2 my-4">
             {Array(6).fill(0).map((_, index) => (
@@ -307,7 +315,7 @@ const CompletedStep = ({ isBorrower, transaction }: { isBorrower: boolean, trans
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Finalize Transaction</h3>
           <p className="text-muted-foreground">
-            The tool has been returned. Please finalize the transaction to release the deposit.
+            The tool has been returned. Please finalize the transaction to release the deposit, this will end the transaction, if there are any issues please use the report feature which can be found in the user&apos;s profile.
           </p>
           <Button onClick={handleFinalize} className="w-full">Finalize Transaction</Button>
         </div>
