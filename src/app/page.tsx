@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ArrowRight, Clock, Plus, Search, Share2 } from "lucide-react";
+import { ArrowRight, CircleHelp, Clock, Plus, Search, Share2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -18,18 +17,18 @@ export default function Home() {
                 </h1>
                 <p className="max-w-[600px] text-muted-foreground md:text-xl">
                   Borrow the tools you need from people in your neighborhood.
-                  List your own tools to earn extra income.
+                  List your own tools to help out your community.
                 </p>
               </div>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
                 <Button size="lg" asChild>
                   <Link href="/tools" className="gap-1">
-                    Find Tools <ArrowRight className="h-4 w-4" />
+                    Find Tools <Search className="h-4 w-4" />
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
-                  <Link href="/tools" className="gap-1">
-                    List your Tools <Plus />
+                  <Link href="/tools/new" className="gap-1">
+                    List a Tool <Plus />
                   </Link>
                 </Button>
               </div>
@@ -78,7 +77,7 @@ export default function Home() {
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground">
                 <Clock className="h-8 w-8" />
               </div>
-              <h3 className="text-xl font-bold">Book & Borrow</h3>
+              <h3 className="text-xl font-bold">Request & Borrow</h3>
               <p className="text-muted-foreground">
                 Reserve tools for the dates you need. Meet the owner for pickup
                 or delivery.
@@ -90,8 +89,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold">Share Your Tools</h3>
               <p className="text-muted-foreground">
-                List your tools, set availability, and earn money when others
-                borrow them.
+                List your tools, set availability, and help out a neighbor in need.
               </p>
             </div>
           </div>
@@ -112,13 +110,13 @@ export default function Home() {
             </div>
             <div className="flex flex-col gap-2 min-[400px]:flex-row">
               <Button size="lg" asChild>
-                <a href="/auth/login" className="flex gap-1">
+                <a href="/auth/register" className="flex gap-1">
                   Sign Up Now <ArrowRight className="h-4 w-4" />
                 </a>
               </Button>
               <Button size="lg" variant="outline" asChild>
                 <Link href="/about" className="gap-1">
-                  Learn More
+                  How it Works <CircleHelp className="h-4 w-4" />
                 </Link>
               </Button>
             </div>

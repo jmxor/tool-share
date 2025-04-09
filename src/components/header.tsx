@@ -10,7 +10,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { MenuIcon } from "lucide-react";
+import { MenuIcon, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import AccountButton from "@/components/accounts/account-button";
 import Image from "next/image";
@@ -43,11 +43,8 @@ export default async function Header() {
             </Link>
           </div>
 
-          <div className="hidden md:flex items-center gap-4">
-            {/* Desktop Links*/}
+          <div className="hidden md:flex items-center gap-4 w-full justify-center">
             <HeaderLinks links={navLinks} />
-
-            <HeaderSearch />
           </div>
 
           {session?.user ?
@@ -84,6 +81,18 @@ export default async function Header() {
       <div className={cn("w-full px-4 py-2 border-b md:hidden")}>
         <HeaderSearch />
       </div>
+      
+      {/* Chat Button for logged in users */}
+      {session?.user && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <Button size="lg" className="rounded-full h-14 w-14 p-0" asChild>
+            <Link href="/chat">
+              <MessageCircle className="h-6 w-6" />
+              <span className="sr-only">Chat</span>
+            </Link>
+          </Button>
+        </div>
+      )}
     </>
   );
 }
