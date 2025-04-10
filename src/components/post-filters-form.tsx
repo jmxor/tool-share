@@ -108,7 +108,8 @@ export default function PostFiltersForm({
                         onChange={(e) =>
                           setPostFiltersState((state) => ({
                             ...state,
-                            max_deposit: parseFloat(e.target.value),
+                            max_deposit: (parseFloat(e.target.value) ||
+                              "") as number,
                           }))
                         }
                       />
@@ -135,7 +136,8 @@ export default function PostFiltersForm({
                         onChange={(e) =>
                           setPostFiltersState((state) => ({
                             ...state,
-                            min_borrow_days: parseFloat(e.target.value),
+                            min_borrow_days: (parseFloat(e.target.value) ||
+                              "") as number,
                           }))
                         }
                       />
