@@ -105,9 +105,6 @@ export default async function ProfilePage({
           <p className="text-sm">
             Joined <span>{formatDate(publicUserData.created_at)}</span>
           </p>
-          <p className="text-sm">
-            <span className="font-bold">5</span> transactions
-          </p>
         </div>
         <div className="flex flex-col items-center gap-1">
           {first_username !== loggedInFirstUsername ? (
@@ -228,7 +225,7 @@ export default async function ProfilePage({
             </div>
           ) : (
             <div className="flex items-center justify-center py-10 text-xl text-gray-400">
-              No Listings
+              No Posts
             </div>
           )}
         </div>
