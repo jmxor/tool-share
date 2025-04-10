@@ -119,7 +119,7 @@ export default function EditPostForm({
           ref={formRef}
           onSubmit={form.handleSubmit(() => formRef.current?.submit())}
           action={formAction}
-          className="my-4 h-fit w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-md"
+          className="my-4 h-fit w-full max-w-md space-y-2 rounded-lg bg-white p-8 shadow-md"
         >
           <h2 className="mt-0 text-center text-3xl font-bold text-gray-800">
             Edit Tool
@@ -142,7 +142,7 @@ export default function EditPostForm({
               control={form.control}
               name="image_urls"
               render={({ field }) => (
-                <FormItem className="min-h-[84px] w-full">
+                <FormItem className="min-h-[439px] w-full">
                   <FormLabel>Images*</FormLabel>
                   <FormControl>
                     <Input {...field} type="hidden" />
@@ -231,12 +231,11 @@ export default function EditPostForm({
               )}
             />
 
-            {/*TODO: limit size of categories select and scroll instead*/}
             <FormField
               control={form.control}
               name="categories"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
+                <FormItem className="flex min-h-[75px] flex-col">
                   <FormLabel>Categories</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -410,7 +409,7 @@ export default function EditPostForm({
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="mt-0.5 flex gap-2">
             <Button type="submit" disabled={isPending} className="w-full">
               Save
             </Button>

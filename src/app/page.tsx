@@ -17,7 +17,7 @@ export default function Home() {
                 </h1>
                 <p className="max-w-[600px] text-muted-foreground md:text-xl">
                   Borrow the tools you need from people in your neighborhood.
-                  List your own tools to help out your community.
+                  List your own tools to give back to the community.
                 </p>
               </div>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
@@ -28,7 +28,7 @@ export default function Home() {
                 </Button>
                 <Button size="lg" variant="outline" asChild>
                   <Link href="/tools/new" className="gap-1">
-                    List a Tool <Plus />
+                    List your Tools <Plus />
                   </Link>
                 </Button>
               </div>
@@ -79,15 +79,15 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold">Request & Borrow</h3>
               <p className="text-muted-foreground">
-                Reserve tools for the dates you need. Meet the owner for pickup
-                or delivery.
+                Borrow tools on the dates you need. Meet the owner for pickup or
+                delivery.
               </p>
             </div>
             <div className="flex flex-col items-center space-y-4 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground">
                 <Share2 className="h-8 w-8" />
               </div>
-              <h3 className="text-xl font-bold">Share Your Tools</h3>
+              <h3 className="text-xl font-bold">Share Tools</h3>
               <p className="text-muted-foreground">
                 List your tools, set availability, and help out a neighbor in need.
               </p>
