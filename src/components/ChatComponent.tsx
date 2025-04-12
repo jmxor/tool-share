@@ -5,10 +5,10 @@ import { Button } from "./ui/button";
 import { socket } from "@/lib/socketClient";
 import ChatMessage from "@/components/ChatMessage";
 import { useEffect, useState, useRef } from "react";
-import { getMessagesByUserId, insertDirectMessage } from "@/lib/actions";
+import { deleteConversation, deleteConversationAction, getMessagesByUserId, insertDirectMessage } from "@/lib/actions";
 import { useRouter } from 'next/navigation';
 import { getFirstUsernameID } from "@/lib/auth/actions";
-import { User } from "lucide-react";
+import { Trash, User } from "lucide-react";
 
 // Define types for messages and conversations
 interface Message {
@@ -113,6 +113,15 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     router.push(`/chat?conversationId=${newConversationId}`);
   };
   
+  const deleteConversation = async () => {
+    if (!conversationID) return;
+    const result = await deleteConversationAction(conversationID);
+    if (result == -1){
+      console.log("Failed")
+      return;
+    };
+    console.log("success");
+  };
 
   useEffect(() => {
     const changeTheFocusedChat = async () => {
@@ -164,6 +173,19 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
             <span className="p-4 block">No conversations</span>
           )}
         </ul>
+        
+        {/* Delete conversation button */}
+        {conversationID > 0 && recipient && (
+          <div className="p-4 border-t border-gray-200">
+            <Button 
+              onClick={deleteConversation}
+              className="w-full bg-red-500 hover:bg-red-600 text-white"
+              variant="destructive"
+            >
+              <Trash className="w-4 h-4 mr-2" /> Delete Conversation
+            </Button>
+          </div>
+        )}
       </div>
 
       {allConversations.length > 0 ? (

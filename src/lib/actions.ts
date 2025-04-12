@@ -170,6 +170,30 @@ export async function createConversation(user1_email : string, user2_first_usern
     }
 }
 
+export async function deleteConversationAction(conversation_id: number) {
+    try {
+
+        const deleteQuery = `
+            DELETE FROM conversation
+            WHERE id = $1;
+        `
+
+        const conn = await getConnection();
+
+        const checkResult = await conn.query(deleteQuery, [conversation_id]);
+
+        if (checkResult.rows.length < 1){
+            console.log("[SUCCESS] Conversation deleted")
+            return 1
+        }
+
+    }catch {
+        console.log("[ERROR] failed to delete Conversation!")
+        return -1;
+
+}
+}
+
 
 
 
