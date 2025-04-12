@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import { getFirstUsernameID } from "@/lib/auth/actions";
 import { Trash, User } from "lucide-react";
 
-// --- Interfaces and mapMessages function from Step 1 go here ---
+// --- Interfaces and mapMessages function  ---
 interface Message {
   sent_at: any;
   sender_username: string;
@@ -30,14 +30,6 @@ interface DisplayMessage {
   message: string;
   timestamp?: Date; 
 }
-
-interface ChatMessageProps {
-  sender: string;
-  message: string;
-  isOwnMessage: boolean;
-  timestamp?: Date; 
-}
-
 interface ChatComponentProps {
   first_username: string,
   initialMessages: DisplayMessage[]; 
