@@ -108,10 +108,10 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     e.preventDefault();
     if (message.trim() === "") return;
     
-    const timestamp = new Date(); // Generate timestamp *now*
+    const timestamp = new Date(); // Generate timestamp now
     const newMessage: DisplayMessage = { sender: userName, message, timestamp };
     
-    // Optimistically update UI
+    //update UI
     setMessages((prev) => [...prev, newMessage]); 
     
     // Prepare data for socket and backend
@@ -119,8 +119,6 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     const data = { room: conversationID, message, sender: userName, timestamp: timestamp.toISOString() }; 
     socket.emit("message", data);
     
-    // Update insertDirectMessage to accept and store the timestamp
-    // You might need to adjust the function signature in @/lib/actions
     await insertDirectMessage(userName, recipient, message, timestamp); 
     
     setMessage("");
@@ -171,7 +169,6 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
              await onSelectConversation(otherUserID, first_username);
           } else {
             console.error("Could not find user ID for:", first_username);
-            // Handle error case, maybe clear chat or show a message
           }
         }
       }
@@ -180,7 +177,6 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     if (first_username && first_username !== recipient) {
        changeTheFocusedChat();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [first_username]); // Dependency array includes first_username
 
   return (
