@@ -135,28 +135,31 @@ const PostCard = forwardRef<HTMLDivElement, PostCardProps>(
               size="sm"
               asChild
             >
-              {/* TODO: change button content to Edit if current user is owner */}
               <a href={`/tools/${post.id}/edit`}>Edit</a>
             </Button>
           ) : (
-            <Button className="w-full" size="sm" asChild>
-              {/* TODO: change button content to Edit if current user is owner */}
-              <a href={`/tools/${post.id}`}>Details</a>
-            </Button>
-          )}
-
-          {loggedIn ? (
-            <Button className="w-full" size="sm" onClick={handleBorrowClick}>
-              {post.status === "available" ? "Borrow" : "Join Queue"}
-            </Button>
-          ) : (
-            <Button
-              asChild
-              size="sm"
-              className="w-full bg-blue-600 hover:bg-blue-500"
-            >
-              <Link href="/auth/login">Login to Borrow</Link>
-            </Button>
+            <>
+              <Button className="w-full" size="sm" asChild>
+                <a href={`/tools/${post.id}`}>Details</a>
+              </Button>
+              {loggedIn ? (
+                <Button
+                  className="w-full"
+                  size="sm"
+                  onClick={handleBorrowClick}
+                >
+                  {post.status === "available" ? "Borrow" : "Join Queue"}
+                </Button>
+              ) : (
+                <Button
+                  asChild
+                  size="sm"
+                  className="w-full bg-blue-600 hover:bg-blue-500"
+                >
+                  <Link href="/auth/login">Login to Borrow</Link>
+                </Button>
+              )}
+            </>
           )}
         </div>
 

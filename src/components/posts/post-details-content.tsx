@@ -80,15 +80,15 @@ export default function PostDetailsContent({
 
   return (
     <div className="mb-auto flex min-h-[calc(100vh-64px)] w-full flex-1 justify-center bg-gray-50 px-4">
-      <div className="my-4 h-fit w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-md">
-        <h2 className="mt-6 text-center text-3xl font-bold text-gray-800">
+      <div className="my-4 h-fit w-full max-w-md space-y-2 rounded-lg bg-white p-8 shadow-md">
+        <h2 className="text-center text-3xl font-bold text-gray-800">
           Tool Details
         </h2>
 
         <div className="space-y-2">
-          <div className="space-y-0.5">
+          <div className="min-h-[439px] space-y-0.5">
             <label htmlFor="" className="text-sm font-medium">
-              Images
+              Images*
             </label>
 
             <div className="relative flex w-full overflow-clip">
@@ -134,16 +134,16 @@ export default function PostDetailsContent({
             </div>
           </div>
 
-          <div className="space-y-0.5">
+          <div className="min-h-[75px] space-y-0.5">
             <label htmlFor="" className="text-sm font-medium">
               Categories
             </label>
-            <div className="flex min-h-9 w-full flex-wrap items-center gap-2 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors md:text-sm">
+            <div className="flex min-h-[38px] w-full flex-wrap items-center gap-2 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors md:text-sm">
               {post?.categories.map((c1) => <Badge key={c1}>{c1}</Badge>)}
             </div>
           </div>
 
-          <div className="space-y-0.5">
+          <div className="min-h-[84px] space-y-0.5">
             <label htmlFor="" className="text-sm font-medium">
               Name
             </label>
@@ -151,47 +151,48 @@ export default function PostDetailsContent({
               {post?.tool_name}
             </div>
           </div>
-          <div className="space-y-0.5">
+
+          <div className="min-h-[108px] space-y-0.5">
             <label htmlFor="" className="text-sm font-medium">
               Description
             </label>
-            <div className="flex min-h-9 w-full items-center rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors md:text-sm">
+            <div className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors md:text-sm">
               {post?.description}
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-0.5">
+            <div className="min-h-[84px] space-y-0.5">
               <label htmlFor="" className="text-sm font-medium">
                 Deposit
               </label>
 
               <div className="flex">
-                <div className="flex h-9 shrink-0 items-center justify-center rounded-md rounded-r-none border border-r-0 border-input px-3 shadow-sm">
+                <div className="flex h-[38px] shrink-0 items-center justify-center rounded-md rounded-r-none border border-r-0 border-input px-3 shadow-sm">
                   £
                 </div>
-                <div className="flex min-h-9 w-full items-center rounded-md rounded-l-none border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors md:text-sm">
+                <div className="flex min-h-[38px] w-full items-center rounded-md rounded-l-none border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors md:text-sm">
                   {post?.deposit}
                 </div>
               </div>
             </div>
 
-            <div className="space-y-0.5">
+            <div className="min-h-[84px] space-y-0.5">
               <label htmlFor="" className="text-sm font-medium">
                 Max Borrow Period
               </label>
               <div className="flex">
-                <div className="flex min-h-9 w-full items-center rounded-md rounded-r-none border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors md:text-sm">
+                <div className="flex min-h-[38px] w-full items-center rounded-md rounded-r-none border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors md:text-sm">
                   {post?.max_borrow_days}
                 </div>
-                <div className="flex h-9 shrink-0 items-center justify-center rounded-md rounded-l-none border border-l-0 border-input px-3 shadow-sm">
+                <div className="flex h-[38px] shrink-0 items-center justify-center rounded-md rounded-l-none border border-l-0 border-input px-3 shadow-sm">
                   days
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="space-y-0.5">
+          <div className="min-h-[84px] space-y-0.5">
             <label htmlFor="" className="text-sm font-medium">
               Postcode
             </label>
@@ -202,7 +203,7 @@ export default function PostDetailsContent({
 
           {loggedIn ? (
             <Button
-              className="mt-0.5 w-full"
+              className="mt-0.5 h-9 w-full"
               size="sm"
               onClick={handleBorrowClick}
             >

@@ -93,9 +93,9 @@ export default function NewToolForm({
           ref={formRef}
           onSubmit={form.handleSubmit(() => formRef.current?.submit())}
           action={formAction}
-          className="my-4 h-fit w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow-md"
+          className="my-4 h-fit w-full max-w-md space-y-2 rounded-lg bg-white p-8 shadow-md"
         >
-          <h2 className="mt-0 text-center text-3xl font-bold text-gray-800">
+          <h2 className="text-center text-3xl font-bold text-gray-800">
             Share a new Tool
           </h2>
           <div className="space-y-2">
@@ -104,7 +104,7 @@ export default function NewToolForm({
               control={form.control}
               name="image_urls"
               render={({ field }) => (
-                <FormItem className="min-h-[84px] w-full">
+                <FormItem className="min-h-[439px] w-full">
                   <FormLabel>Images*</FormLabel>
                   <FormControl>
                     <Input {...field} type="hidden" />
@@ -198,7 +198,7 @@ export default function NewToolForm({
               control={form.control}
               name="categories"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
+                <FormItem className="flex min-h-[75px] flex-col">
                   <FormLabel>Categories</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>

@@ -8,7 +8,11 @@ import { useEffect, useState, useRef } from "react";
 import { deleteConversation, deleteConversationAction, getMessagesByUserId, insertDirectMessage } from "@/lib/actions";
 import { useRouter } from 'next/navigation';
 import { getFirstUsernameID } from "@/lib/auth/actions";
+<<<<<<< HEAD
 import { Trash, User } from "lucide-react";
+=======
+import { User } from "lucide-react";
+>>>>>>> a78bea441e18ae99203c64f26b3262e757280ec9
 
 // Define types for messages and conversations
 interface Message {

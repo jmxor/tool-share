@@ -18,7 +18,7 @@ const StepActionArea = ({ isBorrower, nextStep, transaction, loggedInEmail, firs
       <div className="flex items-center gap-4">
         <h2 className="text-xl font-semibold">Next Action</h2>
         <SendMessageButton email={loggedInEmail} first_username={first_username} />
-        <Button asChild><Link href={`/transactions/${transaction.id}`}>Refresh<RefreshCwIcon className="ml-2 h-4 w-4"/></Link></Button>
+        <Button asChild><a href={`/transactions/${transaction.id}`}>Refresh<RefreshCwIcon className="ml-2 h-4 w-4"/></a></Button>
       </div>
       {nextStep === "deposit_paid" && <DepositStep isBorrower={isBorrower} transaction={transaction} />}
       {nextStep === "tool_borrowed" && <FirstExchangeStep isBorrower={isBorrower} transaction={transaction} />}

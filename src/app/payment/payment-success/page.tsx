@@ -10,7 +10,6 @@ export default async function PaymentSuccess({
     const { payment_intent_client_secret, amount, transaction_id } = await searchParams;
 
     if (payment_intent_client_secret) {
-      console.log(transaction_id)
       const checkPayment = await completeStep("deposit_paid", transaction_id);
       if (checkPayment && checkPayment.success) {
         redirect(`/transactions/${transaction_id}`);
