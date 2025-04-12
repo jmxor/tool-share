@@ -3,22 +3,20 @@
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { socket } from "@/lib/socketClient";
-import ChatMessage from "@/components/ChatMessage";
+import ChatMessage from "@/components/ChatMessage"; 
 import { useEffect, useState, useRef } from "react";
-import { deleteConversation, deleteConversationAction, getMessagesByUserId, insertDirectMessage } from "@/lib/actions";
+import { deleteConversationAction, getMessagesByUserId, insertDirectMessage, checkIfConversationExists } from "@/lib/actions";
 import { useRouter } from 'next/navigation';
 import { getFirstUsernameID } from "@/lib/auth/actions";
-<<<<<<< HEAD
 import { Trash, User } from "lucide-react";
-=======
-import { User } from "lucide-react";
->>>>>>> a78bea441e18ae99203c64f26b3262e757280ec9
 
-// Define types for messages and conversations
+// --- Interfaces and mapMessages function from Step 1 go here ---
 interface Message {
+  sent_at: any;
   sender_username: string;
   message: string;
   conversation_id?: number;
+  timestamp?: Date | string; // Allow string initially if coming from DB/API
 }
 
 interface Conversation {
@@ -27,9 +25,22 @@ interface Conversation {
   recipient_username: string;
 }
 
+interface DisplayMessage {
+  sender: string;
+  message: string;
+  timestamp?: Date; 
+}
+
+interface ChatMessageProps {
+  sender: string;
+  message: string;
+  isOwnMessage: boolean;
+  timestamp?: Date; 
+}
+
 interface ChatComponentProps {
   first_username: string,
-  initialMessages: { sender: string; message: string }[];
+  initialMessages: DisplayMessage[]; 
   userName: string;
   initialConversationID: number;
   initialRecipient: string;
@@ -37,12 +48,15 @@ interface ChatComponentProps {
   currentUserId: string;
 }
 
-function mapMessages(messages: Message[]): { sender: string; message: string }[] {
+function mapMessages(messages: Message[]): DisplayMessage[] {
   return messages.map((msg) => ({
     sender: msg.sender_username,
     message: msg.message,
+    timestamp: msg.sent_at ? new Date(msg.sent_at) : undefined, 
   }));
 }
+// --- End of Interfaces and mapMessages ---
+
 
 const ChatComponent: React.FC<ChatComponentProps> = ({
   first_username,
@@ -53,9 +67,11 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   allConversations,
   currentUserId,
 }) => {
-  console.log("GOT PARAMS:", first_username);
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState(initialMessages);
+  // Ensure initialMessages timestamps are Date objects if needed
+  const [messages, setMessages] = useState<DisplayMessage[]>(() => 
+    initialMessages.map(msg => ({ ...msg, timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined }))
+  );
   const [recipient, setRecipient] = useState(initialRecipient);
   const [conversationID, setConversationId] = useState(initialConversationID);
   const [showConversations, setShowConversations] = useState(false);
@@ -67,9 +83,14 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
   };
   
   useEffect(() => {
-    socket.on("message", (data) => {
+    socket.on("message", (data: { sender: string; message: string; timestamp?: Date | string }) => {
       if (data.sender !== userName) {
-        setMessages((prev) => [...prev, data]);
+        // Ensure timestamp is a Date object
+        const newMessage: DisplayMessage = {
+          ...data,
+          timestamp: data.timestamp ? new Date(data.timestamp) : new Date() // Fallback to now if missing
+        };
+        setMessages((prev) => [...prev, newMessage]);
       }
     });
     
@@ -87,10 +108,21 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     e.preventDefault();
     if (message.trim() === "") return;
     
-    const data = { room: conversationID, message, sender: userName };
-    setMessages((prev) => [...prev, { sender: userName, message }]);
+    const timestamp = new Date(); // Generate timestamp *now*
+    const newMessage: DisplayMessage = { sender: userName, message, timestamp };
+    
+    // Optimistically update UI
+    setMessages((prev) => [...prev, newMessage]); 
+    
+    // Prepare data for socket and backend
+    // Send timestamp as ISO string for better serialization
+    const data = { room: conversationID, message, sender: userName, timestamp: timestamp.toISOString() }; 
     socket.emit("message", data);
-    await insertDirectMessage(userName, recipient, message);
+    
+    // Update insertDirectMessage to accept and store the timestamp
+    // You might need to adjust the function signature in @/lib/actions
+    await insertDirectMessage(userName, recipient, message, timestamp); 
+    
     setMessage("");
   };
   
@@ -98,22 +130,23 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     userId: string,
     recipient_username: string,
   ) => {
-    let messagesInfo = await getMessagesByUserId(currentUserId, userId);
+    let conversationExists = await checkIfConversationExists(userId, currentUserId);
+    // Assume getMessagesByUserId now returns messages with timestamps
+    let messagesInfo = await getMessagesByUserId(currentUserId, userId); 
     let newConversationId = initialConversationID;
-    
-    if (messagesInfo && messagesInfo.length > 0) {
-      newConversationId = messagesInfo[0].conversation_id;
-    } else {
-      messagesInfo = [];
+
+    if(conversationExists){
+      newConversationId = conversationExists;
     }
+
+    // Use mapMessages which handles timestamp conversion
+    const formattedMessages = messagesInfo ? mapMessages(messagesInfo) : []; 
+    
     setConversationId(newConversationId);
-    const formattedMessages = mapMessages(messagesInfo);
     setMessages(formattedMessages);
     setRecipient(recipient_username);
     socket.emit("join-room", { room: newConversationId, username: userName });
-    setShowConversations(false); // Hide conversations list on mobile after selection
-
-    // Update the URL with the new conversation ID, navigating to /chat
+    setShowConversations(false); 
     router.push(`/chat?conversationId=${newConversationId}`);
   };
   
@@ -124,26 +157,37 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       console.log("Failed")
       return;
     };
-    console.log("success");
+    router.push(`/chat`);
   };
 
   useEffect(() => {
     const changeTheFocusedChat = async () => {
-      console.log(first_username)
       if (first_username) {
-        console.log("GONNA AWAIT:");
-        const otherUserID = await getFirstUsernameID(first_username)
-        onSelectConversation(otherUserID, first_username);
+        // Check if the initial load already set the correct recipient/messages
+        // to avoid unnecessary re-fetch and state update if possible.
+        if (first_username !== recipient) { 
+          const otherUserID = await getFirstUsernameID(first_username);
+          if (otherUserID) { // Ensure otherUserID is found
+             await onSelectConversation(otherUserID, first_username);
+          } else {
+            console.error("Could not find user ID for:", first_username);
+            // Handle error case, maybe clear chat or show a message
+          }
+        }
       }
     }
-    changeTheFocusedChat();
-  }, [])
+    // Only run if first_username is provided and different from current recipient
+    if (first_username && first_username !== recipient) {
+       changeTheFocusedChat();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [first_username]); // Dependency array includes first_username
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 relative">
       {/* Mobile toggle button */}
       <div className="md:hidden flex justify-between items-center p-4 bg-white border-b border-gray-200">
-        <h2 className="text-lg font-semibold flex items-center"><User className="w-4 h-4 mr-2" /> {recipient}</h2>
+        <h2 className="text-lg font-semibold flex items-center"><User className="w-4 h-4 mr-2" /> {recipient || 'Select Conversation'}</h2>
         <Button 
           onClick={() => setShowConversations(!showConversations)}
           className="px-3 py-1"
@@ -152,7 +196,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         </Button>
       </div>
 
-      {/* Conversations sidebar - hidden on mobile unless toggled */}
+      {/* Conversations sidebar */}
       <div className={`${showConversations ? 'block' : 'hidden'} md:block md:col-start-1 md:col-end-2 bg-white border-r border-gray-200 h-[calc(100vh-8rem)] md:h-auto overflow-y-auto absolute md:relative z-10 w-full md:w-auto`}>
         <h2 className="text-lg font-semibold p-4 hidden md:block">Conversations</h2>
         <ul className="divide-y divide-gray-200">
@@ -192,39 +236,51 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
         )}
       </div>
 
-      {allConversations.length > 0 ? (
+      {/* Chat Area */}
+      {/* Conditionally render based on whether a recipient is selected */}
+      {recipient ? ( 
         <div className="md:col-start-2 md:col-end-5 p-4">
-          <div className="flex-col-reverse justify-end h-[50vh] md:h-[750px] overflow-y-auto p-4 mt-4 mb-4 bg-gradient-to-t from-white to-gray-100 border-2 rounded-lg">
+          <div className="flex flex-col h-[calc(100vh-16rem)] md:h-[calc(100vh-10rem)] overflow-y-auto p-4 mb-4 bg-gradient-to-t from-white to-gray-100 border-2 rounded-lg">
+            {/* Map messages in normal order (oldest first) */}
             {messages.map((msg, index) => (
               <ChatMessage
-                key={index}
+                key={`${msg.sender}-${index}-${msg.timestamp?.getTime()}`} 
                 sender={msg.sender}
                 message={msg.message}
                 isOwnMessage={msg.sender === userName}
+                timestamp={msg.timestamp}
               />
             ))}
+            {/* Scroll anchor at the bottom */}
             <div ref={messagesEndRef} />
           </div>
 
-          <form onSubmit={handleSubmit} className="flex gap-2 mt-4">
+          <form onSubmit={handleSubmit} className="flex gap-2">
             <Input
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               className="flex-1 px-4 border-2 py-2 rounded-lg focus:outline-none"
               placeholder="Type your message here... "
+              disabled={!recipient}
             />
             <Button
               type="submit"
               className="shadow-lg border-1 bg-black hover:bg-gradient-to-tr from-black to-gray-600 px-4 py-2 rounded-lg"
+              disabled={!recipient || message.trim() === ""}
             >
               Send
             </Button>
           </form>
         </div>
       ) : (
-        <div className="col-span-full p-4 text-center">No conversations</div>
-      )}
+        // Show placeholder if no conversation is selected
+        <div className="md:col-start-2 md:col-end-5 p-4 flex items-center justify-center h-[calc(100vh-10rem)]">
+          <div className="text-center text-gray-500">
+            {allConversations.length > 0 ? "Select a conversation to start chatting." : "No conversations yet."}
+          </div>
+        </div>
+      )} 
     </div>
   );
 };

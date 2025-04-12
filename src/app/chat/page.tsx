@@ -15,15 +15,9 @@ function mapMessages(messages: any[]): { sender: string; recipient: number; mess
   }));
 }
 
-<<<<<<< HEAD
-export default async function Chat({ searchParams,}: { searchParams: { first_username?: string }; }) {
-
-  const first_username = searchParams.first_username;
-=======
 export default async function Chat({ searchParams,}: { searchParams: Promise<{ first_username?: string }> }) {
 
   const first_username = (await searchParams).first_username;
->>>>>>> a78bea441e18ae99203c64f26b3262e757280ec9
   let currentUserId = ""
 
   // Verify user is logged in
