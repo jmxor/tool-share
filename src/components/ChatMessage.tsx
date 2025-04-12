@@ -20,10 +20,9 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
     : ''; // Show nothing if no timestamp
 
   return (
-    // Added mb-2 for spacing between messages
     <div className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-2`}> 
       <div
-        className={`max-w-[70%] p-3 rounded-lg shadow-md ${ // Added shadow
+        className={`max-w-[70%] p-3 rounded-lg shadow-md ${ 
           isOwnMessage
                 ? "bg-gradient-to-t from-purple-500 to-blue-500 text-white border-2 rounded-br-none"
                 : "bg-white border-2 text-black rounded-bl-none"
