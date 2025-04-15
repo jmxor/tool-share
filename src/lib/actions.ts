@@ -3,8 +3,32 @@
 import { getConnection } from "@/lib/db";
 import { getEmailID, getFirstUsernameID } from "./auth/actions";
 
+export async function checkIfConversationExists(user1_Id: string, user2_Id : string) {
+    try {
+
+        const checkQuery = `
+            SELECT id 
+            FROM conversation 
+            WHERE (user1_id = $1 AND user2_id = $2) 
+            OR (user1_id = $2 AND user2_id = $1)      
+        `
+
+        const conn = await getConnection();
+        
+        const result = await conn.query(checkQuery, [user1_Id, user2_Id]);
+
+        console.log(result.rows[0].id)
+        
+        return result.rows[0].id;
+
+    }catch {
+        return null;
+
+}
+}
 export async function getMessagesByUserId(user1_Id: string, user2_Id : string) {
     try {
+
         const query = `
             SELECT
                 dm.id,
@@ -34,13 +58,9 @@ export async function getMessagesByUserId(user1_Id: string, user2_Id : string) {
         `
 
         const conn = await getConnection();
-
+        
         const result = await conn.query(query, [user1_Id, user2_Id]);
-
-        if (!result.rows) {
-            return null;
-        }
-
+        
         return result.rows;
 
     }catch {
@@ -49,7 +69,7 @@ export async function getMessagesByUserId(user1_Id: string, user2_Id : string) {
 }
 }
 
-export async function insertDirectMessage(user1: string, user2 : string, msg : string) {
+export async function insertDirectMessage(user1: string, user2: string, msg: string, timestamp: Date) {
     try {
 
         const query = `
@@ -168,6 +188,44 @@ export async function createConversation(user1_email : string, user2_first_usern
         console.error("[ERROR] Failed to create conversation:", error);
         return -1
     }
+}
+
+export async function deleteConversationAction(conversationId: number) {
+    try {
+
+
+        const query = `
+            SELECT user1_id, user2_id
+            FROM conversation
+            WHERE id = $1;
+        `
+
+
+        const deleteMessages = `
+            DELETE FROM direct_message
+            WHERE (sender_id = $1 AND recipient_id = $2)
+            OR (sender_id = $2 AND recipient_id = $1);
+        `
+        const deleteConversation = `
+            DELETE FROM conversation
+            WHERE (user1_id = $1 AND user2_id = $2)
+            OR (user1_id = $2 AND user2_id = $1);
+        `
+
+        const conn = await getConnection();
+
+        const result = await conn.query(query, [conversationId]);
+
+        const delMessages = await conn.query(deleteMessages, [result.rows[0].user1_id, result.rows[0].user2_id]);
+        const delConversation = await conn.query(deleteConversation, [result.rows[0].user1_id, result.rows[0].user2_id]);
+
+        return 1;
+
+    }catch {
+        console.log("[ERROR] failed to delete Conversation!")
+        return -1;
+
+}
 }
 
 
