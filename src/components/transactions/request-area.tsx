@@ -20,28 +20,28 @@ export default async function RequestArea() {
     <div className="space-y-8">
       <div className="space-y-4">
         <div className="border-b pb-2">
-          <h2 className="text-xl font-semibold text-gray-800">Requests You've Made</h2>
-          <p className="text-sm text-gray-500">Tools you've requested to borrow from others</p>
+          <h2 className="text-xl font-semibold text-gray-800">Requests You&apos;ve Made</h2>
+          <p className="text-sm text-gray-500">Tools you&apos;ve requested to borrow from others</p>
         </div>
         {requestsMade.length > 0 ? (
           <RequestTable requests={requestsMade} type="requester" />
         ) : (
           <div className="bg-gray-50 rounded-md p-6 text-center">
-            <p className="text-gray-600">You haven't made any requests yet.</p>
+            <p className="text-gray-600">You haven&apos;t made any requests yet.</p>
           </div>
         )}
       </div>
       
       <div className="space-y-4">
         <div className="border-b pb-2">
-          <h2 className="text-xl font-semibold text-gray-800">Requests You've Received</h2>
+          <h2 className="text-xl font-semibold text-gray-800">Requests You&apos;ve Received</h2>
           <p className="text-sm text-gray-500">Requests from others to borrow your tools</p>
         </div>
         {requestsReceived.length > 0 ? (
           <RequestTable requests={requestsReceived} type="owner" />
         ) : (
           <div className="bg-gray-50 rounded-md p-6 text-center">
-            <p className="text-gray-600">You haven't received any requests yet.</p>
+            <p className="text-gray-600">You haven&apos;t received any requests yet.</p>
           </div>
         )}
       </div>

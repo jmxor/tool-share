@@ -7,7 +7,7 @@ import { getAllConversations, getConversation, getMessagesByUserId } from "@/lib
 
 // Function to map conversation messages into a desired format.
 // [ sender: string; recipient: number; message: string ]
-function mapMessages(messages: any[]): { sender: string; recipient: number; message: string }[] {
+function mapMessages(messages: { sender_username: string; recipient_username: number; message: string }[]): { sender: string; recipient: number; message: string }[] {
   return messages.map((msg) => ({
     sender: msg.sender_username,
     recipient: msg.recipient_username,

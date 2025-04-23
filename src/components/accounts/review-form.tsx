@@ -1,7 +1,7 @@
 "use client";
 
 import { ReviewFormState, submitReview } from "@/lib/auth/actions";
-import { useActionState, useState } from "react";
+import { useActionState } from "react";
 import Stars from "@/components/accounts/stars";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
@@ -18,10 +18,8 @@ export default function ReviewFormPage({ first_username }: { first_username: str
         initialState
     );
 
-    const [stars, setStars] = useState(0);
-
     const handleStarChange = (value: number) => {
-        setStars(value);
+        return value;
     };
 
     return (

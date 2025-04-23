@@ -33,12 +33,9 @@ import Link from "next/link";
 
 export default function TransactionsMonitoring() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
   const [pageCount, setPageCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedTransaction, setSelectedTransaction] =
-    useState<Transaction | null>(null);
 
   useEffect(() => {
     fetchTransactions(1);
@@ -49,7 +46,6 @@ export default function TransactionsMonitoring() {
     try {
       const result = await getTransactions(page, 10);
       setTransactions(result.data);
-      setTotalCount(result.totalCount);
       setPageCount(result.pageCount);
       setCurrentPage(result.currentPage);
     } catch (error) {

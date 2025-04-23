@@ -69,7 +69,7 @@ export async function getMessagesByUserId(user1_Id: string, user2_Id : string) {
 }
 }
 
-export async function insertDirectMessage(user1: string, user2: string, msg: string, timestamp: Date) {
+export async function insertDirectMessage(user1: string, user2: string, msg: string) {
     try {
 
         const query = `
@@ -216,8 +216,8 @@ export async function deleteConversationAction(conversationId: number) {
 
         const result = await conn.query(query, [conversationId]);
 
-        const delMessages = await conn.query(deleteMessages, [result.rows[0].user1_id, result.rows[0].user2_id]);
-        const delConversation = await conn.query(deleteConversation, [result.rows[0].user1_id, result.rows[0].user2_id]);
+        await conn.query(deleteMessages, [result.rows[0].user1_id, result.rows[0].user2_id]);
+        await conn.query(deleteConversation, [result.rows[0].user1_id, result.rows[0].user2_id]);
 
         return 1;
 

@@ -23,7 +23,7 @@ export default function ReportForm({ reported_first_username }: { reported_first
     message: undefined,
     errors: {}
   }
-  const [state, formAction, isPending] = useActionState(
+  const [state, formAction] = useActionState(
     createReport,
     initialState,
   );

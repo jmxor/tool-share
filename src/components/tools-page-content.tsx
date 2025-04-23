@@ -16,7 +16,7 @@ import {
 } from "react";
 import PostFiltersForm from "./post-filters-form";
 import { ScrollArea } from "./ui/scroll-area";
-
+import Link from "next/link";
 interface PostsContextType {
   selectedPostId: number | null;
   setSelectedPostId: Dispatch<SetStateAction<number | null>>;
@@ -82,10 +82,10 @@ export default function ToolsPageContent({
             <Button variant="outline" asChild>
               {/* This link needs to be an anchor element not a Next Link to prevent issues when submitting the form on
             /tools/new page. For reference: https://github.com/vercel/next.js/discussions/56234 */}
-              <a href="/tools/new">
+              <Link href="/tools/new">
                 <Plus />
                 Share Tool
-              </a>
+              </Link>
             </Button>
           </div>
 
