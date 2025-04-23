@@ -9,11 +9,362 @@ import {
 } from "@/lib/zod";
 import { hashPassword } from "./utils";
 import { signIn, signOut } from "@/auth";
-import { PublicUser, User } from "../types";
+import { PublicUser, User } from "@/lib/types";
 import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { Resend } from "resend";
+import { NotificationTemplate, VerificationTemplate } from '@/components/email-template';
 
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+export async function isLoggedIn() {
+  const session = await auth();
+  if (!session?.user) {
+    return false;
+  } else return true;
+}
+
+export async function sendVerificationCode(): Promise<boolean> {
+  const session = await auth();
+  if (!session?.user || !session?.user?.email) {
+    return false;
+  }
+
+  try {
+    const conn = await getConnection();
+    const userID = await getEmailID(session.user.email);
+    
+    const checkQuery = `
+      SELECT code FROM verification_codes
+      WHERE user_id = $1 AND expires_at > NOW()
+    `;
+    const checkResult = await conn.query(checkQuery, [userID]);
+    
+    let code: string;
+    
+    if (checkResult.rows && checkResult.rows.length > 0) {
+      code = checkResult.rows[0].code;
+    } else {
+      code = [...Array(128)]
+        .map(() => Math.floor(Math.random() * 16).toString(16))
+        .join('');
+      
+      const query = `
+        INSERT INTO verification_codes 
+        (user_id, code, expires_at)
+        VALUES
+        ($1, $2, NOW() + INTERVAL '15 minutes')
+      `;
+
+      await conn.query(query, [userID, code]);
+    }
+    
+    const username = (await getUserByEmail(session.user.email))?.username || "";
+    
+    const { error } = await resend.emails.send({
+      from: 'ToolShare <onboarding@resend.dev>',
+      to: [session.user.email],
+      subject: 'Verify Your Email Address',
+      react: VerificationTemplate({ username, code }),
+    });
+
+    if (error) {
+      console.error("[ERROR] Failed to send verification email: ", error);
+      return false;
+    }
+    
+    return true;
+  } catch(error) {
+    console.error("[ERROR] Failed to send email verification code: ", error);
+    return false;
+  }
+}
+
+export async function updateNotificationSettings(settings: {
+  transactions?: boolean;
+  borrowRequests?: boolean;
+  reviews?: boolean;
+  messages?: boolean;
+  warningsAndSuspensions?: boolean;
+}): Promise<boolean> {
+  try {
+    const session = await auth();
+    if (!session?.user?.email) {
+      return false;
+    }
+    
+    const conn = await getConnection();
+    const userID = await getEmailID(session.user.email);
+    
+    const verificationQuery = `
+      SELECT is_email_verified FROM "user"
+      WHERE id = $1
+    `;
+    const verificationResult = await conn.query(verificationQuery, [userID]);
+    
+    if (!verificationResult.rows?.[0]?.is_email_verified) {
+      return false;
+    }
+    
+    const updateQuery = `
+      UPDATE user_notifications
+      SET 
+        transactions = COALESCE($2, transactions),
+        borrow_requests = COALESCE($3, borrow_requests),
+        reviews = COALESCE($4, reviews),
+        messages = COALESCE($5, messages),
+        warnings_suspensions = COALESCE($6, warnings_suspensions)
+      WHERE user_id = $1
+    `;
+    
+    await conn.query(updateQuery, [
+      userID,
+      settings.transactions !== undefined ? settings.transactions : null,
+      settings.borrowRequests !== undefined ? settings.borrowRequests : null,
+      settings.reviews !== undefined ? settings.reviews : null,
+      settings.messages !== undefined ? settings.messages : null,
+      settings.warningsAndSuspensions !== undefined ? settings.warningsAndSuspensions : null
+    ]);
+    
+    return true;
+  } catch (error) {
+    console.error("[ERROR] Failed to update notification settings: ", error);
+    return false;
+  }
+}
+
+export async function attemptEmailVerification(code: string): Promise<boolean> {
+  try {
+    const session = await auth();
+    if (!session?.user?.email) {
+      return false;
+    }
+    
+    const conn = await getConnection();
+    const userID = await getEmailID(session.user.email);
+    
+    const verifyQuery = `
+      SELECT user_id FROM verification_codes
+      WHERE code = $1 AND expires_at > NOW()
+    `;
+    const verifyResult = await conn.query(verifyQuery, [code]);
+    
+    if (!verifyResult.rows || verifyResult.rows.length === 0) {
+      return false;
+    }
+    
+    const codeUserID = verifyResult.rows[0].user_id;
+    
+    if (codeUserID !== userID) {
+      return false;
+    }
+    
+    const updateUserQuery = `
+      UPDATE "user"
+      SET is_email_verified = true
+      WHERE id = $1
+    `;
+    await conn.query(updateUserQuery, [userID]);
+    
+    const checkNotificationsQuery = `
+      SELECT id FROM user_notifications
+      WHERE user_id = $1
+    `;
+    const notificationsResult = await conn.query(checkNotificationsQuery, [userID]);
+    
+    if (!notificationsResult.rows || notificationsResult.rows.length === 0) {
+      const createNotificationsQuery = `
+        INSERT INTO user_notifications
+        (user_id, transactions, borrow_requests, reviews, messages, warnings_suspensions)
+        VALUES
+        ($1, DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT)
+      `;
+      await conn.query(createNotificationsQuery, [userID]);
+    }
+    
+    const deleteCodeQuery = `
+      DELETE FROM verification_codes
+      WHERE code = $1
+    `;
+    await conn.query(deleteCodeQuery, [code]);
+    
+    return true;
+  } catch (error) {
+    console.error("[ERROR] Failed to verify email: ", error);
+    return false;
+  }
+}
+
+export type NotificationType = 
+  | 'transactions' 
+  | 'borrowRequests' 
+  | 'reviews' 
+  | 'messages' 
+  | 'warningsAndSuspensions';
+
+export async function sendNotificationEmail(
+  notificationType: NotificationType, 
+  message: string
+): Promise<boolean> {
+  const session = await auth();
+  if (!session?.user || !session?.user?.email) {
+    return false;
+  }
+
+  try {
+    const conn = await getConnection();
+    const userID = await getEmailID(session.user.email);
+    
+    const columnMapping: Record<NotificationType, string> = {
+      transactions: 'transactions',
+      borrowRequests: 'borrow_requests',
+      reviews: 'reviews',
+      messages: 'messages',
+      warningsAndSuspensions: 'warnings_suspensions'
+    };
+    
+    const columnName = columnMapping[notificationType];
+    
+    const settingsQuery = `
+      SELECT ${columnName} FROM user_notifications
+      WHERE user_id = $1
+    `;
+    const settingsResult = await conn.query(settingsQuery, [userID]);
+    
+    if (!settingsResult.rows || 
+        settingsResult.rows.length === 0 || 
+        !settingsResult.rows[0][columnName]) {
+      return false;
+    }
+    
+    const username = (await getUserByEmail(session.user.email))?.username || "";
+    
+    let subject = 'ToolShare Notification';
+    switch(notificationType) {
+      case 'transactions':
+        subject = 'Transaction Update';
+        break;
+      case 'borrowRequests':
+        subject = 'Borrow Request Update';
+        break;
+      case 'reviews':
+        subject = 'New Review Notification';
+        break;
+      case 'messages':
+        subject = 'New Message Notification';
+        break;
+      case 'warningsAndSuspensions':
+        subject = 'Account Warning or Suspension Notice';
+        break;
+    }
+    
+    const { error } = await resend.emails.send({
+      from: 'ToolShare <notifications@resend.dev>',
+      to: [session.user.email],
+      subject: subject,
+      react: NotificationTemplate({ username, message }),
+    });
+
+    if (error) {
+      console.error("[ERROR] Failed to send notification email: ", error);
+      return false;
+    }
+    
+    return true;
+  } catch(error) {
+    console.error("[ERROR] Failed to send notification email: ", error);
+    return false;
+  }
+}
+
+export type NotificationSettings = {
+  transactions: boolean;
+  borrowRequests: boolean;
+  reviews: boolean;
+  messages: boolean;
+  warningsAndSuspensions: boolean;
+}
+
+export async function getUserNotificationSettings(): Promise<NotificationSettings> {
+  const session = await auth();
+  if (!session?.user) {
+    return {
+      transactions: false,
+      borrowRequests: false,
+      reviews: false,
+      messages: false,
+      warningsAndSuspensions: false,
+    };
+  }
+  try {
+    const conn = await getConnection();
+    const userId = await getEmailID(session.user.email as string);
+    const query = `
+      SELECT transactions, borrow_requests, reviews, messages, warnings_suspensions
+      FROM user_notifications
+      WHERE user_id = $1
+    `;
+    const result = await conn.query(query, [userId]);
+    if (result.rowCount === 0) {
+      return {
+        transactions: false,
+        borrowRequests: false,
+        reviews: false,
+        messages: false,
+        warningsAndSuspensions: false,
+      };
+    }
+    
+    return {
+      transactions: result.rows[0].transactions,
+      borrowRequests: result.rows[0].borrow_requests,
+      reviews: result.rows[0].reviews,
+      messages: result.rows[0].messages,
+      warningsAndSuspensions: result.rows[0].warnings_suspensions,
+    };
+  } catch (error) {
+    console.error("[ERROR] Failed to get notification settings: ", error);
+    return {
+      transactions: false,
+      borrowRequests: false,
+      reviews: false,
+      messages: false,
+      warningsAndSuspensions: false,
+    };
+  }
+}
+
+export async function isEmailVerified(): Promise<boolean> {
+  const session = await auth();
+  if (!session?.user) {
+    return false;
+  }
+
+  try {
+    const conn = await getConnection();
+    const query = `
+            SELECT is_email_verified
+            FROM "user"
+            WHERE email = $1
+        `;
+    const result = await conn.query(query, [session.user.email]);
+
+    if ((result.rowCount || 0) <= 0) {
+      return false;
+    }
+
+    const user = result.rows[0];
+    if (user.is_email_verified) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error("[ERROR] Failed to check whether email is verified: ", error);
+    return false;
+  }
+}
 export async function isEmailBanned(email: string): Promise<boolean> {
   try {
     const conn = await getConnection();

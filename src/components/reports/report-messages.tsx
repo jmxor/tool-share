@@ -2,8 +2,8 @@
 
 import { Report_Message, ReportMessageFormState, sendReportMessage } from "@/lib/reports/actions";
 import { getTimeAgo } from "@/lib/utils";
-import { Textarea } from "../ui/textarea";
-import { Button } from "../ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { useActionState, useEffect, useState } from "react";
 
 export default function ReportMessages({ report_id, report_messages, loggedInUserID }: { report_id: number, report_messages: Report_Message[], loggedInUserID: number }) {

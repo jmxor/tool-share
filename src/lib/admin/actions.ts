@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 import { AdminDashboardStats, AdminUser, Category, PagedResult, Report, ReportStatus, Transaction, UserPrivilege, Warning, Suspension } from "./types";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getEmailID } from "../auth/actions";
+import { getEmailID } from "@/lib/auth/actions";
 
 export async function isCurrentUserAdmin(): Promise<boolean> {
   const session = await auth();

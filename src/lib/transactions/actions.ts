@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { getEmailID } from "@/lib/auth/actions";
 import { auth } from "@/auth";
 import { getConnection } from "@/lib/db";
-import { BorrowRequest } from "../types";
+import { BorrowRequest } from "@/lib/types";
 import {
   PagedRequestResult,
   PagedTransactionResult,
