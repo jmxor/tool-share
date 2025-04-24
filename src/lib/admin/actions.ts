@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 import { AdminDashboardStats, AdminUser, Category, PagedResult, Report, ReportStatus, Transaction, UserPrivilege, Warning, Suspension } from "./types";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getEmailID } from "@/lib/auth/actions";
+import { getEmailID, sendNotificationEmail } from "@/lib/auth/actions";
 
 export async function isCurrentUserAdmin(): Promise<boolean> {
   const session = await auth();
@@ -241,6 +241,7 @@ export async function toggleUserSuspension(userId: number, suspend: boolean, rea
       `;
       
       await conn.query(suspensionQuery, [userId, adminId, reason]);
+      await sendNotificationEmail(userId, "warningsAndSuspensions", `You were suspended for ${reason}. You can no longer use the website.`);
     }
     
     revalidatePath("/admin/users");
@@ -584,6 +585,7 @@ export async function issueWarning(userId: number, reason: string): Promise<bool
       VALUES ($1, $2, $3)
     `;
     await conn.query(query, [userId, adminId, reason]);
+    await sendNotificationEmail(userId, "warningsAndSuspensions", "You have received a warning.");
 
     const warningsQuery = `
       SELECT COUNT(*) as count FROM warning WHERE user_id = $1
@@ -604,6 +606,7 @@ export async function issueWarning(userId: number, reason: string): Promise<bool
         VALUES ($1, $2, $3)
       `;
       await conn.query(suspensionQuery, [userId, adminId, "Automatic suspension after 3 warnings"]);
+      await sendNotificationEmail(userId, "warningsAndSuspensions", "You were suspended for exceeding three warnings. You won't be able to access the website.");
     }
     
     revalidatePath("/admin/users");

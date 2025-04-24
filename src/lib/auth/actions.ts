@@ -199,22 +199,18 @@ export async function attemptEmailVerification(code: string): Promise<boolean> {
 export type NotificationType = 
   | 'transactions' 
   | 'borrowRequests' 
-  | 'reviews' 
+  | 'reviews'
   | 'messages' 
   | 'warningsAndSuspensions';
 
 export async function sendNotificationEmail(
+  userID: number,
   notificationType: NotificationType, 
   message: string
 ): Promise<boolean> {
-  const session = await auth();
-  if (!session?.user || !session?.user?.email) {
-    return false;
-  }
 
   try {
     const conn = await getConnection();
-    const userID = await getEmailID(session.user.email);
     
     const columnMapping: Record<NotificationType, string> = {
       transactions: 'transactions',
@@ -238,7 +234,11 @@ export async function sendNotificationEmail(
       return false;
     }
     
-    const username = (await getUserByEmail(session.user.email))?.username || "";
+    const userObj = await getUserByID(userID);
+    if (!userObj) {
+      return false;
+    }
+    const username = userObj.username || "";
     
     let subject = 'ToolShare Notification';
     switch(notificationType) {
@@ -261,7 +261,7 @@ export async function sendNotificationEmail(
     
     const { error } = await resend.emails.send({
       from: 'ToolShare <notifications@resend.dev>',
-      to: [session.user.email],
+      to: [userObj.email],
       subject: subject,
       react: NotificationTemplate({ username, message }),
     });
@@ -614,20 +614,19 @@ export async function submitReview(
   }
 
   try {
-    // First get the id of the target user.
-    const targetID = await getFirstUsernameID(validatedFields.data.target);
-    if (!targetID) {
-      return {
-        message: "Couldn't find target user.",
-        success: false,
-      };
-    }
-
     const session = await auth();
 
     if (!session || !session.user || !session.user.email) {
       return {
         message: "You must be logged in to submit a review.",
+        success: false,
+      };
+    }
+    
+    const targetID = await getFirstUsernameID(validatedFields.data.target);
+    if (!targetID) {
+      return {
+        message: "Couldn't find target user.",
         success: false,
       };
     }
@@ -654,6 +653,11 @@ export async function submitReview(
       validatedFields.data.text,
     ];
     await conn.query(query, values);
+    await sendNotificationEmail(
+      targetID,
+      "reviews",
+      "Someone has left a review about you."
+    )
   } catch {
     console.error("[ERROR] Failed to insert review into database");
     return {
@@ -1043,6 +1047,36 @@ export async function getUserByEmail(email: string) {
         `;
     const conn = await getConnection();
     const result = await conn.query(query, [email]);
+
+    if (!result.rows) {
+      return null;
+    }
+    const user = result.rows[0];
+
+    const user_object = {
+      ...user,
+      created_at: new Date(user.created_at),
+    } as User;
+
+    return user_object;
+  } catch {
+    return null;
+  }
+}
+
+export async function getUserByID(userID: number) {
+  try {
+    const query = `
+            SELECT u.username, u.first_username, u.email, u.created_at, u.user_privilege, u.is_suspended,
+                   COUNT(w.id) AS warnings
+            FROM "user" u
+            LEFT JOIN warning w ON u.id = w.user_id
+            WHERE u.id = $1
+            GROUP BY u.username, u.first_username, u.email, u.created_at, u.user_privilege, u.is_suspended
+            LIMIT 1
+        `;
+    const conn = await getConnection();
+    const result = await conn.query(query, [userID]);
 
     if (!result.rows) {
       return null;

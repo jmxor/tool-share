@@ -1,7 +1,7 @@
 'use server';
 
 import { getConnection } from "@/lib/db";
-import { getEmailID, getFirstUsernameID } from "./auth/actions";
+import { getEmailID, getFirstUsernameID, sendNotificationEmail } from "./auth/actions";
 
 export async function checkIfConversationExists(user1_Id: string, user2_Id : string) {
     try {
@@ -71,7 +71,6 @@ export async function getMessagesByUserId(user1_Id: string, user2_Id : string) {
 
 export async function insertDirectMessage(user1: string, user2: string, msg: string) {
     try {
-
         const query = `
                 SELECT id
                 FROM "user"
@@ -89,12 +88,12 @@ export async function insertDirectMessage(user1: string, user2: string, msg: str
         const user2_id = await conn.query(query, [user2]);
 
         await conn.query(insertQuery, [String(user1_id.rows[0].id), String(user2_id.rows[0].id), msg]);
+        console.log("[TRACING] Sending message email to ", user2_id.rows[0].id);
+        await sendNotificationEmail(user2_id.rows[0].id, "messages", `You have received a message from ${user1}.`);
 
-
-    }catch {
+    } catch {
         return null;
-
-}
+    }
 }
 
 export async function getConversation(user1: string, user2 : string) {
