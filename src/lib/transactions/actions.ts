@@ -1,10 +1,10 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { getEmailID } from "@/lib/auth/actions";
+import { getEmailID, sendNotificationEmail } from "@/lib/auth/actions";
 import { auth } from "@/auth";
 import { getConnection } from "@/lib/db";
-import { BorrowRequest } from "../types";
+import { BorrowRequest } from "@/lib/types";
 import {
   PagedRequestResult,
   PagedTransactionResult,
@@ -90,6 +90,8 @@ export async function requestTransaction(
       `;
 
     const result = await conn.query(query, [userID, tool_id, requested_length]);
+
+    await sendNotificationEmail(toolOwnerId, "borrowRequests", "One of your tools was requested by another user, you can view it on 'My Transactions' page through the account button.")
     const transaction_id = result.rows[0].id;
 
     return {
@@ -329,6 +331,8 @@ export async function resolveRequest(request_id: number, result: string) {
           message: "Failed to create transaction record",
         };
       }
+
+      await sendNotificationEmail(requestData.requester_id, "borrowRequests", "One of your requests has been accepted.");
 
       const updateRequestWithTransactionQuery = `
         UPDATE borrow_request
@@ -701,6 +705,27 @@ export async function completeStep(step_type: string, transaction_id: number) {
 
     await conn.query(updateTransactionQuery, [step_type, transaction_id]);
 
+    const transactionQuery = `
+      SELECT t.post_id, t.borrower_id, p.user_id as owner_id
+      FROM transaction t
+      JOIN post p ON t.post_id = p.id
+      WHERE t.id = $1
+    `;
+    const transactionResult = await conn.query(transactionQuery, [transaction_id]);
+    
+    if (transactionResult.rows && transactionResult.rows.length > 0) {
+      const { borrower_id, owner_id } = transactionResult.rows[0];
+      
+      // Determine who is the other user to email
+      const userToNotify = userID === borrower_id ? owner_id : borrower_id;
+      
+      await sendNotificationEmail(
+        userToNotify,
+        "transactions",
+        "There was an updated on one of your transactions."
+      );
+    }
+
     if (step_type === "transaction_completed") {
       const updatePostStatusQuery = `
         UPDATE post
@@ -717,6 +742,10 @@ export async function completeStep(step_type: string, transaction_id: number) {
     };
   } catch (error) {
     console.error("[ERROR] Failed to complete step:", error);
+    return {
+      success: false,
+      message: "An error occurred while completing the step",
+    };
   }
 }
 

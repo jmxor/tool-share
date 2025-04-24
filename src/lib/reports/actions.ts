@@ -1,9 +1,9 @@
 "use server";
 
 import { auth } from "@/auth";
-import { ReportFormSchema, ReportMessageFormSchema } from "../zod";
-import { getEmailID, getFirstUsernameID } from "../auth/actions";
-import { getConnection } from "../db";
+import { ReportFormSchema, ReportMessageFormSchema } from "@/lib/zod";
+import { getEmailID, getFirstUsernameID } from "@/lib/auth/actions";
+import { getConnection } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { PagedResult, UserReport } from "@/lib/admin/types";
 

@@ -4,7 +4,7 @@ import { AllToolPostData } from "@/lib/posts/actions";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
-import { Badge } from "../ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { requestTransaction } from "@/lib/transactions/actions";

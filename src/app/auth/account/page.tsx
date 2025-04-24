@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { getUserByEmail } from "@/lib/auth/actions";
+import { getUserByEmail, getUserNotificationSettings, isEmailVerified, NotificationSettings } from "@/lib/auth/actions";
 import { redirect } from "next/navigation";
 import { UserRound, Mail, Calendar, AlertTriangle, ExternalLink } from 'lucide-react';
 import ChangePasswordForm from "@/components/accounts/change-password-form";
@@ -9,6 +9,7 @@ import { formatDate } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import NotificationsArea from "@/components/accounts/notifications-area";
 
 export default async function AccountPage() {
     const session = await auth();
@@ -20,6 +21,10 @@ export default async function AccountPage() {
     if (!userInfo) {
         redirect('/auth/login');
     }
+
+    const isVerified = await isEmailVerified();
+  
+    const notificationSettings: NotificationSettings = await getUserNotificationSettings();
 
     return (
         <div className="min-h-[calc(100vh-5.25rem)] bg-gray-50 p-4 sm:p-6 lg:p-8">
@@ -86,6 +91,8 @@ export default async function AccountPage() {
                         <ChangePasswordForm />
                     </CardContent>
                 </Card>
+
+                <NotificationsArea isVerified={isVerified} notificationSettings={notificationSettings} />
 
                 {/* Danger Zone */}
                 <Card className="border-destructive/20">

@@ -3,8 +3,8 @@
 import { ReviewFormState, submitReview } from "@/lib/auth/actions";
 import { useActionState } from "react";
 import Stars from "@/components/accounts/stars";
-import { Textarea } from "../ui/textarea";
-import { Button } from "../ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 export default function ReviewFormPage({ first_username }: { first_username: string }) {
 
