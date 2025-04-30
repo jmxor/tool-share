@@ -3,7 +3,7 @@
 import PostCard from "@/components/post-card";
 import ToolsMap from "@/components/tools-map";
 import { Button } from "@/components/ui/button";
-import { AllToolPostData } from "@/lib/posts/actions";
+import { AllToolPostData, Category } from "@/lib/posts/actions";
 import { APIProvider } from "@vis.gl/react-google-maps";
 import { Plus } from "lucide-react";
 import {
@@ -32,14 +32,17 @@ export type PostFilterState = {
   location: string;
   max_deposit: number;
   min_borrow_days: number;
+  categories: string[];
 };
 
 export default function ToolsPageContent({
   tools,
+  categories,
   loggedIn,
   currentUserId,
 }: {
   tools: AllToolPostData[];
+  categories: Category[];
   loggedIn: boolean;
   currentUserId: number | null;
 }) {
@@ -52,6 +55,7 @@ export default function ToolsPageContent({
     location: "",
     min_borrow_days: 0,
     max_deposit: 0,
+    categories: [],
   });
 
   const postRefs = useRef<{ [id: number]: HTMLDivElement | null }>({});
@@ -68,7 +72,11 @@ export default function ToolsPageContent({
             post.deposit <= postFiltersState.max_deposit) &&
           post.postcode
             .toLowerCase()
-            .includes(postFiltersState.location.toLowerCase())
+            .includes(postFiltersState.location.toLowerCase()) &&
+          (postFiltersState.categories.length < 1 ||
+            postFiltersState.categories.every((category) =>
+              post.categories.includes(category)
+            ))
       )
     );
   }, [tools, postFiltersState]);
@@ -98,6 +106,7 @@ export default function ToolsPageContent({
               <PostFiltersForm
                 setPostFiltersState={setPostFiltersState}
                 postFiltersState={postFiltersState}
+                categories={categories}
               />
             </div>
 
