@@ -20,7 +20,7 @@ const StepActionArea = ({ isBorrower, nextStep, transaction, loggedInEmail, firs
         <SendMessageButton email={loggedInEmail} first_username={first_username} />
         <Button asChild><a href={`/transactions/${transaction.id}`}>Refresh<RefreshCwIcon className="ml-2 h-4 w-4"/></a></Button>
       </div>
-      {nextStep === "deposit_paid" && <DepositStep isBorrower={isBorrower} transaction={transaction} />}
+      {nextStep === "deposit_paid" && <DepositStep isBorrower={isBorrower} transaction={transaction} first_username={first_username} />}
       {nextStep === "tool_borrowed" && <FirstExchangeStep isBorrower={isBorrower} transaction={transaction} />}
       {nextStep === "tool_returned" && <SecondExchangeStep isBorrower={isBorrower} transaction={transaction} />}
       {nextStep === "transaction_completed" && <CompletedStep isBorrower={isBorrower} transaction={transaction} />}
@@ -29,7 +29,7 @@ const StepActionArea = ({ isBorrower, nextStep, transaction, loggedInEmail, firs
   );
 };
 
-const DepositStep = ({ isBorrower, transaction }: { isBorrower: boolean, transaction: TransactionData }) => {
+const DepositStep = ({ isBorrower, transaction, first_username }: { isBorrower: boolean, transaction: TransactionData, first_username: string }) => {
   return (
     <div className="space-y-4 p-6 border rounded-lg bg-background shadow-sm">
       {isBorrower ? (
@@ -41,7 +41,7 @@ const DepositStep = ({ isBorrower, transaction }: { isBorrower: boolean, transac
           <p className="text-muted-foreground">
             To proceed with borrowing {transaction.tool_name}, you need to pay a deposit.
           </p>
-          <PaymentForm amount={transaction.deposit} transaction_id={transaction.id}/>
+          <PaymentForm amount={transaction.deposit} transaction_id={transaction.id} owner={first_username}/>
         </div>
       ) : (
         <div className="space-y-4">

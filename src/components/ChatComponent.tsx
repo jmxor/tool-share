@@ -4,6 +4,7 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { socket } from "@/lib/socketClient";
 import ChatMessage from "@/components/ChatMessage"; 
+import { useEffect, useState, useRef } from "react";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { deleteConversationAction, getMessagesByUserId, insertDirectMessage, checkIfConversationExists } from "@/lib/actions";
 import { useRouter } from 'next/navigation';
@@ -48,7 +49,6 @@ function mapMessages(messages: Message[]): DisplayMessage[] {
   }));
 }
 // --- End of Interfaces and mapMessages ---
-
 
 const ChatComponent: React.FC<ChatComponentProps> = ({
   first_username,
@@ -111,7 +111,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     const data = { room: conversationID, message, sender: userName, timestamp: timestamp.toISOString() }; 
     socket.emit("message", data);
     
-    await insertDirectMessage(userName, recipient, message); 
+    await insertDirectMessage(userName, recipient, message, timestamp); 
     
     setMessage("");
   };
@@ -120,6 +120,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     userId: string,
     recipient_username: string,
   ) => {
+
     const conversationExists = await checkIfConversationExists(userId, currentUserId);
     // Assume getMessagesByUserId now returns messages with timestamps
     const messagesInfo = await getMessagesByUserId(currentUserId, userId); 
@@ -128,6 +129,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     if(conversationExists){
       newConversationId = conversationExists;
     }
+
 
     // Use mapMessages which handles timestamp conversion
     const formattedMessages = messagesInfo ? mapMessages(messagesInfo) : []; 
@@ -169,6 +171,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     if (first_username && first_username !== recipient) {
        changeTheFocusedChat();
     }
+
   }, [first_username, recipient, onSelectConversation]); // Dependency array includes first_username
 
   return (
