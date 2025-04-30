@@ -6,7 +6,6 @@ import {
   useElements,
   PaymentElement,
 } from "@stripe/react-stripe-js";
-import convertToSubcurrency from "@/lib/convertToSubcurrency";
 
 const CheckoutPage = ({ amount, transaction_id }: { amount: number, transaction_id: number }) => {
   const stripe = useStripe();
@@ -21,7 +20,7 @@ const CheckoutPage = ({ amount, transaction_id }: { amount: number, transaction_
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ amount: convertToSubcurrency(amount) }),
+      body: JSON.stringify({ amount: Math.round(amount * 100) }),
     })
       .then((res) => res.json())
       .then((data) => setClientSecret(data.clientSecret));
