@@ -58,9 +58,7 @@ export async function getMessagesByUserId(user1_Id: string, user2_Id : string) {
         `
 
         const conn = await getConnection();
-        
         const result = await conn.query(query, [user1_Id, user2_Id]);
-        
         return result.rows;
 
     }catch {

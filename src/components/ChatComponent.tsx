@@ -49,7 +49,6 @@ function mapMessages(messages: Message[]): DisplayMessage[] {
 }
 // --- End of Interfaces and mapMessages ---
 
-
 const ChatComponent: React.FC<ChatComponentProps> = ({
   first_username,
   initialMessages,
@@ -121,7 +120,6 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     recipient_username: string,
   ) => {
     let conversationExists = await checkIfConversationExists(userId, currentUserId);
-    // Assume getMessagesByUserId now returns messages with timestamps
     let messagesInfo = await getMessagesByUserId(currentUserId, userId); 
     let newConversationId = initialConversationID;
 
@@ -129,7 +127,6 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
       newConversationId = conversationExists;
     }
 
-    // Use mapMessages which handles timestamp conversion
     const formattedMessages = messagesInfo ? mapMessages(messagesInfo) : []; 
     
     setConversationId(newConversationId);
