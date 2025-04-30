@@ -2,13 +2,7 @@ import { PostFiltersFormSchema } from "@/lib/zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Dispatch, SetStateAction, useRef } from "react";
 import { useForm } from "react-hook-form";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "./ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "./ui/form";
 import { Input } from "./ui/input";
 import { z } from "zod";
 import { PostFilterState } from "./tools-page-content";
@@ -86,69 +80,71 @@ export default function PostFiltersForm({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="max_deposit"
-              render={({ field }) => (
-                <FormItem className="min-h-[84px]">
-                  <FormLabel>Max Deposit</FormLabel>
-                  <FormControl>
-                    <div className="flex">
-                      <div className="flex h-9 shrink-0 items-center justify-center rounded-md rounded-r-none border border-r-0 border-input px-3 shadow-sm">
-                        £
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="max_deposit"
+                render={({ field }) => (
+                  <FormItem className="min-h-[84px]">
+                    <FormLabel>Max Deposit</FormLabel>
+                    <FormControl>
+                      <div className="flex">
+                        <div className="flex h-9 shrink-0 items-center justify-center rounded-md rounded-r-none border border-r-0 border-input px-3 shadow-sm">
+                          £
+                        </div>
+                        <Input
+                          {...field}
+                          type="number"
+                          step={0.01}
+                          className="rounded-l-none"
+                          value={postFiltersState.max_deposit}
+                          onChange={(e) =>
+                            setPostFiltersState((state) => ({
+                              ...state,
+                              max_deposit: (parseFloat(e.target.value) ||
+                                "") as number,
+                            }))
+                          }
+                        />
                       </div>
-                      <Input
-                        {...field}
-                        type="number"
-                        step={0.01}
-                        className="rounded-l-none"
-                        value={postFiltersState.max_deposit}
-                        onChange={(e) =>
-                          setPostFiltersState((state) => ({
-                            ...state,
-                            max_deposit: (parseFloat(e.target.value) ||
-                              "") as number,
-                          }))
-                        }
-                      />
-                    </div>
-                  </FormControl>
-                  {/* <FormMessage>{state.errors?.name}</FormMessage> */}
-                </FormItem>
-              )}
-            />
+                    </FormControl>
+                    {/* <FormMessage>{state.errors?.name}</FormMessage> */}
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="min_borrow_days"
-              render={({ field }) => (
-                <FormItem className="min-h-[84px]">
-                  <FormLabel>Minimum Borrow Time</FormLabel>
-                  <FormControl>
-                    <div className="flex">
-                      <Input
-                        {...field}
-                        type="number"
-                        value={postFiltersState.min_borrow_days}
-                        className="rounded-r-none"
-                        onChange={(e) =>
-                          setPostFiltersState((state) => ({
-                            ...state,
-                            min_borrow_days: (parseFloat(e.target.value) ||
-                              "") as number,
-                          }))
-                        }
-                      />
+              <FormField
+                control={form.control}
+                name="min_borrow_days"
+                render={({ field }) => (
+                  <FormItem className="min-h-[84px]">
+                    <FormLabel>Minimum Borrow Time</FormLabel>
+                    <FormControl>
+                      <div className="flex">
+                        <Input
+                          {...field}
+                          type="number"
+                          value={postFiltersState.min_borrow_days}
+                          className="rounded-r-none"
+                          onChange={(e) =>
+                            setPostFiltersState((state) => ({
+                              ...state,
+                              min_borrow_days: (parseFloat(e.target.value) ||
+                                "") as number,
+                            }))
+                          }
+                        />
 
-                      <div className="flex h-9 shrink-0 items-center justify-center rounded-md rounded-l-none border border-l-0 border-input px-3 shadow-sm">
-                        days
+                        <div className="flex h-9 shrink-0 items-center justify-center rounded-md rounded-l-none border border-l-0 border-input px-3 shadow-sm">
+                          days
+                        </div>
                       </div>
-                    </div>
-                  </FormControl>
-                  {/* <FormMessage>{state.errors?.name}</FormMessage> */}
-                </FormItem>
-              )}
-            />
+                    </FormControl>
+                    {/* <FormMessage>{state.errors?.name}</FormMessage> */}
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
         </form>
       </Form>
