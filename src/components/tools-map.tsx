@@ -42,7 +42,7 @@ export default function ToolsMap({
       if (marker) {
         return { ...markers, [id]: marker };
       } else {
-        const { [id]: _, ...newMarkers } = markers;
+        const { ...newMarkers } = markers;
 
         return newMarkers;
       }

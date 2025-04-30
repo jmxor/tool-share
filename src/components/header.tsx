@@ -1,6 +1,5 @@
 import { auth } from "@/auth";
 import { HeaderLinks } from "@/components/header-links";
-import HeaderSearch from "@/components/header-search";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -14,7 +13,6 @@ import { MenuIcon, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import AccountButton from "@/components/accounts/account-button";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
 
 export interface NavLink {
   label: string;
