@@ -42,7 +42,7 @@ const toolsColumns: ColumnDef<AllToolPostData>[] = [
     accessorKey: "status",
     header: "Status",
 
-    cell: ({ row }) => (
+    cell: () => (
       <div>
         <Badge>
           Available <CircleCheck size={14} className="ml-1" />
@@ -52,7 +52,7 @@ const toolsColumns: ColumnDef<AllToolPostData>[] = [
   },
   {
     id: "borrow_btn",
-    cell: ({ row }) => <Button size="sm">Borrow</Button>,
+    cell: () => <Button size="sm">Borrow</Button>,
   },
 ];
 

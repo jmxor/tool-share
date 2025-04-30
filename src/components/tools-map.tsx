@@ -6,12 +6,10 @@ import { type Marker, MarkerClusterer } from "@googlemaps/markerclusterer";
 import {
   MutableRefObject,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
 } from "react";
-import { PostsContext } from "@/components/tools-page-content";
 import PostMarker from "@/components/post-marker";
 
 export default function ToolsMap({
@@ -21,7 +19,6 @@ export default function ToolsMap({
   tools: AllToolPostData[];
   postRefs: MutableRefObject<{ [id: number]: HTMLDivElement | null }>;
 }) {
-  const { selectedPostId, setSelectedPostId } = useContext(PostsContext);
   const [markers, setMarkers] = useState<{ [id: number]: Marker }>({});
 
   const map = useMap();
@@ -53,7 +50,6 @@ export default function ToolsMap({
   }, []);
 
   const handleMarkerClick = (tool: AllToolPostData) => {
-    setSelectedPostId(tool.id);
     postRefs.current[tool.id]?.scrollIntoView();
   };
 

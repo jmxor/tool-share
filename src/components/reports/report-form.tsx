@@ -14,16 +14,16 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { Textarea } from "../ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function ReportForm({ reported_first_username }: { reported_first_username: string }) {
   const initialState: ReportFormState = {
     message: undefined,
     errors: {}
   }
-  const [state, formAction, isPending] = useActionState(
+  const [state, formAction] = useActionState(
     createReport,
     initialState,
   );

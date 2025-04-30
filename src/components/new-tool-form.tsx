@@ -110,7 +110,7 @@ export default function NewToolForm({
                     <Input {...field} type="hidden" />
                   </FormControl>
                   <div className="relative flex w-full overflow-clip">
-                    {form.getValues("image_urls").length > 1 && (
+                    {form.getValues("image_urls").length > 0 && (
                       <button
                         type="button"
                         onClick={handlePrevImage}
@@ -177,7 +177,7 @@ export default function NewToolForm({
                       />
                     </div>
 
-                    {form.getValues("image_urls").length > 1 && (
+                    {form.getValues("image_urls").length > 0 && (
                       <button
                         type="button"
                         onClick={handleNextImage}

@@ -5,6 +5,7 @@ import { Button } from "./ui/button";
 import { socket } from "@/lib/socketClient";
 import ChatMessage from "@/components/ChatMessage"; 
 import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { deleteConversationAction, getMessagesByUserId, insertDirectMessage, checkIfConversationExists } from "@/lib/actions";
 import { useRouter } from 'next/navigation';
 import { getFirstUsernameID } from "@/lib/auth/actions";
@@ -12,7 +13,7 @@ import { Trash, User } from "lucide-react";
 
 // --- Interfaces and mapMessages function  ---
 interface Message {
-  sent_at: any;
+  sent_at: Date;
   sender_username: string;
   message: string;
   conversation_id?: number;
@@ -115,18 +116,22 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     setMessage("");
   };
   
-  const onSelectConversation = async (
+  const onSelectConversation = useCallback(async (
     userId: string,
     recipient_username: string,
   ) => {
-    let conversationExists = await checkIfConversationExists(userId, currentUserId);
-    let messagesInfo = await getMessagesByUserId(currentUserId, userId); 
+
+    const conversationExists = await checkIfConversationExists(userId, currentUserId);
+    // Assume getMessagesByUserId now returns messages with timestamps
+    const messagesInfo = await getMessagesByUserId(currentUserId, userId); 
     let newConversationId = initialConversationID;
 
     if(conversationExists){
       newConversationId = conversationExists;
     }
 
+
+    // Use mapMessages which handles timestamp conversion
     const formattedMessages = messagesInfo ? mapMessages(messagesInfo) : []; 
     
     setConversationId(newConversationId);
@@ -135,7 +140,7 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     socket.emit("join-room", { room: newConversationId, username: userName });
     setShowConversations(false); 
     router.push(`/chat?conversationId=${newConversationId}`);
-  };
+  }, [userName, currentUserId, initialConversationID, router]);
   
   const deleteConversation = async () => {
     if (!conversationID) return;
@@ -166,7 +171,8 @@ const ChatComponent: React.FC<ChatComponentProps> = ({
     if (first_username && first_username !== recipient) {
        changeTheFocusedChat();
     }
-  }, [first_username]); // Dependency array includes first_username
+
+  }, [first_username, recipient, onSelectConversation]); // Dependency array includes first_username
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 relative">

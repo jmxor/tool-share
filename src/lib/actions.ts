@@ -1,7 +1,7 @@
 'use server';
 
 import { getConnection } from "@/lib/db";
-import { getEmailID, getFirstUsernameID } from "./auth/actions";
+import { getEmailID, getFirstUsernameID, sendNotificationEmail } from "./auth/actions";
 
 export async function checkIfConversationExists(user1_Id: string, user2_Id : string) {
     try {
@@ -59,6 +59,7 @@ export async function getMessagesByUserId(user1_Id: string, user2_Id : string) {
 
         const conn = await getConnection();
         const result = await conn.query(query, [user1_Id, user2_Id]);
+
         return result.rows;
 
     }catch {
@@ -69,7 +70,6 @@ export async function getMessagesByUserId(user1_Id: string, user2_Id : string) {
 
 export async function insertDirectMessage(user1: string, user2: string, msg: string, timestamp: Date) {
     try {
-
         const query = `
                 SELECT id
                 FROM "user"
@@ -87,12 +87,12 @@ export async function insertDirectMessage(user1: string, user2: string, msg: str
         const user2_id = await conn.query(query, [user2]);
 
         await conn.query(insertQuery, [String(user1_id.rows[0].id), String(user2_id.rows[0].id), msg]);
+        console.log("[TRACING] Sending message email to ", user2_id.rows[0].id);
+        await sendNotificationEmail(user2_id.rows[0].id, "messages", `You have received a message from ${user1}.`);
 
-
-    }catch {
+    } catch {
         return null;
-
-}
+    }
 }
 
 export async function getConversation(user1: string, user2 : string) {
@@ -214,8 +214,8 @@ export async function deleteConversationAction(conversationId: number) {
 
         const result = await conn.query(query, [conversationId]);
 
-        const delMessages = await conn.query(deleteMessages, [result.rows[0].user1_id, result.rows[0].user2_id]);
-        const delConversation = await conn.query(deleteConversation, [result.rows[0].user1_id, result.rows[0].user2_id]);
+        await conn.query(deleteMessages, [result.rows[0].user1_id, result.rows[0].user2_id]);
+        await conn.query(deleteConversation, [result.rows[0].user1_id, result.rows[0].user2_id]);
 
         return 1;
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 import { deleteReview, DeleteReviewState } from "@/lib/auth/actions";
 import {
     Dialog,

@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import ToolsPageContent from "@/components/tools-page-content";
 import { getEmailID } from "@/lib/auth/actions";
-import { getTools } from "@/lib/posts/actions";
+import { getCategories, getTools } from "@/lib/posts/actions";
 
 export default async function ToolsPage() {
   const session = await auth();
@@ -17,6 +17,11 @@ export default async function ToolsPage() {
 
   if (!tools) {
     tools = [];
+  }
+
+  let categories = await getCategories();
+  if (!categories) {
+    categories = [];
   }
 
   let prevLocationId = -1;
@@ -46,6 +51,7 @@ export default async function ToolsPage() {
   return (
     <ToolsPageContent
       tools={tools}
+      categories={categories}
       loggedIn={loggedIn}
       currentUserId={currentUserId}
     />

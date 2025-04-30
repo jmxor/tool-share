@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import { createRef, useState } from "react";
 import { useEffect } from "react";
 import PaymentForm from "@/components/payment/payment-form";
-import SendMessageButton from "../SendMessageComponent";
+import SendMessageButton from "@/components/SendMessageComponent";
 
 const StepActionArea = ({ isBorrower, nextStep, transaction, loggedInEmail, first_username }: { isBorrower: boolean, nextStep: string, transaction: TransactionData, loggedInEmail: string, first_username: string }) => {
   return (
