@@ -144,6 +144,7 @@ export const PostFiltersFormSchema = z.object({
     .positive("Must be greater than 0.")
     .int("Must be a whole number")
     .optional(),
+  categories: z.string().array(),
 });
 
 export const ReportFormSchema = z.object({
