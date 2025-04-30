@@ -32,28 +32,34 @@ export default async function Header() {
 
   return (
     <>
-      <header className="flex h-16 w-full items-center border-b px-4 md:px-8 gap-2 md:py-10">
+      <header className="flex h-16 w-full items-center gap-2 border-b px-4 md:px-8 md:py-10">
         <Sheet>
           <div className="mr-auto flex items-center">
             <SheetTrigger className="mr-2 lg:hidden">
               <MenuIcon />
             </SheetTrigger>
             <Link href="/">
-              <Image className="hidden md:block" src="https://fm91r3r9rr.ufs.sh/f/ZkX4M83fedN1FIDZHXcygq7OTWXcLdVKs1BlQzUaCkJGrbMh" alt="Tool Share Logo" height={48} width={240} />
+              <Image
+                className="hidden md:block"
+                src="https://fm91r3r9rr.ufs.sh/f/ZkX4M83fedN1FIDZHXcygq7OTWXcLdVKs1BlQzUaCkJGrbMh"
+                alt="Tool Share Logo"
+                height={48}
+                width={240}
+              />
             </Link>
           </div>
 
-          <div className="hidden md:flex items-center gap-4 w-full justify-center">
+          <div className="hidden w-full items-center justify-center gap-4 md:flex">
             <HeaderLinks links={navLinks} />
           </div>
 
-          {session?.user ?
+          {session?.user ? (
             <AccountButton email={session?.user.email as string} />
-            :
+          ) : (
             <Button variant="outline" asChild>
               <a href="/auth/login">Log In</a>
             </Button>
-          }
+          )}
 
           {/* Mobile Links*/}
           <SheetContent side="left">
@@ -78,14 +84,14 @@ export default async function Header() {
         </Sheet>
       </header>
       {/* Mobile Search Bar */}
-      <div className={cn("w-full px-4 py-2 border-b md:hidden")}>
+      {/* <div className={cn("w-full px-4 py-2 border-b md:hidden")}>
         <HeaderSearch />
-      </div>
-      
+      </div> */}
+
       {/* Chat Button for logged in users */}
       {session?.user && (
         <div className="fixed bottom-6 right-6 z-50">
-          <Button size="lg" className="rounded-full h-14 w-14 p-0" asChild>
+          <Button size="lg" className="h-14 w-14 rounded-full p-0" asChild>
             <Link href="/chat">
               <MessageCircle className="h-6 w-6" />
               <span className="sr-only">Chat</span>
