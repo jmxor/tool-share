@@ -42,6 +42,7 @@ export default function ToolsMap({
       if (marker) {
         return { ...markers, [id]: marker };
       } else {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { [id]: _, ...newMarkers } = markers;
 
         return newMarkers;
